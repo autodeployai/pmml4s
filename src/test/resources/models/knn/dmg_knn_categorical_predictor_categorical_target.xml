@@ -1,0 +1,101 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="Copyright (c) 2011, DMG.org"/>
+    <DataDictionary numberOfFields="4">
+        <DataField name="marital status" optype="categorical" dataType="string">
+            <Value value="s"/>
+            <Value value="d"/>
+            <Value value="m"/>
+        </DataField>
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="dependents" optype="continuous" dataType="double"/>
+        <DataField name="income" optype="categorical" dataType="string">
+            <Value value="Low"/>
+            <Value value="Middle"/>
+            <Value value="High"/>
+        </DataField>
+    </DataDictionary>
+    <NearestNeighborModel modelName="KNN Census2000" categoricalScoringMethod="majorityVote" numberOfNeighbors="3"
+                          functionName="classification" instanceIdVariable="ID" threshold="0.001">
+        <MiningSchema>
+            <MiningField name="marital status"/>
+            <MiningField name="age"/>
+            <MiningField name="dependents"/>
+            <MiningField name="income" usageType="target"/>
+        </MiningSchema>
+        <Output>
+            <OutputField dataType="string" feature="predictedValue" name="output_1" optype="categorical"/>
+            <OutputField dataType="string" feature="entityId" name="neighbor1" rank="1" optype="categorical"/>
+            <OutputField dataType="string" feature="entityId" name="neighbor2" rank="2" optype="categorical"/>
+            <OutputField dataType="string" feature="entityId" name="neighbor3" rank="3" optype="categorical"/>
+        </Output>
+        <LocalTransformations>
+            <DerivedField name="norm_age" optype="continuous" dataType="double">
+                <NormContinuous field="age">
+                    <LinearNorm orig="0" norm="0"/>
+                    <LinearNorm orig="45" norm="0.5"/>
+                    <LinearNorm orig="105" norm="1"/>
+                </NormContinuous>
+            </DerivedField>
+            <DerivedField name="married" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="m"/>
+            </DerivedField>
+            <DerivedField name="divorced" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="d"/>
+            </DerivedField>
+            <DerivedField name="single" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="s"/>
+            </DerivedField>
+        </LocalTransformations>
+        <TrainingInstances recordCount="200" fieldCount="5" isTransformed="false">
+            <InstanceFields>
+                <InstanceField field="ID" column="ID"/>
+                <InstanceField field="marital status" column="ms"/>
+                <InstanceField field="age" column="age"/>
+                <InstanceField field="dependents" column="deps"/>
+                <InstanceField field="income" column="inc"/>
+            </InstanceFields>
+            <InlineTable>
+                <row>
+                    <ID>1</ID>
+                    <ms>m</ms>
+                    <age>33.0</age>
+                    <deps>4</deps>
+                    <inc>Low</inc>
+                </row>
+                <row>
+                    <ID>2</ID>
+                    <ms>s</ms>
+                    <age>25.0</age>
+                    <deps>3</deps>
+                    <inc>Low</inc>
+                </row>
+                <!-- ... -->
+                <row>
+                    <ID>11</ID>
+                    <ms>m</ms>
+                    <age>38.0</age>
+                    <deps>2</deps>
+                    <inc>Middle</inc>
+                </row>
+                <!-- ... -->
+                <row>
+                    <ID>200</ID>
+                    <ms>m</ms>
+                    <age>45.0</age>
+                    <deps>1</deps>
+                    <inc>High</inc>
+                </row>
+            </InlineTable>
+        </TrainingInstances>
+        <ComparisonMeasure kind="distance">
+            <squaredEuclidean/>
+        </ComparisonMeasure>
+        <KNNInputs>
+            <KNNInput field="norm_age" compareFunction="absDiff"/>
+            <KNNInput field="married" compareFunction="absDiff"/>
+            <KNNInput field="divorced" compareFunction="absDiff"/>
+            <KNNInput field="single" compareFunction="absDiff"/>
+            <KNNInput field="dependents" compareFunction="absDiff"/>
+        </KNNInputs>
+    </NearestNeighborModel>
+</PMML>

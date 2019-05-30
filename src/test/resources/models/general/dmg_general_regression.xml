@@ -1,0 +1,43 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="jobcat" optype="continuous" dataType="double"/>
+        <DataField name="minority" optype="continuous" dataType="double"/>
+        <DataField name="sex" optype="continuous" dataType="double"/>
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="work" optype="continuous" dataType="double"/>
+    </DataDictionary>
+
+    <GeneralRegressionModel modelType="regression" functionName="regression">
+
+        <MiningSchema>
+            <MiningField name="jobcat" usageType="target"/>
+            <MiningField name="age" usageType="active"/>
+            <MiningField name="work" usageType="active"/>
+        </MiningSchema>
+
+        <ParameterList>
+            <Parameter name="p0" label="Intercept"/>
+            <Parameter name="p1" label="age"/>
+            <Parameter name="p2" label="work"/>
+        </ParameterList>
+
+        <CovariateList>
+            <Predictor name="age"/>
+            <Predictor name="work"/>
+        </CovariateList>
+
+        <PPMatrix>
+            <PPCell value="1" predictorName="age" parameterName="p1"/>
+            <PPCell value="1" predictorName="work" parameterName="p2"/>
+        </PPMatrix>
+
+        <ParamMatrix>
+            <PCell parameterName="p0" beta="2.922" df="1"/>
+            <PCell parameterName="p1" beta="-0.031" df="1"/>
+            <PCell parameterName="p2" beta="0.034" df="1"/>
+        </ParamMatrix>
+
+    </GeneralRegressionModel>
+
+</PMML>

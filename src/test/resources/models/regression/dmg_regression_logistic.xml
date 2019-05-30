@@ -1,0 +1,24 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="3">
+        <DataField name="x1" optype="continuous" dataType="double"/>
+        <DataField name="x2" optype="continuous" dataType="double"/>
+        <DataField name="y" optype="categorical" dataType="string">
+            <Value value="yes"/>
+            <Value value="no"/>
+        </DataField>
+    </DataDictionary>
+    <RegressionModel functionName="regression" modelName="Sample for stepwise polynomial regression"
+                     algorithmName="stepwisePolynomialRegression" normalizationMethod="softmax" targetFieldName="y">
+        <MiningSchema>
+            <MiningField name="x1"/>
+            <MiningField name="x2"/>
+            <MiningField name="y" usageType="target"/>
+        </MiningSchema>
+        <RegressionTable targetCategory="no" intercept="125.56601826">
+            <NumericPredictor name="x1" coefficient="-28.6617384"/>
+            <NumericPredictor name="x2" coefficient="-20.42027426"/>
+        </RegressionTable>
+        <RegressionTable targetCategory="yes" intercept="0"/>
+    </RegressionModel>
+</PMML>

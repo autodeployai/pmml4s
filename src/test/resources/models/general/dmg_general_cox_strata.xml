@@ -1,0 +1,89 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="childs" optype="continuous" dataType="double"/>
+        <DataField name="happy" optype="categorical" dataType="double"/>
+        <DataField name="educ" optype="categorical" dataType="double"/>
+        <DataField name="region" optype="categorical" dataType="double"/>
+        <DataField name="life" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <GeneralRegressionModel modelType="CoxRegression" modelName="CSCox" functionName="regression"
+                            endTimeVariable="childs"
+                            statusVariable="life" baselineStrataVariable="region">
+        <MiningSchema>
+            <MiningField name="childs" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="happy" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="educ" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="region" usageType="active"/>
+            <MiningField name="life" usageType="target"/>
+        </MiningSchema>
+        <ParameterList>
+            <Parameter name="P0000001" label="[happy=1]" referencePoint="0"/>
+            <Parameter name="P0000002" label="[happy=2]" referencePoint="0"/>
+            <Parameter name="P0000003" label="[happy=3]" referencePoint="0"/>
+            <Parameter name="P0000004" label="educ" referencePoint="12.85536159601"/>
+            <Parameter name="P0000005" label="[happy=1] * educ" referencePoint="0"/>
+            <Parameter name="P0000006" label="[happy=2] * educ" referencePoint="0"/>
+            <Parameter name="P0000007" label="[happy=3] * educ" referencePoint="0"/>
+        </ParameterList>
+        <FactorList>
+            <Predictor name="happy"/>
+        </FactorList>
+        <CovariateList>
+            <Predictor name="educ"/>
+        </CovariateList>
+        <PPMatrix>
+            <PPCell value="1" predictorName="happy" parameterName="P0000001"/>
+            <PPCell value="2" predictorName="happy" parameterName="P0000002"/>
+            <PPCell value="3" predictorName="happy" parameterName="P0000003"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000004"/>
+            <PPCell value="1" predictorName="happy" parameterName="P0000005"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000005"/>
+            <PPCell value="2" predictorName="happy" parameterName="P0000006"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000006"/>
+            <PPCell value="3" predictorName="happy" parameterName="P0000007"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000007"/>
+        </PPMatrix>
+        <ParamMatrix>
+            <PCell parameterName="P0000001" beta="1.96429877799117" df="1"/>
+            <PCell parameterName="P0000002" beta="0.487952271605177" df="1"/>
+            <PCell parameterName="P0000003" beta="0" df="0"/>
+            <PCell parameterName="P0000004" beta="0.186388616742954" df="1"/>
+            <PCell parameterName="P0000005" beta="-0.0964727062694649" df="1"/>
+            <PCell parameterName="P0000006" beta="-0.0257167272021955" df="1"/>
+            <PCell parameterName="P0000007" beta="0" df="0"/>
+        </ParamMatrix>
+        <EventValues>
+            <Value value="1"/>
+        </EventValues>
+        <BaseCumHazardTables>
+            <BaselineStratum value="1" label="[region=North East]" maxTime="7">
+                <BaselineCell time="1" cumHazard="0.0480764996657994"/>
+                <BaselineCell time="2" cumHazard="0.213530888447458"/>
+                <BaselineCell time="3" cumHazard="0.347177590555568"/>
+                <BaselineCell time="4" cumHazard="0.700088580976311"/>
+                <BaselineCell time="5" cumHazard="0.756857216338272"/>
+                <BaselineCell time="6" cumHazard="0.880125294006154"/>
+                <BaselineCell time="7" cumHazard="1.79261158114014"/>
+            </BaselineStratum>
+            <BaselineStratum value="2" label="[region=South East]" maxTime="7">
+                <BaselineCell time="1" cumHazard="0.104783416911293"/>
+                <BaselineCell time="2" cumHazard="0.149899368179306"/>
+                <BaselineCell time="3" cumHazard="0.344676164146026"/>
+                <BaselineCell time="4" cumHazard="0.447807317242553"/>
+                <BaselineCell time="5" cumHazard="0.602148704727296"/>
+                <BaselineCell time="6" cumHazard="0.996057753780737"/>
+            </BaselineStratum>
+            <BaselineStratum value="3" label="[region=West]" maxTime="8">
+                <BaselineCell time="1" cumHazard="0.0798136487904092"/>
+                <BaselineCell time="2" cumHazard="0.148350388305914"/>
+                <BaselineCell time="3" cumHazard="0.252784132000578"/>
+                <BaselineCell time="4" cumHazard="0.366288821244008"/>
+                <BaselineCell time="5" cumHazard="0.562653812085775"/>
+                <BaselineCell time="6" cumHazard="0.61271473319101"/>
+                <BaselineCell time="7" cumHazard="0.81698327174713"/>
+                <BaselineCell time="8" cumHazard="1.28475458929774"/>
+            </BaselineStratum>
+        </BaseCumHazardTables>
+    </GeneralRegressionModel>
+</PMML>

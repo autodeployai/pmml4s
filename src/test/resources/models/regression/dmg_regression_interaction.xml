@@ -1,0 +1,27 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="4">
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="work" optype="continuous" dataType="double"/>
+        <DataField name="sex" optype="categorical" dataType="string">
+            <Value value="male"/>
+            <Value value="female"/>
+        </DataField>
+        <DataField name="y" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <RegressionModel modelName="Sample for interaction terms" functionName="regression" targetFieldName="y">
+        <MiningSchema>
+            <MiningField name="age" optype="continuous"/>
+            <MiningField name="work" optype="continuous"/>
+            <MiningField name="sex" optype="categorical"/>
+            <MiningField name="y" optype="continuous" usageType="target"/>
+        </MiningSchema>
+        <RegressionTable intercept="2.1">
+            <CategoricalPredictor name="sex" value="female" coefficient="-20.525"/>
+            <PredictorTerm coefficient="-0.1">
+                <FieldRef field="age"/>
+                <FieldRef field="work"/>
+            </PredictorTerm>
+        </RegressionTable>
+    </RegressionModel>
+</PMML>

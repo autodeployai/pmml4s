@@ -1,0 +1,102 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="8">
+        <DataField name="sepal_length" optype="continuous" dataType="double"/>
+        <DataField name="sepal_width" optype="continuous" dataType="double"/>
+        <DataField name="temperature" optype="continuous" dataType="double"/>
+        <DataField name="cloudiness" optype="continuous" dataType="double"/>
+        <DataField name="petal_length" optype="continuous" dataType="double"/>
+        <DataField name="petal_width" optype="continuous" dataType="double"/>
+        <DataField name="Class" optype="categorical" dataType="string"/>
+        <DataField name="PollenIndex" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <MiningModel functionName="regression">
+        <MiningSchema>
+            <MiningField name="petal_length" usageType="active"/>
+            <MiningField name="petal_width" usageType="active"/>
+            <MiningField name="temperature" usageType="active"/>
+            <MiningField name="cloudiness" usageType="active"/>
+            <MiningField name="sepal_length" usageType="supplementary"/>
+            <MiningField name="sepal_width" usageType="supplementary"/>
+            <MiningField name="Class" usageType="target"/>
+            <MiningField name="PollenIndex" usageType="target"/>
+        </MiningSchema>
+        <Segmentation multipleModelMethod="modelChain">
+            <Segment id="1">
+                <True/>
+                <TreeModel modelName="Iris" functionName="classification" splitCharacteristic="binarySplit">
+                    <MiningSchema>
+                        <MiningField name="petal_length" usageType="active"/>
+                        <MiningField name="petal_width" usageType="active"/>
+                        <MiningField name="Class" usageType="target"/>
+                    </MiningSchema>
+                    <Output>
+                        <OutputField dataType="string" feature="predictedValue" name="PredictedClass"
+                                     optype="categorical"/>
+                        <OutputField dataType="double" feature="probability" name="Probability_setosa"
+                                     optype="continuous"
+                                     value="Iris-setosa"/>
+                        <OutputField dataType="double" feature="probability" name="Probability_versicolor"
+                                     optype="continuous" value="Iris-versicolor"/>
+                        <OutputField dataType="double" feature="probability" name="Probability_virginica"
+                                     optype="continuous" value="Iris-virginica"/>
+                    </Output>
+                    <Node score="Iris-setosa" recordCount="150">
+                        <True/>
+                        <ScoreDistribution value="Iris-setosa" recordCount="50"/>
+                        <ScoreDistribution value="Iris-versicolor" recordCount="50"/>
+                        <ScoreDistribution value="Iris-virginica" recordCount="50"/>
+                        <Node score="Iris-setosa" recordCount="50">
+                            <SimplePredicate field="petal_length" operator="lessThan" value="2.45"/>
+                            <ScoreDistribution value="Iris-setosa" recordCount="50"/>
+                            <ScoreDistribution value="Iris-versicolor" recordCount="0"/>
+                            <ScoreDistribution value="Iris-virginica" recordCount="0"/>
+                        </Node>
+                        <Node score="Iris-versicolor" recordCount="100">
+                            <SimplePredicate field="petal_length" operator="greaterThan" value="2.45"/>
+                            <ScoreDistribution value="Iris-setosa" recordCount="0"/>
+                            <ScoreDistribution value="Iris-versicolor" recordCount="50"/>
+                            <ScoreDistribution value="Iris-virginica" recordCount="50"/>
+                            <Node score="Iris-versicolor" recordCount="54">
+                                <SimplePredicate field="petal_width" operator="lessThan" value="1.75"/>
+                                <ScoreDistribution value="Iris-setosa" recordCount="0"/>
+                                <ScoreDistribution value="Iris-versicolor" recordCount="49"/>
+                                <ScoreDistribution value="Iris-virginica" recordCount="5"/>
+                            </Node>
+                            <Node score="Iris-virginica" recordCount="46">
+                                <SimplePredicate field="petal_width" operator="greaterThan" value="1.75"/>
+                                <ScoreDistribution value="Iris-setosa" recordCount="0"/>
+                                <ScoreDistribution value="Iris-versicolor" recordCount="1"/>
+                                <ScoreDistribution value="Iris-virginica" recordCount="45"/>
+                            </Node>
+                        </Node>
+                    </Node>
+                </TreeModel>
+            </Segment>
+            <Segment id="2">
+                <True/>
+                <RegressionModel modelName="PollenIndex" functionName="regression">
+                    <MiningSchema>
+                        <MiningField name="Probability_setosa" usageType="active"/>
+                        <MiningField name="Probability_versicolor" usageType="active"/>
+                        <MiningField name="Probability_virginica" usageType="active"/>
+                        <MiningField name="temperature" usageType="active"/>
+                        <MiningField name="cloudiness" usageType="active"/>
+                        <MiningField name="PollenIndex" usageType="target"/>
+                    </MiningSchema>
+                    <Output>
+                        <OutputField dataType="double" feature="predictedValue" name="Pollen Index"
+                                     optype="continuous"/>
+                    </Output>
+                    <RegressionTable intercept="0.3">
+                        <NumericPredictor coefficient="0.8" exponent="1" name="Probability_setosa"/>
+                        <NumericPredictor coefficient="0.7" exponent="1" name="Probability_versicolor"/>
+                        <NumericPredictor coefficient="0.9" exponent="1" name="Probability_virginica"/>
+                        <NumericPredictor coefficient="0.02" exponent="1" name="temperature"/>
+                        <NumericPredictor coefficient="-0.1" exponent="1" name="cloudiness"/>
+                    </RegressionTable>
+                </RegressionModel>
+            </Segment>
+        </Segmentation>
+    </MiningModel>
+</PMML>

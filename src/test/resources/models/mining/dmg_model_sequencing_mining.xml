@@ -1,0 +1,58 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.2">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="income" optype="continuous" dataType="double"/>
+        <DataField name="gender" optype="categorical" dataType="string">
+            <Value value="female"/>
+            <Value value="male"/>
+        </DataField>
+        <DataField name="weight" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <MiningModel functionName="regression">
+        <MiningSchema>
+            <MiningField name="age"/>
+            <MiningField name="income"/>
+            <MiningField name="gender"/>
+            <MiningField name="weight" usageType="target"/>
+        </MiningSchema>
+        <LocalTransformations>
+            <DerivedField name="mc" optype="continuous" dataType="double">
+                <MapValues outputColumn="mapped" mapMissingTo="-1">
+                    <FieldColumnPair field="gender" column="sourceval"/>
+                    <InlineTable>
+                        <row>
+                            <sourceval>female</sourceval>
+                            <mapped>1</mapped>
+                        </row>
+                        <row>
+                            <sourceval>male</sourceval>
+                            <mapped>0</mapped>
+                        </row>
+                    </InlineTable>
+                </MapValues>
+            </DerivedField>
+        </LocalTransformations>
+        <Regression functionName="regression">
+            <ResultField name="term" feature="predictedValue"/>
+            <RegressionTable intercept="2.34">
+                <NumericPredictor name="income" coefficient="0.03"/>
+                <PredictorTerm coefficient="1.23">
+                    <FieldRef field="age"/>
+                    <FieldRef field="mc"/>
+                </PredictorTerm>
+            </RegressionTable>
+        </Regression>
+        <DecisionTree functionName="regression">
+            <Node score="0.0">
+                <True/>
+                <Node score="32.32">
+                    <SimplePredicate field="term" operator="lessThan" value="42"/>
+                </Node>
+                <Node score="78.91">
+                    <SimplePredicate field="term" operator="greaterOrEqual" value="42"/>
+                </Node>
+            </Node>
+        </DecisionTree>
+    </MiningModel>
+</PMML>

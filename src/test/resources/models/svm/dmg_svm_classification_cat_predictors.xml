@@ -1,0 +1,64 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="2016 DMG.org">
+    </Header>
+    <DataDictionary numberOfFields="3">
+        <DataField dataType="integer" name="Age" optype="continuous"/>
+        <DataField dataType="string" name="Employment" optype="categorical">
+            <Value value="Private"/>
+            <Value value="Consultant"/>
+            <Value value="SelfEmp"/>
+            <Value value="Unemployed"/>
+        </DataField>
+        <DataField dataType="string" name="TARGET" optype="categorical">
+            <Value value="0"/>
+            <Value value="1"/>
+        </DataField>
+    </DataDictionary>
+    <SupportVectorMachineModel modelName="SVM" functionName="classification" svmRepresentation="SupportVectors">
+        <MiningSchema>
+            <MiningField name="Age"/>
+            <MiningField name="TARGET" usageType="predicted"/>
+            <MiningField name="Employment"/>
+        </MiningSchema>
+        <PolynomialKernelType coef0="1.0" degree="1.0" gamma="1.0"/>
+        <VectorDictionary numberOfVectors="3">
+            <VectorFields numberOfFields="5">
+                <FieldRef field="Age"/>
+                <CategoricalPredictor name="Employment" value="Private" coefficient="1"/>
+                <CategoricalPredictor name="Employment" value="Consultant" coefficient="1"/>
+                <CategoricalPredictor name="Employment" value="SelfEmp" coefficient="1"/>
+                <CategoricalPredictor name="Employment" value="Unemployed" coefficient="1"/>
+            </VectorFields>
+            <VectorInstance id="1">
+                <REAL-SparseArray n="5">
+                    <Indices>1 2</Indices>
+                    <REAL-Entries>0.4694971021222236 1.0</REAL-Entries>
+                </REAL-SparseArray>
+            </VectorInstance>
+            <VectorInstance id="2">
+                <REAL-SparseArray n="5">
+                    <Indices>1 3</Indices>
+                    <REAL-Entries>1.573676552080416 1.0</REAL-Entries>
+                </REAL-SparseArray>
+            </VectorInstance>
+            <VectorInstance id="3">
+                <REAL-SparseArray n="5">
+                    <Indices>1 4</Indices>
+                    <REAL-Entries>1.9417363687331468 1.0</REAL-Entries>
+                </REAL-SparseArray>
+            </VectorInstance>
+        </VectorDictionary>
+        <SupportVectorMachine targetCategory="0" alternateTargetCategory="1">
+            <SupportVectors numberOfAttributes="5" numberOfSupportVectors="3">
+                <SupportVector vectorId="1"/>
+                <SupportVector vectorId="2"/>
+                <SupportVector vectorId="3"/>
+            </SupportVectors>
+            <Coefficients numberOfCoefficients="3" absoluteValue="-1.9484983196017862">
+                <Coefficient value="1.0"/>
+                <Coefficient value="1.0"/>
+                <Coefficient value="-1.0"/>
+            </Coefficients>
+        </SupportVectorMachine>
+    </SupportVectorMachineModel>
+</PMML>

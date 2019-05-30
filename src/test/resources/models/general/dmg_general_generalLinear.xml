@@ -1,0 +1,69 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="jobcat" optype="continuous" dataType="double"/>
+        <DataField name="minority" optype="categorical" dataType="double"/>
+        <DataField name="sex" optype="categorical" dataType="double"/>
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="work" optype="continuous" dataType="double"/>
+    </DataDictionary>
+
+    <GeneralRegressionModel modelType="generalLinear" functionName="regression">
+
+        <MiningSchema>
+            <MiningField name="jobcat" usageType="target"/>
+            <MiningField name="minority" usageType="active"/>
+            <MiningField name="sex" usageType="active"/>
+            <MiningField name="age" usageType="active"/>
+            <MiningField name="work" usageType="active"/>
+        </MiningSchema>
+
+        <ParameterList>
+            <Parameter name="p0" label="Intercept"/>
+            <Parameter name="p1" label="[SEX=0]"/>
+            <Parameter name="p2" label="[SEX=1]"/>
+            <Parameter name="p3" label="[MINORITY=0]([SEX=0])"/>
+            <Parameter name="p4" label="[MINORITY=1]([SEX=0])"/>
+            <Parameter name="p5" label="[MINORITY=0]([SEX=1])"/>
+            <Parameter name="p6" label="[MINORITY=1]([SEX=1])"/>
+            <Parameter name="p7" label="age"/>
+            <Parameter name="p8" label="work"/>
+        </ParameterList>
+
+        <FactorList>
+            <Predictor name="sex"/>
+            <Predictor name="minority"/>
+        </FactorList>
+
+        <CovariateList>
+            <Predictor name="age"/>
+            <Predictor name="work"/>
+        </CovariateList>
+
+        <PPMatrix>
+            <PPCell value="0" predictorName="sex" parameterName="p1"/>
+            <PPCell value="1" predictorName="sex" parameterName="p2"/>
+            <PPCell value="0" predictorName="sex" parameterName="p3"/>
+            <PPCell value="0" predictorName="sex" parameterName="p4"/>
+            <PPCell value="1" predictorName="sex" parameterName="p5"/>
+            <PPCell value="1" predictorName="sex" parameterName="p6"/>
+            <PPCell value="0" predictorName="minority" parameterName="p3"/>
+            <PPCell value="1" predictorName="minority" parameterName="p4"/>
+            <PPCell value="0" predictorName="minority" parameterName="p5"/>
+            <PPCell value="1" predictorName="minority" parameterName="p6"/>
+            <PPCell value="1" predictorName="age" parameterName="p7"/>
+            <PPCell value="1" predictorName="work" parameterName="p8"/>
+        </PPMatrix>
+
+        <ParamMatrix>
+            <PCell parameterName="p0" beta="1.602" df="1"/>
+            <PCell parameterName="p1" beta="0.580" df="1"/>
+            <PCell parameterName="p3" beta="0.831" df="1"/>
+            <PCell parameterName="p5" beta="0.429" df="1"/>
+            <PCell parameterName="p7" beta="-0.012" df="1"/>
+            <PCell parameterName="p8" beta="0.010" df="1"/>
+        </ParamMatrix>
+
+    </GeneralRegressionModel>
+
+</PMML>

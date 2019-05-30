@@ -1,0 +1,68 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="childs" optype="continuous" dataType="double"/>
+        <DataField name="happy" optype="categorical" dataType="double"/>
+        <DataField name="educ" optype="categorical" dataType="double"/>
+        <DataField name="life" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <GeneralRegressionModel modelType="CoxRegression" modelName="CSCox" functionName="regression"
+                            endTimeVariable="childs"
+                            statusVariable="life">
+        <MiningSchema>
+            <MiningField name="childs" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="happy" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="educ" usageType="active" missingValueTreatment="asIs"/>
+            <MiningField name="life" usageType="target"/>
+        </MiningSchema>
+        <ParameterList>
+            <Parameter name="P0000001" label="[happy=1]" referencePoint="0"/>
+            <Parameter name="P0000002" label="[happy=2]" referencePoint="0"/>
+            <Parameter name="P0000003" label="[happy=3]" referencePoint="0"/>
+            <Parameter name="P0000004" label="educ" referencePoint="12.85536159601"/>
+            <Parameter name="P0000005" label="[happy=1] * educ" referencePoint="0"/>
+            <Parameter name="P0000006" label="[happy=2] * educ" referencePoint="0"/>
+            <Parameter name="P0000007" label="[happy=3] * educ" referencePoint="0"/>
+        </ParameterList>
+        <FactorList>
+            <Predictor name="happy"/>
+        </FactorList>
+        <CovariateList>
+            <Predictor name="educ"/>
+        </CovariateList>
+        <PPMatrix>
+            <PPCell value="1" predictorName="happy" parameterName="P0000001"/>
+            <PPCell value="2" predictorName="happy" parameterName="P0000002"/>
+            <PPCell value="3" predictorName="happy" parameterName="P0000003"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000004"/>
+            <PPCell value="1" predictorName="happy" parameterName="P0000005"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000005"/>
+            <PPCell value="2" predictorName="happy" parameterName="P0000006"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000006"/>
+            <PPCell value="3" predictorName="happy" parameterName="P0000007"/>
+            <PPCell value="1" predictorName="educ" parameterName="P0000007"/>
+        </PPMatrix>
+        <ParamMatrix>
+            <PCell parameterName="P0000001" beta="2.19176500383392" df="1"/>
+            <PCell parameterName="P0000002" beta="0.839584538765938" df="1"/>
+            <PCell parameterName="P0000003" beta="0" df="0"/>
+            <PCell parameterName="P0000004" beta="0.207006511267958" df="1"/>
+            <PCell parameterName="P0000005" beta="-0.124788379173099" df="1"/>
+            <PCell parameterName="P0000006" beta="-0.0652692443310469" df="1"/>
+            <PCell parameterName="P0000007" beta="0" df="0"/>
+        </ParamMatrix>
+        <EventValues>
+            <Value value="1"/>
+        </EventValues>
+        <BaseCumHazardTables maxTime="8">
+            <BaselineCell time="1" cumHazard="0.0805149154781295"/>
+            <BaselineCell time="2" cumHazard="0.208621561646413"/>
+            <BaselineCell time="3" cumHazard="0.367889107749672"/>
+            <BaselineCell time="4" cumHazard="0.610515527436034"/>
+            <BaselineCell time="5" cumHazard="0.782436645962723"/>
+            <BaselineCell time="6" cumHazard="0.898256334351415"/>
+            <BaselineCell time="7" cumHazard="1.34645277785058"/>
+            <BaselineCell time="8" cumHazard="1.92644296943848"/>
+        </BaseCumHazardTables>
+    </GeneralRegressionModel>
+</PMML>

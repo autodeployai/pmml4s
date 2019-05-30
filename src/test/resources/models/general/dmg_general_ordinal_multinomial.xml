@@ -1,0 +1,88 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="5">
+        <DataField name="jobcat" optype="ordinal" dataType="integer">
+            <Value value="1" displayValue="Clerical"/>
+            <Value value="2" displayValue="Office trainee"/>
+            <Value value="3" displayValue="Security officer"/>
+            <Value value="4" displayValue="College trainee"/>
+            <Value value="5" displayValue="Exempt employee"/>
+            <Value value="6" displayValue="MBA trainee"/>
+            <Value value="7" displayValue="Technical"/>
+        </DataField>
+        <DataField name="minority" optype="categorical" dataType="double">
+            <Value value="0" displayValue="Non-Minority"/>
+            <Value value="1" displayValue="Minority"/>
+        </DataField>
+        <DataField name="sex" optype="categorical" dataType="double">
+            <Value value="0" displayValue="Male"/>
+            <Value value="1" displayValue="Female"/>
+        </DataField>
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="work" optype="continuous" dataType="double"/>
+    </DataDictionary>
+
+    <GeneralRegressionModel modelType="ordinalMultinomial" functionName="classification" cumulativeLink="logit">
+
+        <MiningSchema>
+            <MiningField name="jobcat" usageType="target"/>
+            <MiningField name="minority" usageType="active"/>
+            <MiningField name="sex" usageType="active"/>
+            <MiningField name="age" usageType="active"/>
+            <MiningField name="work" usageType="active"/>
+        </MiningSchema>
+
+        <ParameterList>
+            <Parameter name="p0" label="Intercept"/>
+            <Parameter name="p1" label="[SEX=0]"/>
+            <Parameter name="p2" label="[SEX=1]"/>
+            <Parameter name="p3" label="[MINORITY=0]([SEX=0])"/>
+            <Parameter name="p4" label="[MINORITY=1]([SEX=0])"/>
+            <Parameter name="p5" label="[MINORITY=0]([SEX=1])"/>
+            <Parameter name="p6" label="[MINORITY=1]([SEX=1])"/>
+            <Parameter name="p7" label="age"/>
+            <Parameter name="p8" label="work"/>
+        </ParameterList>
+
+        <FactorList>
+            <Predictor name="sex"/>
+            <Predictor name="minority"/>
+        </FactorList>
+
+        <CovariateList>
+            <Predictor name="age"/>
+            <Predictor name="work"/>
+        </CovariateList>
+
+        <PPMatrix>
+            <PPCell value="0" predictorName="sex" parameterName="p1"/>
+            <PPCell value="1" predictorName="sex" parameterName="p2"/>
+            <PPCell value="0" predictorName="sex" parameterName="p3"/>
+            <PPCell value="0" predictorName="sex" parameterName="p4"/>
+            <PPCell value="1" predictorName="sex" parameterName="p5"/>
+            <PPCell value="1" predictorName="sex" parameterName="p6"/>
+            <PPCell value="0" predictorName="minority" parameterName="p3"/>
+            <PPCell value="1" predictorName="minority" parameterName="p4"/>
+            <PPCell value="0" predictorName="minority" parameterName="p5"/>
+            <PPCell value="1" predictorName="minority" parameterName="p6"/>
+            <PPCell value="1" predictorName="age" parameterName="p7"/>
+            <PPCell value="1" predictorName="work" parameterName="p8"/>
+        </PPMatrix>
+
+        <ParamMatrix>
+            <PCell targetCategory="1" parameterName="p0" beta="-0.683" df="1"/>
+            <PCell targetCategory="2" parameterName="p0" beta="0.723" df="1"/>
+            <PCell targetCategory="3" parameterName="p0" beta="1.104" df="1"/>
+            <PCell targetCategory="4" parameterName="p0" beta="1.922" df="1"/>
+            <PCell targetCategory="5" parameterName="p0" beta="3.386" df="1"/>
+            <PCell targetCategory="6" parameterName="p0" beta="4.006" df="1"/>
+            <PCell parameterName="p1" beta="1.096" df="1"/>
+            <PCell parameterName="p3" beta="0.957" df="1"/>
+            <PCell parameterName="p5" beta="1.149" df="1"/>
+            <PCell parameterName="p7" beta="-0.067" df="1"/>
+            <PCell parameterName="p8" beta="0.060" df="1"/>
+        </ParamMatrix>
+
+    </GeneralRegressionModel>
+
+</PMML>

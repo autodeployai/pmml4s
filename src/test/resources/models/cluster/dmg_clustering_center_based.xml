@@ -1,0 +1,62 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+    <Header copyright="dmg.org"/>
+    <DataDictionary numberOfFields="3">
+        <DataField name="marital status" optype="categorical" dataType="string">
+            <Value value="s"/>
+            <Value value="d"/>
+            <Value value="m"/>
+        </DataField>
+        <DataField name="age" optype="continuous" dataType="double"/>
+        <DataField name="salary" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <ClusteringModel modelName="Mini Clustering" functionName="clustering" modelClass="centerBased"
+                     numberOfClusters="2">
+        <MiningSchema>
+            <MiningField name="marital status"/>
+            <MiningField name="age"/>
+            <MiningField name="salary"/>
+        </MiningSchema>
+        <LocalTransformations>
+            <DerivedField name="c1" optype="continuous" dataType="double">
+                <NormContinuous field="age">
+                    <LinearNorm orig="45" norm="0"/>
+                    <LinearNorm orig="82" norm="0.5"/>
+                    <LinearNorm orig="105" norm="1"/>
+                </NormContinuous>
+            </DerivedField>
+            <DerivedField name="c2" optype="continuous" dataType="double">
+                <NormContinuous field="salary">
+                    <LinearNorm orig="39000" norm="0"/>
+                    <LinearNorm orig="39800" norm="0.5"/>
+                    <LinearNorm orig="41000" norm="1"/>
+                </NormContinuous>
+            </DerivedField>
+            <DerivedField name="c3" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="m"/>
+            </DerivedField>
+            <DerivedField name="c4" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="d"/>
+            </DerivedField>
+            <DerivedField name="c5" optype="continuous" dataType="double">
+                <NormDiscrete field="marital status" value="s"/>
+            </DerivedField>
+        </LocalTransformations>
+        <ComparisonMeasure kind="distance">
+            <squaredEuclidean/>
+        </ComparisonMeasure>
+        <ClusteringField field="c1" compareFunction="absDiff"/>
+        <ClusteringField field="c2" compareFunction="absDiff"/>
+        <ClusteringField field="c3" compareFunction="absDiff"/>
+        <ClusteringField field="c4" compareFunction="absDiff"/>
+        <ClusteringField field="c5" compareFunction="absDiff"/>
+        <MissingValueWeights>
+            <Array n="5" type="real">1 1 1 1 1</Array>
+        </MissingValueWeights>
+        <Cluster name="marital status is d or s">
+            <Array n="5" type="real">0.524561 0.486321 0.128427 0.459188 0.412384</Array>
+        </Cluster>
+        <Cluster name="marital status is m">
+            <Array n="5" type="real">0.69946 0.419037 0.591226 0.173521 0.235253</Array>
+        </Cluster>
+    </ClusteringModel>
+</PMML>
