@@ -23,6 +23,7 @@ It supports the following models:
 _PMML4S_ is really easy to use. Just do one or more of the following:
 
 1. Load model.
+
 ```scala
 import org.pmml4s.model.Model
 import scala.io.Source
@@ -30,7 +31,9 @@ import scala.io.Source
 // load a model from an IO source that supports various sources, e.g. from a URL locates a PMML model.
 val model = Model(Source.fromURL(new java.net.URL("http://dmg.org/pmml/pmml_examples/KNIME_PMML_4.1_Examples/single_iris_dectree.xml")))
 ```
+
 or
+
 ```scala
 import org.pmml4s.model.Model
 
@@ -39,19 +42,23 @@ val model = Model.fromFile("single_iris_dectree.xml")
 ```
 
 2. Call `predict(values)` to predict new values that can be in different types, and the type of results is always same as inputs.
+
 * `values` in a Map:
+
 ```scala
 scala> val result = model.predict(Map("sepal_length" -> 5.1, "sepal_width" -> 3.5, "petal_length" -> 1.4, "petal_width" -> 0.2))
 result: Map[String,Any] = Map(Probability -> 1.0, Probability_Iris-versicolor -> 0.0, Probability_Iris-setosa -> 1.0, Probability_Iris-virginica -> 0.0, PredictedValue -> Iris-setosa, Node_ID -> 1)
 ```
-    
+
 * `values` in a list of pairs of keys and values:
+
 ```scala
 scala> val result = model.predict("sepal_length" -> 5.1, "sepal_width" -> 3.5, "petal_length" -> 1.4, "petal_width" -> 0.2)
 result: Seq[(String, Any)] = ArraySeq((PredictedValue,Iris-setosa), (Probability,1.0), (Probability_Iris-setosa,1.0), (Probability_Iris-versicolor,0.0), (Probability_Iris-virginica,0.0), (Node_ID,1))
 ```
 
 * `values` in an Array, the order of those values is supposed as same as the input fields list, and the order of results is same as the output fields list.
+
 ```scala
 scala> val inputNames = model.inputNames
 inputNames: Array[String] = Array(sepal_length, sepal_width, petal_length, petal_width)
@@ -64,8 +71,8 @@ outputNames: Array[String] = Array(PredictedValue, Probability, Probability_Iris
 ```
 
 * `values` in the JSON format that supports the following styles. The JSON string can take more than more records to predict, and the results are still a string in JSON with the same format as input.
-    * `records` : list like [{column -> value}, … , {column -> value}]
-    * `split` : dict like {‘columns’ -> [columns], ‘data’ -> [values]}
+    - `records` : list like [{column -> value}, … , {column -> value}]
+    - `split` : dict like {‘columns’ -> [columns], ‘data’ -> [values]}
 
 ```scala
 scala> val result = model.predict("""[{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}, {"sepal_length": 7, "sepal_width": 3.2, "petal_length": 4.7, "petal_width": 1.4}]""")
@@ -76,6 +83,7 @@ result: String = {"columns":["PredictedValue","Probability","Probability_Iris-se
 ```
 
 * `values` in the _PMML4S's_ `Series`:
+
 ```scala
 import org.pmml4s.data.Series
 import org.pmml4s.util.Utils
@@ -99,6 +107,7 @@ result: org.pmml4s.data.Series = [Iris-setosa,1.0,1.0,0.0,0.0,1], [(PredictedVal
 ```
 
 You can use any formats of values according to your environment. Except of the `Series` need to convert the data explicitly, you don't need to call `Utils.toVal` explicitly to convert data to ones defined by PMML for others, the conversion will be operated properly automatically. e.g. those input values are string, not double, you can still get the same correct results.
+
 ```scala
 scala> val result = model.predict(Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2"))
 result: Map[String,Any] = Map(Probability -> 1.0, Probability_Iris-versicolor -> 0.0, Probability_Iris-setosa -> 1.0, Probability_Iris-virginica -> 0.0, PredictedValue -> Iris-setosa, Node_ID -> 1)
