@@ -1,5 +1,6 @@
 /target/
-/project/
+/project/project/
+/project/target/
 /.idea/
 /.settings/
 /.project
