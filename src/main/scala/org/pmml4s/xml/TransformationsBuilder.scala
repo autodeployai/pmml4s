@@ -278,8 +278,9 @@ trait TransformationsBuilder extends CommonBuilder
               var key: String = null
               var value: String = ""
               traverseElems(reader, ElemTags.ROW, {
-                case EvElemStart(_, label, _, _) => {
-                  key = label
+                case EvElemStart(pre, label, _, _) => {
+                  // Handel some elements like <data:input>, <data:output>
+                  key = if (pre != null) s"${pre}:${label}" else label
                   value = ""
                 }
                 case EvElemEnd(_, _)             => if (key != null) {

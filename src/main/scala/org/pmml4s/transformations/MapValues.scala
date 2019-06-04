@@ -15,7 +15,7 @@
  */
 package org.pmml4s.transformations
 
-import org.pmml4s.common.{DataType, Table}
+import org.pmml4s.common.{DataType, PmmlElement, Table}
 import org.pmml4s.data.Series
 import org.pmml4s.metadata.Field
 
@@ -51,4 +51,4 @@ class MapValues(
   }
 }
 
-class FieldColumnPair(val field: Field, val column: String)
+class FieldColumnPair(val field: Field, val column: String) extends PmmlElement
