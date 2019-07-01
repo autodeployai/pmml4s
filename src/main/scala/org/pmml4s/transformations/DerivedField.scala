@@ -15,7 +15,7 @@
  */
 package org.pmml4s.transformations
 
-import org.pmml4s.common.{Clearable, DataType, OpType, Value}
+import org.pmml4s.common._
 import org.pmml4s.data.{CombinedSeries, MutableSeries, Series}
 import org.pmml4s.metadata.{DataField, Field, FieldType}
 import org.pmml4s.util.Utils
@@ -42,6 +42,10 @@ class DerivedField(
     this(name, displayName, dataType, opType, Seq.empty, expr)
   }
 
+  def this(name: String, expr: Expression) {
+    this(name, None, UnresolvedDataType, OpType.typeless, expr)
+  }
+  
   /** Field type. */
   override def fieldType = FieldType.DerivedField
 

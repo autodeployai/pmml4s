@@ -54,4 +54,6 @@ class Row(val elements: Map[String, Any]) extends PmmlElement {
   def size: Int = elements.size
 
   def apply(name: String): Any = elements(name)
+
+  def get(name: String): Option[Any] = elements.get(name)
 }

@@ -43,6 +43,10 @@ class DataField(
     this(name, displayName, dataType, opType, Seq(interval), values)
   }
 
+  def this(name: String) {
+    this(name, None, UnresolvedDataType, OpType.typeless)
+  }
+  
   /** An internal attribute could be changed. */
   _attribute = Attribute(dataType, opType, intervals, values)
 

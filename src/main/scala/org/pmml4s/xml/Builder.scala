@@ -117,9 +117,20 @@ trait Builder[T <: Model] extends TransformationsBuilder {
 
   def verifyScore(s: String): Any = {
     if (attributes.isClassification) {
-      // Do not check its parent target that may be different from anonymous target of the child model.
+      // Check its parent target that may be different from anonymous target of the child model.
       val t = getTarget
-      t.map(x => verifyValue(s, x)).getOrElse(s)
+      t.map(x => verifyValue(s, x)).getOrElse({
+        // Check the parent target carefully
+        var result: Any = s
+        if (parent != null && parent.targetField != null && parent.targetField.isCategorical) {
+          val transformedValue = parent.targetField.toVal(s)
+          if (parent.targetField.isValidValue(transformedValue)) {
+            result = transformedValue
+          }
+        }
+
+        result
+      })
     } else if (attributes.isRegression) {
       toVal(s, RealType)
     } else s

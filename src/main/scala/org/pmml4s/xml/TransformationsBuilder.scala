@@ -15,6 +15,7 @@
  */
 package org.pmml4s.xml
 
+import org.pmml4s.UnsupportedException
 import org.pmml4s.common._
 import org.pmml4s.metadata._
 import org.pmml4s.transformations._
@@ -220,7 +221,50 @@ trait TransformationsBuilder extends CommonBuilder
           new MapValues(fieldColumnPairs.result(), table, outputColumn, mapMissingTo, defaultValue, dataType)
         }
       })
-      case EvElemStart(_, ElemTags.TEXT_INDEX, attrs, _)      => ???
+      case EvElemStart(_, ElemTags.TEXT_INDEX, attrs, _)      => makeElem(reader, attrs, new ElemBuilder[TextIndex] {
+        override def build(reader: XMLEventReader, attrs: XmlAttrs): TextIndex = {
+          val textField = scope.field(attrs(AttrTags.TEXT_FIELD))
+          val localTermWeights = attrs.get(AttrTags.LOCAL_TERM_WEIGHTS).map(LocalTermWeights.withName(_)).
+            getOrElse(LocalTermWeights.termFrequency)
+          val isCaseSensitive = attrs.getBoolean(AttrTags.IS_CASE_SENSITIVE, false)
+          val maxLevenshteinDistance = attrs.getInt(AttrTags.MAX_LEVENSHTEIN_DISTANCE, 0)
+          val countHits = attrs.get(AttrTags.COUNT_HITS).map(CountHits.withName(_)).
+            getOrElse(CountHits.allHits)
+          val wordSeparatorCharacterRE = attrs.getString(AttrTags.WORD_SEPARATOR_CHARACTER_RE, "\\s")
+          val tokenize = attrs.getBoolean(AttrTags.TOKENIZE, true)
+          val textIndexNormalizations = mutable.ArrayBuilder.make[TextIndexNormalization]()
+          var expression: Expression = null
+
+          traverseElems(reader, ElemTags.TEXT_INDEX, {
+            case EvElemStart(_, ElemTags.TEXT_INDEX_NORMALIZATION, attrs, _) => textIndexNormalizations +=
+              makeElem(reader, attrs, new ElemBuilder[TextIndexNormalization] {
+                override def build(reader: XMLEventReader, attrs: XmlAttrs): TextIndexNormalization = {
+                  val inField = attrs.getString(AttrTags.IN_FIELD, "string")
+                  val outField = attrs.getString(AttrTags.OUT_FIELD, "stem")
+                  val regexField = attrs.getString(AttrTags.REGEX_FIELD, "regex")
+                  val recursive = attrs.getBoolean(AttrTags.RECURSIVE, false)
+                  val isCaseSensitive = attrs.getBoolean(AttrTags.IS_CASE_SENSITIVE)
+                  val maxLevenshteinDistance = attrs.getInt(AttrTags.MAX_LEVENSHTEIN_DISTANCE)
+                  val wordSeparatorCharacterRE = attrs.get(AttrTags.WORD_SEPARATOR_CHARACTER_RE)
+                  val tokenize = attrs.getBoolean(AttrTags.TOKENIZE)
+                  var table: Table = null
+
+                  traverseElems(reader, ElemTags.TEXT_INDEX_NORMALIZATION, {
+                    case event: EvElemStart if (Table.contains(event.label)) => table = makeTable(reader, event)
+                    case _                                                   =>
+                  })
+                  new TextIndexNormalization(table, isCaseSensitive, maxLevenshteinDistance, wordSeparatorCharacterRE,
+                    tokenize, inField, outField, regexField, recursive)
+                }
+              })
+            case event: EvElemStart if Expression.contains(event.label)      => expression = makeExpression(reader, event, scope)
+            case _                                                           =>
+          })
+
+          new TextIndex(textField, expression, textIndexNormalizations.result(), localTermWeights, isCaseSensitive,
+            maxLevenshteinDistance, countHits, wordSeparatorCharacterRE, tokenize)
+        }
+      })
       case EvElemStart(_, ElemTags.APPLY, attrs, _)           => makeElem(reader, attrs, new ElemBuilder[Apply] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): Apply = {
           val func = function(attrs(AttrTags.FUNCTION))
@@ -238,8 +282,8 @@ trait TransformationsBuilder extends CommonBuilder
           new Apply(func, children.result(), mapMissingTo, defaultValue, invalidValueTreatment)
         }
       })
-      case EvElemStart(_, ElemTags.AGGREGATE, attrs, _)       => ???
-      case EvElemStart(_, ElemTags.LAG, attrs, _)             => ???
+      case EvElemStart(_, ElemTags.AGGREGATE, attrs, _)       => throw new UnsupportedException(ElemTags.AGGREGATE)
+      case EvElemStart(_, ElemTags.LAG, attrs, _)             => throw new UnsupportedException(ElemTags.LAG)
       case _                                                  => ???
     }
   })
@@ -268,7 +312,9 @@ trait TransformationsBuilder extends CommonBuilder
     override def build(reader: XMLEventReader, event: EvElemStart): Table = event match {
       case EvElemStart(_, ElemTags.TABLE_LOCATOR, attrs, _) => makeElem(reader, attrs, new ElemBuilder[TableLocator] {
         // TODO: table location
-        override def build(reader: XMLEventReader, attrs: XmlAttrs): TableLocator = ???
+        override def build(reader: XMLEventReader, attrs: XmlAttrs): TableLocator = {
+          throw new UnsupportedException(ElemTags.TABLE_LOCATOR)
+        }
       })
       case EvElemStart(_, ElemTags.INLINE_TABLE, attrs, _)  => makeElem(reader, attrs, new ElemBuilder[InlineTable] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): InlineTable = {
@@ -283,17 +329,17 @@ trait TransformationsBuilder extends CommonBuilder
                   key = if (pre != null) s"${pre}:${label}" else label
                   value = ""
                 }
-                case EvElemEnd(_, _)             => if (key != null) {
+                case EvElemEnd(_, _)               => if (key != null) {
                   elements += {
                     key -> dataTypes.getOrElse(key, StringType).toVal(value)
                   }
                   key = null
                   value = ""
                 }
-                case EvEntityRef(text)           => if (key != null) {
+                case EvEntityRef(text)             => if (key != null) {
                   value = value + XhtmlEntities.entMap.get(text).getOrElse("")
                 }
-                case EvText(text)                => if (key != null) value = value + text
+                case EvText(text)                  => if (key != null) value = value + text
               }, true, true, true)
 
               new Row(elements.toMap)

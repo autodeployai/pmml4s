@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org
+package org.pmml4s
 
-/**
- * Core PMML4S functionality. A PMML (Predictive Model Markup Language) scoring library in Scala. PMML is the leading
- * standard for statistical and data mining models and supported by over 20 vendors and organizations. With PMML, it is
- * easy to develop a model on one system using one application and deploy the model on another system using another
- * application, simply by transmitting an XML configuration file.
- *
- * @see [[http://dmg.org/]] for details about PMML
- */
-package object pmml4s {
+package object data {
 
-  val PMML4S_VERSION = "0.9.1"
+  implicit def seriesMap(map: Map[String, Any]): Series = Series.fromMap(map)
 
+  implicit def seriesJavaMap(map: java.util.Map[String, Any]): Series = Series.fromMap(map)
 }

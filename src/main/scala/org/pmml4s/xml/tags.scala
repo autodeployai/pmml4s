@@ -201,6 +201,8 @@ object ElemTags {
   val CHARACTERISTIC = "Characteristic"
   val ATTRIBUTE = "Attribute"
   val COMPLEX_PARTIAL_SCORE = "ComplexPartialScore"
+
+  val TEXT_INDEX_NORMALIZATION = "TextIndexNormalization"
 }
 
 object AttrTags {
@@ -426,6 +428,19 @@ object AttrTags {
   val BASELINE_METHOD = "baselineMethod"
   val REASON_CODE = "reasonCode"
   val PARTIAL_SCORE = "partialScore"
+
+  val TEXT_FIELD = "textField"
+  val LOCAL_TERM_WEIGHTS = "localTermWeights"
+  val IS_CASE_SENSITIVE = "isCaseSensitive"
+  val MAX_LEVENSHTEIN_DISTANCE = "maxLevenshteinDistance"
+  val COUNT_HITS = "countHits"
+  val WORD_SEPARATOR_CHARACTER_RE = "wordSeparatorCharacterRE"
+  val TOKENIZE = "tokenize"
+
+  val IN_FIELD = "inField"
+  val OUT_FIELD = "outField"
+  val REGEX_FIELD = "regexField"
+  val RECURSIVE = "recursive"
 }
 
 object ValTags {

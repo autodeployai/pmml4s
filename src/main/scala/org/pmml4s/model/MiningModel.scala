@@ -24,7 +24,7 @@ import org.pmml4s.model.MultipleModelMethod.MultipleModelMethod
 import org.pmml4s.transformations.LocalTransformations
 import org.pmml4s.util.{MathUtils, Utils}
 
-import scala.collection.immutable
+import scala.collection._
 
 /**
  * The element MiningModel allows precise specification of the usage of multiple models within one PMML file.
@@ -96,10 +96,12 @@ class MiningModel(
         }
         case `modelChain`  => {
           var last: Series = nullSeries
+          var lastOutputFields: Array[OutputField] = Array.empty
           var in = series
           for (segment <- seg.segments) {
             val out = if (Predication.fire(segment.eval(in))) {
               last = segment.predict(in)
+              lastOutputFields = segment.model.outputFields
               last
             } else {
               segment.model.nullSeries
@@ -107,8 +109,20 @@ class MiningModel(
             segment.id.foreach(x => if (segmentOutputs.contains(x)) outputs.putSegment(x, out))
             in = Series.merge(in, out)
           }
-          // TODO we need to handle the results further when outputs defined in the ensemble model
-          last
+          if (output.isDefined) {
+            // Handle the results further when outputs defined in the ensemble model
+            val probabilities = mutable.Map.empty[Any, Double]
+            last.toSeq.zip(lastOutputFields).foreach(x => {
+              x._2.feature match {
+                case ResultFeature.predictedValue => outputs.predictedValue = x._1
+                case ResultFeature.probability    => x._2.value.foreach(y => {
+                  probabilities += (y -> x._1.asInstanceOf[Double])
+                })
+              }
+            })
+            outputs.probabilities = probabilities.toMap
+            result(series, outputs)
+          } else last
         }
         case method        => {
           val selections = seg.segments.filter(x => Predication.fire(x.eval(series)))

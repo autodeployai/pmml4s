@@ -44,7 +44,10 @@ abstract class AbstractField extends Field {
   override def referenced_=(r: Boolean): Unit = _referenced = r
 
   /** Retrieve its value from the specified series, return null if missing */
-  override def get(series: Series): Any = if (index >= 0) series.get(index) else null
+  override def get(series: Series): Any = if (index >= 0) series.get(index) else {
+    val idx = series.fieldIndex(name)
+    if (idx >= 0) series.get(idx) else null
+  }
 
   /** Attribute of the field. */
   override def attribute = _attribute

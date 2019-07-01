@@ -47,3 +47,6 @@ class InvalidValueException(value: String, field: String)
 
 class FunctionNotFoundException(name: String)
   extends PmmlException(s"Function '${name}' is not defined.")
+
+class UnsupportedException(element: String)
+  extends PmmlException(s"'${element}' is not supported yet.")

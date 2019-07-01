@@ -15,7 +15,7 @@
  */
 package org.pmml4s.util
 
-import org.pmml4s.common.{BooleanType, DataType, IntegerType, NumericType}
+import org.pmml4s.common._
 
 /**
  * Various utility methods used by PMML4S.
@@ -117,10 +117,11 @@ object Utils {
   }
 
   def toVal(a: Any, dataType: DataType): Any = dataType match {
-    case IntegerType    => toLong(a)
-    case _: NumericType => toDouble(a)
-    case BooleanType    => toBoolean(a)
-    case _              => toString(a)
+    case IntegerType        => toLong(a)
+    case _: NumericType     => toDouble(a)
+    case BooleanType        => toBoolean(a)
+    case UnresolvedDataType => a
+    case _                  => toString(a)
   }
 
   def isMissing(value: Any): Boolean = (value == null) || (value match {

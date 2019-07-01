@@ -55,6 +55,13 @@ object Series {
 
   def fromTuple(tuple: Product, schema: StructType): Series = fromSeq(tuple.productIterator.toSeq, schema)
 
+  def fromSplit(columns: Seq[String], values: Seq[Any]): Series = {
+    require(values.size == columns.size, s"Should be same length, got columns=${columns.size} and values=${values.size}.")
+
+    val fields = columns.map(x => StructField(x, UnresolvedDataType)).toArray
+    new GenericSeriesWithSchema(values.toArray, StructType(fields))
+  }  
+  
   def fromMap(map: Map[String, Any]): Series = {
     val values = new Array[Any](map.size)
     val fields = new Array[StructField](map.size)

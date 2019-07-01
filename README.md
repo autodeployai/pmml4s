@@ -5,6 +5,8 @@ _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library in Scala.
 ## Features
 _PMML4S_ is a lightweight, clean and efficient implementation based on the PMML specification from 2.0 through to the latest 4.3.
 
+### Model types support
+
 It supports the following models:
 * [Association Rules](http://dmg.org/pmml/v4-3/AssociationRules.html)
 * [Cluster Models](http://dmg.org/pmml/v4-3/ClusteringModel.html)
@@ -18,6 +20,27 @@ It supports the following models:
 * [Trees](http://dmg.org/pmml/v4-3/TreeModel.html)
 * [Vector Machine](http://dmg.org/pmml/v4-3/SupportVectorMachine.html)
 * [Multiple Models](http://dmg.org/pmml/v4-3/MultipleModels.html)
+
+Not yet supported models:
+* [Baseline Models](http://dmg.org/pmml/v4-3/BaselineModel.html)
+* [Bayesian Network](http://dmg.org/pmml/v4-3/BayesianNetwork.html)
+* [Gaussian Process](http://dmg.org/pmml/v4-3/GaussianProcess.html)
+* [Sequences](http://dmg.org/pmml/v4-3/Sequence.html)
+* [Text Models](http://dmg.org/pmml/v4-3/Text.html)
+* [Time Series](http://dmg.org/pmml/v4-3/TimeSeriesModel.html)
+
+### Transformations support
+
+It supports the following transformations:
+* Normalization
+* Discretization
+* Value mapping
+* Text Indexing
+* Functions
+
+Not yet supported transformations:
+* Aggregation
+* Lag
 
 ## Installation
 _PMML4S_ is available from maven central.
