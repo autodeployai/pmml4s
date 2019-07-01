@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "0.9.1"
+version := "0.9.2-SNAPSHOT"
 
 organization := "org.pmml4s"
 
