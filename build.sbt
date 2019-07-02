@@ -40,6 +40,12 @@ publishMavenStyle := true
 
 useGpg := true
 
+// set overwrite to true for snapshot
+publishConfiguration := publishConfiguration.value.withOverwrite(isSnapshot.value)
+com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration := com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration.value.withOverwrite(isSnapshot.value)
+publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(isSnapshot.value)
+com.typesafe.sbt.pgp.PgpKeys.publishLocalSignedConfiguration := com.typesafe.sbt.pgp.PgpKeys.publishLocalSignedConfiguration.value.withOverwrite(isSnapshot.value)
+
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (version.value.trim.endsWith("SNAPSHOT"))
