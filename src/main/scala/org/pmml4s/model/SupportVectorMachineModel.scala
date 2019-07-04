@@ -57,12 +57,15 @@ class SupportVectorMachineModel(
   require((isRegression || (isClassification && supportVectorMachines.forall(_.targetCategory.isDefined))),
     "The attribute targetCategory is required for classification models and gives the corresponding class label")
 
-  require((isRegression || (isClassification && (classificationMethod == SVMClassificationMethod.OneAgainstOne ||
-    (classificationMethod == SVMClassificationMethod.OneAgainstAll && isBinary && supportVectorMachines.length == 1)) &&
-    supportVectorMachines.forall(_.alternateTargetCategory.isDefined))),
+  val alternateTargetCategoryRequired = if (isClassification) {
+    (isBinary && supportVectorMachines.length == 1) || (!isBinary && classificationMethod == SVMClassificationMethod.OneAgainstOne)
+  } else false
+
+  require((!alternateTargetCategoryRequired || supportVectorMachines.forall(_.alternateTargetCategory.isDefined)),
     "The attribute alternateTargetCategory is required in case of binary classification models with only one " +
       "SupportVectorMachine element. It is also required in case of multi-class classification models implementing the " +
-      "one-against-one method")
+      "one-against-one method"
+  )
 
   supportVectorMachines.foreach(_.init(vectorDictionary, svmRepresentation))
 
