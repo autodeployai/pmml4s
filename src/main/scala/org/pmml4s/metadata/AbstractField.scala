@@ -23,10 +23,10 @@ import org.pmml4s.data.Series
 abstract class AbstractField extends Field {
 
   /** Index of the field in the input series. */
-  @transient protected var _index: Int = -1
+  protected var _index: Int = -1
 
   /** A flag if the field is referenced in the model. */
-  @transient protected var _referenced: Boolean = false
+  protected var _referenced: Boolean = false
 
   /** An internal attribute could be changed. */
   protected var _attribute: Attribute = Attribute(opType)

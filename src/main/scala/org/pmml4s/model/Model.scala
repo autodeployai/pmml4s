@@ -404,8 +404,9 @@ abstract class Model extends HasParent
         of.index = series.size + i
         of.feature match {
           case `predictedValue`                                  => outputs match {
+            // The expected data type could be different from the storage type of value, so try to convert it
             case x: HasPredictedValue   => outputSeries.update(i,
-              x.predictedValue)
+              Utils.toVal(x.predictedValue, of.dataType))
             case x: HasAssociationRules => outputSeries.update(i,
               x.getRule(of.criterion, of.rank).map(_.predictedValue).orNull)
             case _                      =>

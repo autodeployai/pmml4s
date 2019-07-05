@@ -158,7 +158,11 @@ class MiningModel(
               }
             } else {
               val weights = if (method == weightedMajorityVote) selections.map(_.weight) else Array.fill(selections.size)(1.0)
-              val probabilities = Utils.reduceByKey(predictions.zip(weights)).map(x => (x._1, x._2 / predictions.size)).toMap.withDefaultValue(0.0)
+              // Convert predictions to the data type of target, because its type could be different from its target
+              // in some cases, the probabilities could all become 0 if both data types not match.
+              val dataTypeWanted = if (classes.nonEmpty) Utils.inferDataType(classes(0)) else UnresolvedDataType
+              val probabilities = Utils.reduceByKey(predictions.zip(weights)).map(x =>
+                (Utils.toVal(x._1, dataTypeWanted), x._2 / predictions.size)).withDefaultValue(0.0)
               outputs.setProbabilities(classes.map(x => (x, probabilities(x))).toMap).evalPredictedValueByProbabilities()
             }
           } else if (isClassification) {

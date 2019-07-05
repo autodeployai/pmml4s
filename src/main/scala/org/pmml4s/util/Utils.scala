@@ -80,6 +80,14 @@ object Utils {
     case _          => false
   }
 
+  def inferDataType(a: Any): DataType = a match {
+    case _: Double | Float | BigDecimal => RealType
+    case _: Long | Int | Short | Byte   => IntegerType
+    case _: String                      => StringType
+    case _: Boolean                     => BooleanType
+    case _                              => UnresolvedDataType
+  }
+
   def toVal(s: String, dataType: DataType): Any = dataType match {
     case IntegerType    => {
       try {
@@ -117,10 +125,10 @@ object Utils {
   }
 
   def toVal(a: Any, dataType: DataType): Any = dataType match {
+    case UnresolvedDataType => a
     case IntegerType        => toLong(a)
     case _: NumericType     => toDouble(a)
     case BooleanType        => toBoolean(a)
-    case UnresolvedDataType => a
     case _                  => toString(a)
   }
 
