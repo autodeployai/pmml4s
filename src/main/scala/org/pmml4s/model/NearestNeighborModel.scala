@@ -76,8 +76,8 @@ class NearestNeighborModel(
   private lazy val matrix: Array[Array[Double]] = {
     val res = Array.ofDim[Double](trainingInstances.nbRows, knnInputs.size)
 
-    // Read values from table directly
-    if (trainingInstances.isTransformed || !knnInputs.containsDeriveField) {
+    // Check if there are derived fields in KNN inputs that not in training instances
+    if (!knnInputs.containsDeriveField(trainingInstances.names.toSet)) {
       val columns = trainingInstances.columns(knnInputs.names)
       for (i <- 0 until trainingInstances.nbRows) {
         val values = trainingInstances(i, columns)
@@ -246,8 +246,8 @@ class TrainingInstances(val instanceFields: InstanceFields,
                         val isTransformed: Boolean = false,
                         val recordCount: Option[Int] = None,
                         val fieldCount: Option[Int] = None) extends PmmlElement {
-  private val names: Array[String] = instanceFields.names
-  private val columns: Array[String] = instanceFields.columns
+  val names: Array[String] = instanceFields.names
+  val columns: Array[String] = instanceFields.columns
   private var schema: StructType = _
 
   def init(scope: FieldScope): Unit = {
@@ -265,7 +265,7 @@ class TrainingInstances(val instanceFields: InstanceFields,
 
   def series(i: Int): Series = {
     val row = table(i)
-    Series.fromMap(columns.map(x => (x, row(x))).toMap, schema)
+    Series.fromSeq(columns.map(x => row(x)), schema)
   }
 
   def row(i: Int): Row = {
@@ -316,7 +316,8 @@ class KNNInputs(val knnInputs: Array[KNNInput]) extends PmmlElement {
 
   def fields: Array[Field] = knnInputs.map(_.field)
 
-  def containsDeriveField: Boolean = knnInputs.exists(_.field.isDerivedField)
+  def containsDeriveField(trainingNames: Set[String]): Boolean = knnInputs.exists(
+    x => x.field.isDerivedField && !trainingNames.contains(x.field.name))
 }
 
 /**
