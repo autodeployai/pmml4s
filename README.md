@@ -61,7 +61,7 @@ libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.2"
 </dependency>
 ```
 
-## Usage
+## Use in Scala
 _PMML4S_ is really easy to use. Just do one or more of the following:
 
 1. Load model.
@@ -195,6 +195,79 @@ OutputField(name=Probability_Iris-versicolor, displayName=Some(Probability of Ir
 OutputField(name=Probability_Iris-virginica, displayName=Some(Probability of Iris-virginica), dataType=double, opType=continuous, feature=probability, targetField=None, value=Some(Iris-virginica), ruleFeature=consequent, algorithm=exclusiveRecommendation, rank=1, rankBasis=confidence, rankOrder=descending, isMultiValued=false, segmentId=None, isFinalResult=true, decisions=None, expr=None)
 OutputField(name=Node_ID, displayName=Some(ID of hit node), dataType=string, opType=nominal, feature=entityId, targetField=None, value=None, ruleFeature=consequent, algorithm=exclusiveRecommendation, rank=1, rankBasis=confidence, rankOrder=descending, isMultiValued=false, segmentId=None, isFinalResult=true, decisions=None, expr=None)
 ```
+
+## Use in Java
+It's also easy to use and similar as Scala.
+
+1. Load model.
+```java
+import org.pmml4s.model.Model;
+
+Model model = Model.fromFile("single_iris_dectree.xml");
+```
+
+2. Call `predict(values)` to predict new values that can be in different types, and the type of results is always same as inputs.
+
+#### `values` in a Map of Java:
+
+```java
+import java.util.Map;
+import java.util.HashMap;
+
+Map result = model.predict(new HashMap<String, Object>() {{
+            put("sepal_length", 5.1);
+            put("sepal_width", 3.5);
+            put("petal_length", 1.4);
+            put("petal_width", 0.2);
+        }});
+```
+
+#### `values` in an Array:
+The order of those values is supposed as same as the input fields list, and the order of results is same as the output fields list.
+
+```java
+String[] inputNames = model.inputNames();
+Object[] result = model.predict(new Double[]{5.1, 3.5, 1.4, 0.2});
+```
+
+#### `values` in the JSON format:
+It's same as Scala
+
+#### `values` in the _PMML4S's_ `Series`:
+
+```java
+import org.pmml4s.data.Series;
+import org.pmml4s.util.Utils;
+import org.pmml4s.common.StructType;
+import org.pmml4s.common.StructField;
+
+// The input schema contains a list of input fields with its name and data type, you can prepare data based on it.
+StructType inputSchema = model.inputSchema();
+
+// Suppose the row is a record in map from an external columnar data, e.g. a CSV file, or relational database.
+Map row = new HashMap<String, String>() {{
+            put("sepal_length", "5.1");
+            put("sepal_width", "3.5");
+            put("petal_length", "1.4");
+            put("petal_width", "0.2");
+        }}
+
+// You need to convert the data to the desired type defined by PMML, and keep the same order as defined in the input schema.
+Object[] values = new Object[inputSchema.size()];
+for (int i = 0; i < values.length; i++) {
+  StructField sf = inputSchema.apply(i);
+  values[i] = Utils.toVal(row.get(sf.name()), sf.dataType());
+}
+
+Series result = model.predict(Series.fromArray(values))
+
+// You can also create a Series with schema, so that values will be accessed by names, the order of values is trivial, e.g.
+Series result = model.predict(Series.fromArray(values, inputSchema)))
+```
+
+3. Understand the result values.
+
+See details in Scala above 
 
 ## Use in Spark
 See the [PMML4S-Spark](https://github.com/autodeployai/pmml4s-spark) project. _PMML4S-Spark_ is a PMML scoring library for Spark as SparkML Transformer.
