@@ -48,11 +48,15 @@ object Series {
    * This method can be used to construct a [[Series]] from a [[Seq]] of values.
    */
   def fromSeq(values: Seq[Any]): Series = new GenericSeries(values.toArray)
+  
+  def fromArray(values: Array[Any]): Series = new GenericSeries(values)  
 
   def fromTuple(tuple: Product): Series = fromSeq(tuple.productIterator.toSeq)
 
   def fromSeq(values: Seq[Any], schema: StructType): Series = new GenericSeriesWithSchema(values.toArray, schema)
 
+  def fromArray(values: Array[Any], schema: StructType): Series = new GenericSeriesWithSchema(values, schema)
+  
   def fromTuple(tuple: Product, schema: StructType): Series = fromSeq(tuple.productIterator.toSeq, schema)
 
   def fromSplit(columns: Seq[String], values: Seq[Any]): Series = {

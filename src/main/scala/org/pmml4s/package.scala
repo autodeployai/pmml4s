@@ -25,6 +25,6 @@ package org
  */
 package object pmml4s {
 
-  val PMML4S_VERSION = "0.9.2"
+  val PMML4S_VERSION = "0.9.3-SNAPSHOT"
 
 }

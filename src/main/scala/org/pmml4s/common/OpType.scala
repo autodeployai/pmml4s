@@ -15,7 +15,7 @@
  */
 package org.pmml4s.common
 
-import org.pmml4s.xml.ValTags.{CATEGORICAL, CONTINUOUS, ORDINAL}
+import org.pmml4s.xml.ValTags
 
 /**
  * Indicates which operations are defined on the values.
@@ -23,6 +23,14 @@ import org.pmml4s.xml.ValTags.{CATEGORICAL, CONTINUOUS, ORDINAL}
 sealed trait OpType
 
 object OpType {
+  /**
+   * Defines const variables could be used in Java.
+   * Use Object.XXX() instead of Object.xxx$.MODULE$
+   */
+  val NOMINAL = nominal
+  val ORDINAL = ordinal
+  val CONTINUOUS = continuous
+  val TYPELESS = typeless
 
   /** Nominal field values can only be tested for equality. */
   case object nominal extends OpType
@@ -37,10 +45,10 @@ object OpType {
   case object typeless extends OpType
 
   def withName(s: String): OpType = s match {
-    case CATEGORICAL => nominal
-    case ORDINAL     => ordinal
-    case CONTINUOUS  => continuous
-    case _           => typeless
+    case ValTags.CATEGORICAL => nominal
+    case ValTags.ORDINAL     => ordinal
+    case ValTags.CONTINUOUS  => continuous
+    case _                   => typeless
   }
 
   def withDataType(dateType: DataType): OpType = dateType match {

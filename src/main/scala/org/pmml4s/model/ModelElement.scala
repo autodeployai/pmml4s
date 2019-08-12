@@ -19,6 +19,33 @@ sealed trait ModelElement
 
 object ModelElement {
 
+  /**
+   * Defines const variables could be used in Java.
+   * Use Object.XXX() instead of Object.xxx$.MODULE$
+   */
+  val DATA_MODEL = DataModel
+  val TRANSFORMATION_MODEL = TransformationModel
+  val ASSOCIATION_MODEL = AssociationModel
+  val BAYESIAN_NETWORK_MODEL = BayesianNetworkModel
+  val BASELINE_MODEL = BaselineModel
+  val CLUSTERING_MODEL = ClusteringModel
+  val GAUSSIAN_PROCESS_MODEL = GaussianProcessModel
+  val GENERAL_REGRESSION_MODEL = GeneralRegressionModel
+  val MINING_MODEL = MiningModel
+  val NAIVE_BAYES_MODEL = NaiveBayesModel
+  val NEAREST_NEIGHBOR_MODEL = NearestNeighborModel
+  val NEURAL_NETWORK = NeuralNetwork
+  val REGRESSION_MODEL = RegressionModel
+  val RULE_SET_MODEL = RuleSetModel
+  val SEQUENCE_MODEL = SequenceModel
+  val SCORECARD = Scorecard
+  val SUPPORT_VECTOR_MACHINE_MODEL = SupportVectorMachineModel
+  val TEXT_MODEL = TextModel
+  val TIME_SERIES_MODEL = TimeSeriesModel
+  val TREE_MODEL = TreeModel
+  val DECISION_TREE = DecisionTree
+  val REGRESSION = Regression  
+
   case object DataModel extends ModelElement
 
   case object TransformationModel extends ModelElement

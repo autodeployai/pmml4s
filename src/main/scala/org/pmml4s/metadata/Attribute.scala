@@ -68,6 +68,13 @@ trait MutableValueIndexer extends ValueIndexer
 sealed trait AttributeType
 
 object AttributeType {
+  /**
+   * Defines const variables could be used in Java.
+   * Use Object.XXX() instead of Object.xxx$.MODULE$
+   */
+  val CONTINUOUS = Continuous
+  val CATEGORICAL = Categorical
+  val TYPELESS = Typeless
 
   case object Continuous extends AttributeType
 

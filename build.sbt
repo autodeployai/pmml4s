@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "0.9.2"
+version := "0.9.3-SNAPSHOT"
 
 organization := "org.pmml4s"
 
@@ -25,6 +25,7 @@ libraryDependencies ++= {
     "org.apache.commons" % "commons-text" % "1.6",
     "io.spray" %% "spray-json" % "1.3.5",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+    "junit" % "junit" % "4.12" % "test"
   )
 }
 
@@ -34,7 +35,7 @@ scalaVersion := "2.12.8"
 
 updateOptions := updateOptions.value.withGigahorse(false)
 
-crossScalaVersions := Seq("2.12.8", "2.11.12")
+crossScalaVersions := Seq("2.12.8", "2.11.12", "2.13.0")
 
 publishMavenStyle := true
 

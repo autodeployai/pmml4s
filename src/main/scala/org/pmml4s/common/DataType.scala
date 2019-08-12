@@ -17,7 +17,6 @@ package org.pmml4s.common
 
 import org.pmml4s.util.Utils
 import org.pmml4s.xml.ValTags
-import org.pmml4s.xml.ValTags._
 
 /**
  * The base type of all PMML data types.
@@ -223,34 +222,66 @@ object StructType {
 
 object DataType {
 
+  import DateDaySinceYearType._
+  import DateTimeSecondSinceYearType._
+
   val string = StringType
   val float = RealType
   val double = RealType
   val integer = IntegerType
+  val boolean = BooleanType
+  val date = DateType
+  val time = TimeType
+  val dateTime = DateTimeType
+  val `dateDaysSince[0]` = DateDaySinceYear0Type
+  val `dateDaysSince[1960]` = DateDaySinceYear1960Type
+  val `dateDaysSince[1970]` = DateDaySinceYear1970Type
+  val `dateDaysSince[1980]` = DateDaySinceYear1980Type
+  val timeSeconds = TimeSecondsType
+  val `dateTimeSecondsSince[0]` = DateTimeSecondSinceYear0Type
+  val `dateTimeSecondsSince[1960]` = DateTimeSecondSinceYear1960Type
+  val `dateTimeSecondsSince[1970]` = DateTimeSecondSinceYear1970Type
+  val `dateTimeSecondsSince[1980]` = DateTimeSecondSinceYear1980Type
 
-  import DateDaySinceYearType._
-  import DateTimeSecondSinceYearType._
+  /** Defines const variables could be used in Java, names above could be invalid for Java. */
+  val STRING = StringType
+  val FLOAT = RealType
+  val DOUBLE = RealType
+  val INTEGER = IntegerType
+  val BOOLEAN = BooleanType
+  val DATE = DateType
+  val TIME = TimeType
+  val DATETIME = DateTimeType
+  val DATE_DAYS_SINCE_0 = DateDaySinceYear0Type
+  val DATE_DAYS_SINCE_1960 = DateDaySinceYear1960Type
+  val DATE_DAYS_SINCE_1970 = DateDaySinceYear1970Type
+  val DATE_DAYS_SINCE_1980 = DateDaySinceYear1980Type
+  val TIME_SECONDS = TimeSecondsType
+  val DATE_TIME_SECONDS_SINCE_0 = DateTimeSecondSinceYear0Type
+  val DATE_TIME_SECONDS_SINCE_1960 = DateTimeSecondSinceYear1960Type
+  val DATE_TIME_SECONDS_SINCE_1970 = DateTimeSecondSinceYear1970Type
+  val DATE_TIME_SECONDS_SINCE_1980 = DateTimeSecondSinceYear1980Type
 
   def withName(s: String): DataType =
     s match {
-      case STRING                       => StringType
-      case INTEGER                      => IntegerType
-      case FLOAT                        => RealType
-      case DOUBLE                       => RealType
-      case BOOLEAN                      => BooleanType
-      case DATE                         => DateType
-      case TIME                         => TimeType
-      case DATETIME                     => DateTimeType
-      case `DATEDAYSSINCE[0]`           => DateDaySinceYear0Type
-      case `DATEDAYSSINCE[1960]`        => DateDaySinceYear1960Type
-      case `DATEDAYSSINCE[1970]`        => DateDaySinceYear1970Type
-      case `DATEDAYSSINCE[1980]`        => DateDaySinceYear1980Type
-      case TIMESECONDS                  => TimeSecondsType
-      case `DATETIMESECONDSSINCE[0]`    => DateTimeSecondSinceYear0Type
-      case `DATETIMESECONDSSINCE[1960]` => DateTimeSecondSinceYear1960Type
-      case `DATETIMESECONDSSINCE[1970]` => DateTimeSecondSinceYear1970Type
-      case `DATETIMESECONDSSINCE[1980]` => DateTimeSecondSinceYear1980Type
-      case _                            => UnresolvedDataType
+      case ValTags.STRING                       => StringType
+      case ValTags.INTEGER                      => IntegerType
+      case ValTags.FLOAT                        => RealType
+      case ValTags.DOUBLE                       => RealType
+      case ValTags.BOOLEAN                      => BooleanType
+      case ValTags.DATE                         => DateType
+      case ValTags.TIME                         => TimeType
+      case ValTags.DATETIME                     => DateTimeType
+      case ValTags.`DATEDAYSSINCE[0]`           => DateDaySinceYear0Type
+      case ValTags.`DATEDAYSSINCE[1960]`        => DateDaySinceYear1960Type
+      case ValTags.`DATEDAYSSINCE[1970]`        => DateDaySinceYear1970Type
+      case ValTags.`DATEDAYSSINCE[1980]`        => DateDaySinceYear1980Type
+      case ValTags.TIMESECONDS                  => TimeSecondsType
+      case ValTags.`DATETIMESECONDSSINCE[0]`    => DateTimeSecondSinceYear0Type
+      case ValTags.`DATETIMESECONDSSINCE[1960]` => DateTimeSecondSinceYear1960Type
+      case ValTags.`DATETIMESECONDSSINCE[1970]` => DateTimeSecondSinceYear1970Type
+      case ValTags.`DATETIMESECONDSSINCE[1980]` => DateTimeSecondSinceYear1980Type
+      case _                                    => UnresolvedDataType
     }
 }
 
