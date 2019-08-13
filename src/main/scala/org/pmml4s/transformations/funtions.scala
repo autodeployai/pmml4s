@@ -45,7 +45,7 @@ object BuiltInFunctions extends FunctionProvider {
       FormatDatetime, DateDaysSinceYear, DateSecondsSinceYear, DateSecondsSinceMidnight, // Function for transforming dates into integers.
       NormalCDF, NormalPDF, StdNormalCDF, StdNormalPDF, Erf, NormalIDF, StdNormalIDF, // Functions for normal distribution
       Sin, ASin, SinH, Cos, ACos, CosH, Tan, ATan, TanH, // Trigonometric functions.
-      Expm1, Hypot, Ln1p, RInt,
+      Expm1, Hypot, Ln1p, RInt
     )
 
     set.map(x => (x.symbol, x)).toMap ++ set.filter(_.xSymbol.isDefined).map(x => (x.xSymbol.get, x)).toMap
