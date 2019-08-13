@@ -37,14 +37,18 @@ object BuiltInFunctions extends FunctionProvider {
   lazy val functions: Map[String, Function] = {
     val set = Set(Add, Subtract, Multiply, Divide, // Functions for simple arithmetics.
       Min, Max, Sum, Avg, Median, Product, // Returns an aggregation of a variable number of input fields.
-      Log10, Ln, Sqrt, Abs, Exp, Pow, Threshold, Floor, Ceil, Round, // Further mathematical functions.
+      Log10, Ln, Sqrt, Abs, Exp, Pow, Threshold, Floor, Ceil, Round, Modulo, // Further mathematical functions.
       IsMissing, IsNotMissing, // Functions for boolean operations.
       Equal, NotEqual, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual, // Further boolean functions.
       And, Or, Not, IsIn, IsNotIn, If, // Further boolean functions.
       Uppercase, Lowercase, Substring, TrimBlanks, Concat, Replace, Matches, FormatNumber, // Functions for string operations.
       FormatDatetime, DateDaysSinceYear, DateSecondsSinceYear, DateSecondsSinceMidnight, // Function for transforming dates into integers.
-      NormalCDF, NormalPDF, StdNormalCDF, StdNormalPDF, Erf, NormalIDF, StdNormalIDF) // Functions for normal distribution
-    set.map(x => (x.symbol, x)).toMap
+      NormalCDF, NormalPDF, StdNormalCDF, StdNormalPDF, Erf, NormalIDF, StdNormalIDF, // Functions for normal distribution
+      Sin, ASin, SinH, Cos, ACos, CosH, Tan, ATan, TanH, // Trigonometric functions.
+      Expm1, Hypot, Ln1p, RInt,
+    )
+
+    set.map(x => (x.symbol, x)).toMap ++ set.filter(_.xSymbol.isDefined).map(x => (x.xSymbol.get, x)).toMap
   }
 
   def getFunction(symbol: String): Option[Function] = functions.get(symbol) orElse UserDefinedFunctions.getFunction(symbol)
@@ -73,6 +77,8 @@ trait Function extends PmmlElement {
   def apply(parameters: Any*): Any
 
   def symbol: String
+
+  def xSymbol: Option[String] = None
 
   override def toString: String = symbol
 }
@@ -308,6 +314,14 @@ object Round extends UnaryArithmetic {
   override def eval(a: Double): Double = Math.round(a)
 
   override def symbol: String = "round"
+}
+
+object Modulo extends BinaryArithmetic {
+  override def eval(left: Double, right: Double): Double = left - Math.floor(left / right) * right
+
+  override def symbol: String = "modulo"
+
+  override def xSymbol: Option[String] = Some("x-modulo")
 }
 
 object IsMissing extends UnaryBoolean {
@@ -629,4 +643,108 @@ object Erf extends UnaryArithmetic {
   override def eval(a: Double): Double = org.apache.commons.math3.special.Erf.erf(a)
 
   override def symbol: String = "erf"
+}
+
+object Sin extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.sin(a)
+
+  override def symbol: String = "sin"
+
+  override def xSymbol: Option[String] = Some("x-sin")
+}
+
+object ASin extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.asin(a)
+
+  override def symbol: String = "asin"
+
+  override def xSymbol: Option[String] = Some("x-asin")
+}
+
+object SinH extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.sinh(a)
+
+  override def symbol: String = "sinh"
+
+  override def xSymbol: Option[String] = Some("x-sinh")
+}
+
+object Cos extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.cos(a)
+
+  override def symbol: String = "cos"
+
+  override def xSymbol: Option[String] = Some("x-cos")
+}
+
+object ACos extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.acos(a)
+
+  override def symbol: String = "acos"
+
+  override def xSymbol: Option[String] = Some("x-acos")
+}
+
+object CosH extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.cosh(a)
+
+  override def symbol: String = "cosh"
+
+  override def xSymbol: Option[String] = Some("x-cosh")
+}
+
+object Tan extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.tan(a)
+
+  override def symbol: String = "tan"
+
+  override def xSymbol: Option[String] = Some("x-tan")
+}
+
+object ATan extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.atan(a)
+
+  override def symbol: String = "atan"
+
+  override def xSymbol: Option[String] = Some("x-atan")
+}
+
+object TanH extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.tanh(a)
+
+  override def symbol: String = "tanh"
+
+  override def xSymbol: Option[String] = Some("x-tanh")
+}
+
+object Expm1 extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.expm1(a)
+
+  override def symbol: String = "expm1"
+
+  override def xSymbol: Option[String] = Some("x-expm1")
+}
+
+object Hypot extends BinaryArithmetic {
+  override def eval(left: Double, right: Double): Double = Math.hypot(left, right)
+
+  override def symbol: String = "hypot"
+
+  override def xSymbol: Option[String] = Some("x-hypot")
+}
+
+object Ln1p extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.log1p(a)
+
+  override def symbol: String = "ln1p"
+
+  override def xSymbol: Option[String] = Some("x-ln1p")
+}
+
+object RInt extends UnaryArithmetic {
+  override def eval(a: Double): Double = Math.rint(a)
+
+  override def symbol: String = "rint"
+
+  override def xSymbol: Option[String] = Some("x-rint")
 }
