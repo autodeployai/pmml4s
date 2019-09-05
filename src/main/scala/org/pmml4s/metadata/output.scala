@@ -21,8 +21,8 @@ import org.pmml4s.PmmlDeprecated
 object ResultFeature extends Enumeration {
   type ResultFeature = Value
   val predictedValue, predictedDisplayValue, transformedValue, decision, probability, affinity, residual, standardError,
-  clusterId, clusterAffinity, entityId, entityAffinity, warning, ruleValue, reasonCode, antecedent, consequent, rule,
-  ruleId, confidence, support, lift, leverage = Value
+  standardDeviation, clusterId, clusterAffinity, entityId, entityAffinity, warning, ruleValue, reasonCode, antecedent,
+  consequent, rule, ruleId, confidence, support, lift, leverage = Value
 }
 
 /**

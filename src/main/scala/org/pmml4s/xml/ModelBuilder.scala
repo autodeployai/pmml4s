@@ -166,8 +166,9 @@ object ModelBuilder extends ExtensionHandler with XmlUtils {
     Builder.get(label).getOrElse(throw new NotSupportedException(label)).build(reader, attrs, parent)
   }
 
-  /** List of models supported by the PMML 4.3: [[http://dmg.org/pmml/v4-3/GeneralStructure.html PMML 4.3 - General Structure]] */
+  /** List of models supported by the PMML 4.4: [[http://dmg.org/pmml/v4-3/GeneralStructure.html PMML 4.4 - General Structure]] */
   val PMML_SUPPORTED_MODELS = Set(
+    ElemTags.ANOMALY_DETECTION_MODEL,
     ElemTags.ASSOCIATION_MODEL,
     ElemTags.BAYESIAN_NETWORK_MODEL,
     ElemTags.BASELINE_MODEL,

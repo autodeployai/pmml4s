@@ -91,12 +91,18 @@ class MiningBuilder extends Builder[MiningModel] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Segmentation = {
       val multipleModelMethod = MultipleModelMethod.withName(attrs(AttrTags.MULTIPLE_MODEL_METHOD))
       miningModel.multipleModelMethod = multipleModelMethod
+      val missingPredictionTreatment = attrs.get(AttrTags.MISSING_PREDICTION_TREATMENT).map(MissingPredictionTreatment.withName(_)).getOrElse(
+        MissingPredictionTreatment.continue
+      )
+      val missingThreshold = attrs.getDouble(AttrTags.MISSING_THRESHOLD, 1)
+
       val segments = makeElems(reader, ElemTags.SEGMENTATION, ElemTags.SEGMENT, new ElemBuilder[Segment] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): Segment = {
           val id = attrs.get(AttrTags.ID)
           val weight = attrs.getDouble(AttrTags.WEIGHT, 1.0)
           var predicate: Predicate = null
           var model: Model = null
+          var variableWeight: VariableWeight = null
 
           traverseElems(reader, ElemTags.SEGMENT, {
             case event: EvElemStart if Predicate.contains(event.label)                                => predicate = makePredicate(reader, event)
@@ -105,16 +111,22 @@ class MiningBuilder extends Builder[MiningModel] {
               model = builder.build(reader, attrs, miningModel)
               builder.postBuild()
             }
+            case EvElemStart(_, ElemTags.VARIABLE_WEIGHT, attrs, _)                                   => variableWeight = makeElem(reader, attrs, new ElemBuilder[VariableWeight] {
+              override def build(reader: XMLEventReader, attrs: XmlAttrs): VariableWeight = {
+                val fld = getField(attrs(AttrTags.FIELD)) getOrElse model.output.map(_.field(attrs(AttrTags.FIELD))).get
+                new VariableWeight(fld)
+              }
+            })
             case _                                                                                    =>
           })
 
-          val segment = new Segment(predicate, model, id, weight)
+          val segment = new Segment(predicate, model, Option(variableWeight), id, weight)
           miningModel += segment
           segment
         }
       })
 
-      new Segmentation(multipleModelMethod, segments)
+      new Segmentation(multipleModelMethod, segments, missingPredictionTreatment, missingThreshold)
     }
   })
 

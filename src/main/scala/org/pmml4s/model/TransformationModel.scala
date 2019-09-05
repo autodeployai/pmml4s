@@ -34,7 +34,11 @@ class TransformationModel(
   override def modelElement: ModelElement = ModelElement.TransformationModel
 
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
+
     val res = transformationDictionary.get.transform(series)
     res.asInstanceOf[CombinedSeries].individualRows.last
   }

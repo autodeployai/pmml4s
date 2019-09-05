@@ -80,4 +80,13 @@ class MiningModelTest extends BaseModelTest {
     assert(r(0) === 0.7)
   }
 
+  test("an ensemble of three trees in which each tree is weighted based on the node assignment") {
+    val model = Model.fromFile("src/test/resources/models/mining/dmg_weighted_majority_vote_mining.xml")
+    assert(model.modelElement === ModelElement.MiningModel)
+    assert(model.inputNames === Array("SEPALLEN", "SEPALWID", "PETALLEN", "PETALWID"))
+    assert(model.targetNames === Array("SPECIES"))
+    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    assert(r(2) === 0.7999999999999999)
+    assert(r(3) === 3)
+  }
 }

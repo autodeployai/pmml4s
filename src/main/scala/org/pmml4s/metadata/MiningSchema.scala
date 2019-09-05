@@ -59,13 +59,15 @@ object OutlierTreatmentMethod extends Enumeration {
 }
 
 /**
- * In a PMML consumer this field is for information only. The consumer only looks at missingValueReplacement -
- * if a value is present it replaces missing values. The missingValueTreatment attribute just indicates how
- * the missingValueReplacement was derived, but places no behavioral requirement on the consumer.
+ * In a PMML consumer this field is for information only, unless the value is returnInvalid, in which case if a missing
+ * value is encountered in the given field, the model should return a value indicating an invalid result; otherwise,
+ * the consumer only looks at missingValueReplacement - if a value is present it replaces missing values. Except as
+ * described above, the missingValueTreatment attribute just indicates how the missingValueReplacement was derived, but
+ * places no behavioral requirement on the consumer.
  */
 object MissingValueTreatment extends Enumeration {
   type MissingValueTreatment = Value
-  val asIs, asMean, asMode, asMedian, asValue = Value
+  val asIs, asMean, asMode, asMedian, asValue, returnInvalid = Value
 }
 
 /**
@@ -78,10 +80,12 @@ object MissingValueTreatment extends Enumeration {
  * specified by the missingValueReplacement attribute if present (see above).
  * If asMissing is specified but there is no respective missingValueReplacement present, a missing value is passed on
  * for eventual handling by successive transformations via DerivedFields or in the actual mining model.
+ * - asValue specifies that an invalid input value should be replaced with the value specified by attribute
+ * invalidValueReplacement which must be present in this case, or the PMML is invalid.
  */
 object InvalidValueTreatment extends Enumeration {
   type InvalidValueTreatment = Value
-  val returnInvalid, asIs, asMissing = Value
+  val returnInvalid, asIs, asMissing, asValue = Value
 }
 
 import org.pmml4s.metadata.InvalidValueTreatment._
@@ -122,6 +126,7 @@ trait HasUsageType {
  *                                the MiningField specifies a replacement value.
  * @param missingValueTreatment   This field is for information only.
  * @param invalidValueTreatment   Specifies how invalid input values are handled.
+ * @param invalidValueReplacement
  */
 class MiningField(
                    val name: String,
@@ -133,7 +138,8 @@ class MiningField(
                    val highValue: Option[Double] = None,
                    val missingValueReplacement: Option[Any] = None,
                    val missingValueTreatment: Option[MissingValueTreatment] = None,
-                   val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid)
+                   val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid,
+                   val invalidValueReplacement: Option[Any] = None)
   extends HasUsageType with PmmlElement
 
 /**

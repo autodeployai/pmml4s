@@ -48,6 +48,7 @@ object ElemTags {
   val DEFINE_FUNCTION = "DefineFunction"
   val PARAMETER_FIELD = "ParameterField"
 
+  val ANOMALY_DETECTION_MODEL = "AnomalyDetectionModel"
   val ASSOCIATION_MODEL = "AssociationModel"
   val BAYESIAN_NETWORK_MODEL = "BayesianNetworkModel"
   val BASELINE_MODEL = "BaselineModel"
@@ -70,6 +71,7 @@ object ElemTags {
   val DECISION_TREE = "DecisionTree"
   val SEGMENTATION = "Segmentation"
   val SEGMENT = "Segment"
+  val VARIABLE_WEIGHT = "VariableWeight"
 
   val SIMPLE_PREDICATE = "SimplePredicate"
   val COMPOUND_PREDICATE = "CompoundPredicate"
@@ -203,6 +205,8 @@ object ElemTags {
   val COMPLEX_PARTIAL_SCORE = "ComplexPartialScore"
 
   val TEXT_INDEX_NORMALIZATION = "TextIndexNormalization"
+
+  val MEAN_CLUSTER_DISTANCES = "MeanClusterDistances"
 }
 
 object AttrTags {
@@ -242,6 +246,7 @@ object AttrTags {
   val MISSING_VALUE_REPLACEMENT = "missingValueReplacement"
   val MISSING_VALUE_TREATMENT = "missingValueTreatment"
   val INVALID_VALUE_TREATMENT = "invalidValueTreatment"
+  val INVALID_VALUE_REPLACEMENT = "invalidValueReplacement"
 
   val TARGET_FIELD = "targetField"
   val FEATURE = "feature"
@@ -291,6 +296,8 @@ object AttrTags {
 
   val MAP_MISSING_TO = "mapMissingTo"
   val MULTIPLE_MODEL_METHOD = "multipleModelMethod"
+  val MISSING_PREDICTION_TREATMENT = "missingPredictionTreatment"
+  val MISSING_THRESHOLD = "missingThreshold"
 
   val BUSINESS_PROBLEM = "businessProblem"
   val ACTIVATION_FUNCTION = "activationFunction"
@@ -441,6 +448,10 @@ object AttrTags {
   val OUT_FIELD = "outField"
   val REGEX_FIELD = "regexField"
   val RECURSIVE = "recursive"
+
+  val ALGORITHM_TYPE = "algorithmType"
+  val SAMPLE_DATA_SIZE = "sampleDataSize"
+  val MISSING = "missing"
 }
 
 object ValTags {

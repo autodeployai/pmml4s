@@ -147,6 +147,8 @@ object Utils {
 
   def nonMissing(value: Double): Boolean = value == value
 
+  def anyMissing(values: Seq[Double]): Boolean = values.exists(x => x != x)
+
   def reduceByKey[K, V](collection: Traversable[(K, V)])(implicit num: Numeric[V]): Map[K, V] = {
     import num._
     collection.groupBy(_._1).map { case (_: K, traversable) => traversable.reduce((a, b) => (a._1, a._2 + b._2)) }

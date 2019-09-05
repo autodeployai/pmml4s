@@ -40,7 +40,7 @@ class TextIndex(
                  val isCaseSensitive: Boolean = false,
                  val maxLevenshteinDistance: Int = 0,
                  val countHits: CountHits = CountHits.allHits,
-                 val wordSeparatorCharacterRE: String = "\\s",
+                 val wordSeparatorCharacterRE: String = "\\s+",
                  val tokenize: Boolean = true
                ) extends NumericFieldExpression {
   override def eval(series: Series): Double = {

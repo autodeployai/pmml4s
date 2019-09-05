@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+    <Header copyright="www.dmg.org" description="Default Description">
+    </Header>
+    <DataDictionary numberOfFields="4">
+        <DataField name="sepal_length" optype="continuous" dataType="double"/>
+        <DataField name="sepal_width" optype="continuous" dataType="double"/>
+        <DataField name="petal_length" optype="continuous" dataType="double"/>
+        <DataField name="petal_width" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <AnomalyDetectionModel functionName="regression" algorithmType="clusterMeanDist" modelName="AnomalyOnKmeans">
+        <MiningSchema>
+            <MiningField name="sepal_length" usageType="active"/>
+            <MiningField name="sepal_width" usageType="active"/>
+            <MiningField name="petal_length" usageType="active"/>
+            <MiningField name="petal_width" usageType="active"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="anomalyScore" optype="continuous" dataType="float" feature="predictedValue"/>
+            <OutputField name="anomaly" optype="categorical" dataType="boolean" feature="decision">
+                <Apply function="greaterThan">
+                    <FieldRef field="anomalyScore"/>
+                    <Constant dataType="double">2.0</Constant>
+                </Apply>
+            </OutputField>
+        </Output>
+        <ClusteringModel algorithmName="KMeans" functionName="clustering" modelClass="centerBased" modelName="K-Means"
+                         numberOfClusters="3">
+            <MiningSchema>
+                <MiningField highValue="7.9" importance="0.466315129248955" lowValue="4.3" missingValueReplacement="6.1"
+                             missingValueTreatment="asMedian" name="sepal_length" outliers="asExtremeValues"
+                             usageType="active"/>
+                <MiningField highValue="4.4" importance="0.217549102595577" lowValue="2.0" missingValueReplacement="3.2"
+                             missingValueTreatment="asMedian" name="sepal_width" outliers="asExtremeValues"
+                             usageType="active"/>
+                <MiningField highValue="6.9" importance="1" lowValue="1.0" missingValueReplacement="3.95"
+                             missingValueTreatment="asMedian" name="petal_length" outliers="asExtremeValues"
+                             usageType="active"/>
+                <MiningField highValue="2.5" importance="0.852549535371169" lowValue="0.1" missingValueReplacement="1.3"
+                             missingValueTreatment="asMedian" name="petal_width" outliers="asExtremeValues"
+                             usageType="active"/>
+            </MiningSchema>
+            <LocalTransformations>
+                <DerivedField dataType="double" name="cluster0" optype="continuous">
+                    <NormContinuous field="sepal_length">
+                        <LinearNorm norm="0" orig="4.3"/>
+                        <LinearNorm norm="1" orig="7.9"/>
+                    </NormContinuous>
+                </DerivedField>
+                <DerivedField dataType="double" name="cluster1" optype="continuous">
+                    <NormContinuous field="sepal_width">
+                        <LinearNorm norm="0" orig="2"/>
+                        <LinearNorm norm="1" orig="4.4"/>
+                    </NormContinuous>
+                </DerivedField>
+                <DerivedField dataType="double" name="cluster2" optype="continuous">
+                    <NormContinuous field="petal_length">
+                        <LinearNorm norm="0" orig="1"/>
+                        <LinearNorm norm="1" orig="6.9"/>
+                    </NormContinuous>
+                </DerivedField>
+                <DerivedField dataType="double" name="cluster3" optype="continuous">
+                    <NormContinuous field="petal_width">
+                        <LinearNorm norm="0" orig="0.1"/>
+                        <LinearNorm norm="1" orig="2.5"/>
+                    </NormContinuous>
+                </DerivedField>
+            </LocalTransformations>
+            <ComparisonMeasure kind="distance">
+                <euclidean/>
+            </ComparisonMeasure>
+            <ClusteringField compareFunction="absDiff" field="cluster0" isCenterField="true"/>
+            <ClusteringField compareFunction="absDiff" field="cluster1" isCenterField="true"/>
+            <ClusteringField compareFunction="absDiff" field="cluster2" isCenterField="true"/>
+            <ClusteringField compareFunction="absDiff" field="cluster3" isCenterField="true"/>
+            <Cluster name="1" size="50">
+                <Array n="4" type="real">0.196111 0.590833 0.0786441 0.06</Array>
+                <Covariances>
+                    <Matrix kind="diagonal">
+                        <Array n="4" type="real">0.009587112622827 0.025204790249433 0.000864869935334 0.001995464852608
+                        </Array>
+                    </Matrix>
+                </Covariances>
+            </Cluster>
+            <Cluster name="2" size="39">
+                <Array n="4" type="real">0.707265 0.450855 0.797045 0.824786</Array>
+                <Covariances>
+                    <Matrix kind="diagonal">
+                        <Array n="4" type="real">0.019486929574651 0.013603051431999 0.007748638163371 0.013722540860699
+                        </Array>
+                    </Matrix>
+                </Covariances>
+            </Cluster>
+            <Cluster name="3" size="61">
+                <Array n="4" type="real">0.441257 0.307377 0.575715 0.54918</Array>
+                <Covariances>
+                    <Matrix kind="diagonal">
+                        <Array n="4" type="real">0.015537509276125 0.014940042501518 0.007976321106145 0.012876631754705
+                        </Array>
+                    </Matrix>
+                </Covariances>
+            </Cluster>
+        </ClusteringModel>
+        <MeanClusterDistances>
+            <Array n="3" type="real">0.165 0.211 0.210</Array>
+        </MeanClusterDistances>
+    </AnomalyDetectionModel>
+</PMML>

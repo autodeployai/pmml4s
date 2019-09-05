@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+    <Header copyright="www.dmg.org" description="Default Description">
+    </Header>
+    <DataDictionary numberOfFields="4">
+        <DataField name="sepal_length" optype="continuous" dataType="double"/>
+        <DataField name="sepal_width" optype="continuous" dataType="double"/>
+        <DataField name="petal_length" optype="continuous" dataType="double"/>
+        <DataField name="petal_width" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <AnomalyDetectionModel functionName="regression" algorithmType="iforest" modelName="IsolationForests"
+                           sampleDataSize="5">
+        <MiningSchema>
+            <MiningField name="sepal_length" usageType="active"/>
+            <MiningField name="petal_length" usageType="active"/>
+            <MiningField name="petal_width" usageType="active"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="anomalyScore" optype="continuous" dataType="float" feature="predictedValue"/>
+            <OutputField name="anomaly" optype="categorical" dataType="boolean" feature="decision">
+                <Apply function="lessThan">
+                    <FieldRef field="anomalyScore"/>
+                    <Constant dataType="double">0.422</Constant>
+                </Apply>
+            </OutputField>
+        </Output>
+        <MiningModel functionName="regression" modelName="iforest_iris_pmml">
+            <MiningSchema>
+                <MiningField name="sepal_length" usageType="active"/>
+                <MiningField name="petal_length" usageType="active"/>
+                <MiningField name="petal_width" usageType="active"/>
+            </MiningSchema>
+            <Output>
+                <OutputField name="avg_path_length" optype="continuous" dataType="double" feature="predictedValue"/>
+            </Output>
+            <Segmentation multipleModelMethod="average">
+                <Segment id="Seg_1">
+                    <True/>
+                    <TreeModel functionName="regression" missingValueStrategy="nullPrediction"
+                               noTrueChildStrategy="returnLastPrediction" splitCharacteristic="multiSplit"
+                               modelName="SegmentModel_1">
+                        <MiningSchema>
+                            <MiningField name="petal_length"/>
+                            <MiningField name="sepal_length"/>
+                        </MiningSchema>
+                        <Node id="Seg1_Nod_1" score="2.0">
+                            <True/>
+                            <Node id="Seg1_Nod_1.1" score="3.0">
+                                <SimplePredicate field="petal_length" operator="lessOrEqual"
+                                                 value="1.7228131956992732"/>
+                                <Node id="Seg1_Nod_1.1.1" score="4.0">
+                                    <SimplePredicate field="sepal_length" operator="lessOrEqual"
+                                                     value="4.772875397423331"/>
+                                </Node>
+                                <Node id="Seg1_Nod_1.1.2" score="4">
+                                    <SimplePredicate field="sepal_length" operator="greaterThan"
+                                                     value="4.772875397423331"/>
+                                </Node>
+                            </Node>
+                            <Node id="Seg1_Nod_1.2" score="3.0">
+                                <SimplePredicate field="petal_length" operator="greaterThan"
+                                                 value="1.7228131956992732"/>
+                                <Node id="Seg1_Nod_1.2.1" score="4.0">
+                                    <SimplePredicate field="petal_width" operator="lessOrEqual" value="1.7714"/>
+                                </Node>
+                                <Node id="Seg1_Nod_1.2.2" score="4.1544313298030655">
+                                    <SimplePredicate field="petal_width" operator="greaterThan" value="1.7714"/>
+                                </Node>
+                            </Node>
+                        </Node>
+                    </TreeModel>
+                </Segment>
+                <Segment id="Seg_2">
+                    <True/>
+                    <TreeModel functionName="regression" missingValueStrategy="nullPrediction"
+                               noTrueChildStrategy="returnLastPrediction" splitCharacteristic="multiSplit"
+                               modelName="SegmentModel_2">
+                        <MiningSchema>
+                            <MiningField name="petal_width"/>
+                        </MiningSchema>
+                        <Node id="Seg2_Nod_1" score="2.0">
+                            <True/>
+                            <Node id="Seg2_Nod_1.1" score="3.0">
+                                <SimplePredicate field="petal_width" operator="lessOrEqual" value="0.8001738992731421"/>
+                                <Node id="Seg2_Nod_1.1.1" score="4.0">
+                                    <SimplePredicate field="petal_width" operator="lessOrEqual"
+                                                     value="0.5381419370928949"/>
+                                    <Node id="Seg2_Nod_1.1.1.1" score="5.0">
+                                        <SimplePredicate field="petal_width" operator="lessOrEqual" value="0.25857816"/>
+                                    </Node>
+                                    <Node id="Seg2_Nod_1.1.1.2" score="5.0">
+                                        <SimplePredicate field="petal_width" operator="greaterThan" value="0.25857816"/>
+                                    </Node>
+                                </Node>
+                                <Node id="Seg2_Nod_1.1.2" score="4.0">
+                                    <SimplePredicate field="petal_width" operator="greaterThan"
+                                                     value="0.5381419370928949"/>
+                                    <Node id="Seg2_Nod_1.1.2.1" score="5.0">
+                                        <SimplePredicate field="petal_width" operator="lessOrEqual" value="0.25857816"/>
+                                    </Node>
+                                    <Node id="Seg2_Nod_1.1.2.2" score="5.0">
+                                        <SimplePredicate field="petal_width" operator="greaterThan" value="0.25857816"/>
+                                    </Node>
+                                </Node>
+                            </Node>
+                            <Node id="Seg2_Nod_1.2" score="3.0">
+                                <SimplePredicate field="petal_width" operator="greaterThan" value="0.8001738992731421"/>
+                            </Node>
+                        </Node>
+                    </TreeModel>
+                </Segment>
+            </Segmentation>
+        </MiningModel>
+    </AnomalyDetectionModel>
+</PMML>

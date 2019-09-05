@@ -20,6 +20,7 @@ import org.pmml4s.common.Predication.Predication
 import org.pmml4s.common._
 import org.pmml4s.data.Series
 import org.pmml4s.metadata._
+import org.pmml4s.model.MissingPredictionTreatment.MissingPredictionTreatment
 import org.pmml4s.model.MultipleModelMethod.MultipleModelMethod
 import org.pmml4s.transformations.LocalTransformations
 import org.pmml4s.util.{MathUtils, Utils}
@@ -65,25 +66,32 @@ class MiningModel(
                    override val extensions: immutable.Seq[Extension] = immutable.Seq.empty)
   extends Model with HasWrappedModelAttributes {
 
+  import MultipleModelMethod._
+
   require(segmentation.isEmpty || MultipleModelMethod.support(segmentation.get.multipleModelMethod, functionName),
     s"The multiple model method '${segmentation.get.multipleModelMethod}' is not supported by the ${functionName} model")
 
   segmentation.foreach(_.setParent(this))
   private val segmentOutputs = candidateOutputFields.filter(_.segmentId.isDefined).map(_.segmentId.get).toSet
+  val isWeighted = isSegmentation && (Set(`weightedMajorityVote`, `weightedAverage`, `weightedMedian`, `weightedSum`)
+    contains segmentation.get.multipleModelMethod)
 
   /** Model element type. */
   override def modelElement: ModelElement = ModelElement.MiningModel
 
   /** Predicts values for a given data series. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
     val outputs = createOutputs()
 
     // Segmentation
     if (isSegmentation) {
       val seg = segmentation.get
-      import MultipleModelMethod._
+      import MissingPredictionTreatment._
       seg.multipleModelMethod match {
         case `selectFirst` => {
           val first = seg.segments.find(x => Predication.fire(x.eval(series)))
@@ -109,6 +117,7 @@ class MiningModel(
             segment.id.foreach(x => if (segmentOutputs.contains(x)) outputs.putSegment(x, out))
             in = Series.merge(in, out)
           }
+
           if (output.isDefined) {
             // Handle the results further when outputs defined in the ensemble model
             val probabilities = mutable.Map.empty[Any, Double]
@@ -130,11 +139,27 @@ class MiningModel(
 
           if (isRegression || ((isClassification || isClustering) && (method == majorityVote || method == weightedMajorityVote))) {
             // Suppose all child model has the same output schema
+            val outSeries = selections.map(_.predict(series))
             val predictedIndex = selections.head.model.outputIndex(ResultFeature.predictedValue)
-            val predictions = selections.map(_.predict(series)).map(_.get(predictedIndex))
+            var predictions = outSeries.map(_.get(predictedIndex))
+
+            // Compute model weights
+            var weights = if (isWeighted) outSeries.zip(selections).map(x => x._2.weight(Series.merge(series, x._1))) else Array.fill(selections.length)(1.0)
 
             // Check missing results
-            if (predictions.contains(null)) return nullSeries
+            seg.missingPredictionTreatment match {
+              case `returnMissing` => if (predictions.exists(x => Utils.isMissing(x))) return nullSeries
+              case `skipSegment`   => {
+                if (predictions.exists(x => Utils.isMissing(x))) {
+                  val missingWeight = weights.zip(predictions).filter(x => Utils.isMissing(x._2)).map(x => x._1).sum
+                  val totalWeight = weights.sum
+                  if (missingWeight / totalWeight > seg.missingThreshold) return nullSeries
+                  weights = predictions.zip(weights).filter(x => Utils.nonMissing(x._1)).map(_._2)
+                  predictions = predictions.filter(x => Utils.nonMissing(x))
+                }
+              }
+              case `continue`      =>
+            }
 
             if (isRegression) {
               val realPredictions = predictions.map(_.asInstanceOf[Double])
@@ -143,21 +168,20 @@ class MiningModel(
                   realPredictions.sum / realPredictions.size.toDouble
                 }
                 case `weightedAverage` => {
-                  val weights = selections.map(_.weight)
                   MathUtils.product(realPredictions, weights) / weights.sum
                 }
                 case `median`          => {
-                  if (realPredictions.size % 2 == 0) {
-                    (realPredictions(realPredictions.size / 2) + realPredictions(realPredictions.size / 2 - 1)) / 2.0
-                  } else {
-                    realPredictions(realPredictions.size / 2)
-                  }
+                  MathUtils.median(realPredictions)
+                }
+                case `weightedMedian`  => {
+                  MathUtils.weightedMedian(realPredictions, weights)
                 }
                 case `sum`             =>
                   realPredictions.sum
+                case `weightedSum`     =>
+                  MathUtils.product(realPredictions, weights)
               }
             } else {
-              val weights = if (method == weightedMajorityVote) selections.map(_.weight) else Array.fill(selections.size)(1.0)
               // Convert predictions to the data type of target, because its type could be different from its target
               // in some cases, the probabilities could all become 0 if both data types not match.
               val dataTypeWanted = if (classes.nonEmpty) Utils.inferDataType(classes(0)) else UnresolvedDataType
@@ -167,33 +191,49 @@ class MiningModel(
             }
           } else if (isClassification) {
             // Suppose all child model has the same output schema
+            val outSeries = selections.map(_.predict(series))
             val probabilityIndexes = classes.map(x => selections.head.model.outputIndex(ResultFeature.probability, Some(x)))
-            val m = selections.
-              map(_.predict(series)).
-              map(x => probabilityIndexes.map(y => if (y != -1) x.get(y).asInstanceOf[Double] else Double.NaN))
-            val matrix = m.transpose
 
+            // Get the probabilities of each class
+            var probabilities = outSeries.map(x => probabilityIndexes.map(y => if (y != -1) x.get(y).asInstanceOf[Double] else Double.NaN))
+
+            // Compute model weights
+            var weights = if (isWeighted) outSeries.zip(selections).map(x => x._2.weight(Series.merge(series, x._1))) else Array.fill(selections.length)(1.0)
+
+            // Check missing results
+            seg.missingPredictionTreatment match {
+              case `returnMissing` => if (probabilities.exists(x => Utils.anyMissing(x))) return nullSeries
+              case `skipSegment`   => {
+                if (probabilities.exists(x => Utils.anyMissing(x))) {
+                  val missingWeight = weights.zip(probabilities).filter(x => Utils.anyMissing(x._2)).map(x => x._1).sum
+                  val totalWeight = weights.sum
+                  if (missingWeight / totalWeight > seg.missingThreshold) return nullSeries
+                  weights = probabilities.zip(weights).filter(x => !Utils.anyMissing(x._1)).map(_._2)
+                  probabilities = probabilities.filter(x => !Utils.anyMissing(x))
+                }
+              }
+              case `continue`      =>
+            }
+
+            val matrix = probabilities.transpose
             outputs.probabilities = method match {
               case `average`         => {
                 classes.zip(matrix.map(_.sum / selections.size)).toMap
               }
               case `weightedAverage` => {
-                val weights = selections.map(_.weight)
                 val sum = weights.sum
                 classes.zip(matrix.map(x => MathUtils.product(x, weights) / sum)).toMap
               }
               case `max`             => {
                 outputs.predictedValue = classes.zip(matrix.map(_.max)).maxBy(_._2)
-                val contributions = m.filter(x => classes.zip(x).maxBy(_._2)._1 == outputs.predictedValue)
+                val contributions = probabilities.filter(x => classes.zip(x).maxBy(_._2)._1 == outputs.predictedValue)
                 classes.zip(contributions.transpose.map(_.sum / contributions.size)).toMap
               }
               case `median`          => {
-                val sortedMatrix = matrix.map(_.sorted)
-                if (selections.size % 2 == 0) {
-                  classes.zip(matrix.map(x => x(selections.size / 2))).toMap
-                } else {
-                  classes.zip(matrix.map(x => x(selections.size / 2) + x(selections.size / 2 - 1) / 2.0)).toMap
-                }
+                classes.zip(matrix.map(x => MathUtils.median(x))).toMap
+              }
+              case `weightedMedian`  => {
+                classes.zip(matrix.map(x => MathUtils.weightedMedian(x, weights))).toMap
               }
             }
           }
@@ -266,35 +306,60 @@ object MultipleModelMethod extends Enumeration {
    * Note that combining clustering model predictions can produce not very meaningful results because there is no target variable,
    * and the same cluster IDs on different segments can be assigned to very different clusters.
    *
-   * For regression models only average, weightedAverage, median, sum, modelChain, selectFirst, or selectAll are applicable.
+   * For regression models only average, weightedAverage, median, weightedMedian, sum, weightedSum, modelChain, selectFirst, or selectAll are applicable.
    * The first four methods are applied to the predicted values of all models for which the predicate evaluates to true.
    *
-   * For classification models all the combination methods, except for sum, can be used. For the first six combination methods
-   * the models in all segments must have the same target variable. Note that average, weightedAverage, median, and max are
+   * For classification models all the combination methods, except for sum and weightedSum, can be used. For the first six combination methods
+   * the models in all segments must have the same target variable. Note that average, weightedAverage, median, weightedMedian, and max are
    * applied to the predicted probabilities of target categories in each of the models used for the case, then the winning
    * category is selected based on the highest combined probability, while majorityVote and weightedMajorityVote use the
    * predicted categories from all applicable models and select the one based on the models' "votes". Predicted probabilities
    * for the final prediction of a classification MiningModel are defined as follows, depending on the combination method:
-   * majorityVote and weightedMajorityVote: the probabilities are computed as the proportions of the votes or weighted votes for each target category;
-   * average, weightedAverage: the probabilities are computed as the average or weighted average of probabilities of the models used in the prediction;
-   * max: consider the model(s) that have contributed the chosen probability for the winning category. Return their average probabilities;
-   * median: if the number of models with predicates that resolve to true is odd consider the model(s) that have the chose
+   *
+   * - majorityVote and weightedMajorityVote: the probabilities are computed as the proportions of the votes or weighted votes for each target category;
+   * - average, weightedAverage: the probabilities are computed as the average or weighted average of probabilities of the models used in the prediction;
+   * - max: consider the model(s) that have contributed the chosen probability for the winning category. Return their average probabilities;
+   * - median, weightedMedian: if the number of models with predicates that resolve to true is odd consider the model(s) that have the chose
    */
-  val majorityVote, weightedMajorityVote, average, weightedAverage, median, max, sum, selectFirst, selectAll, modelChain = Value
+  val majorityVote, weightedMajorityVote, average, weightedAverage, median, weightedMedian, max, sum, weightedSum, selectFirst, selectAll, modelChain = Value
 
   def support(mmm: MultipleModelMethod, mf: MiningFunction): Boolean = mmm match {
     case `selectFirst` | `selectAll` | `modelChain` => true
     case `majorityVote` | `weightedMajorityVote`
       if mf == MiningFunction.clustering            => true
-    case `average` | `weightedAverage` | `median` | `sum`
+    case `average` | `weightedAverage` | `median` | `sum` | `weightedSum`
       if mf == MiningFunction.regression            => true
-    case `majorityVote` | `weightedMajorityVote` | `average` | `weightedAverage` | `median` | `max`
+    case `majorityVote` | `weightedMajorityVote` | `average` | `weightedAverage` | `median` | `weightedMedian` | `max`
       if mf == MiningFunction.classification        => true
     case _                                          => false
   }
 }
 
-class Segmentation(val multipleModelMethod: MultipleModelMethod, val segments: Array[Segment]) extends PmmlElement {
+/**
+ * The missing prediction treatment options are used when at least one model for which the predicate in the Segment
+ * evaluates to true has a missing result. The attribute missingThreshold is closely related and has default value 1.
+ * The options are defined as follows:
+ *
+ * - returnMissing means that if at least one model has a missing result, the whole MiningModel's result should be missing.
+ * - skipSegment says that if a model has a missing result, that segment is ignored and the results are computed based
+ * on other segments. However, if the fraction of the models with missing results ( weighted if the model combination
+ * method is weighted ) exceeds the missingThreshold, the returned result must be missing. This option should not be
+ * used with modelChain combination method.
+ * - continue says that if a model has a missing result, the processing should continue normally. This can work well for
+ * voting or modelChain situations, as well as returnFirst and returnAll. In case of majorityVote or
+ * weightedMajorityVote the missing result can be returned if it gets the most ( possibly weighted ) votes, or if the
+ * fraction of the models with missing result exceeds the missingThreshold. Otherwise a valid result is computed
+ * normally. Other model combination methods will return a missing value as the result.
+ */
+object MissingPredictionTreatment extends Enumeration {
+  type MissingPredictionTreatment = Value
+  val returnMissing, skipSegment, continue = Value
+}
+
+class Segmentation(val multipleModelMethod: MultipleModelMethod,
+                   val segments: Array[Segment],
+                   val missingPredictionTreatment: MissingPredictionTreatment = MissingPredictionTreatment.continue,
+                   val missingThreshold: Double = 1) extends PmmlElement {
 
   def +=(segment: Segment): Segmentation = {
     new Segmentation(multipleModelMethod, segments :+ segment)
@@ -306,7 +371,13 @@ class Segmentation(val multipleModelMethod: MultipleModelMethod, val segments: A
   }
 }
 
-class Segment(val predicate: Predicate, val model: Model, val id: Option[String] = None, val weight: Double = 1.0)
+class VariableWeight(val field: Field) extends PmmlElement
+
+class Segment(val predicate: Predicate,
+              val model: Model,
+              val variableWeight: Option[VariableWeight] = None,
+              val id: Option[String] = None,
+              val weight: Double = 1.0)
   extends Predictable with Predicate with PmmlElement {
 
   /** Predicts values for a given data series. */
@@ -314,6 +385,8 @@ class Segment(val predicate: Predicate, val model: Model, val id: Option[String]
 
   /** Evaluates the predicate. */
   override def eval(series: Series): Predication = predicate.eval(series)
+
+  def weight(series: Series): Double = variableWeight.map(x => x.field.getDouble(series) * weight).getOrElse(weight)
 }
 
 class MiningOutputs extends ClsOutputs with RegOutputs with CluOutputs with SegmentOutputs

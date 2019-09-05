@@ -97,8 +97,9 @@ trait TransformationsBuilder extends CommonBuilder
             val name = attrs(AttrTags.NAME)
             val opType = attrs.get(AttrTags.OPTYPE).map(OpType.withName(_)).getOrElse(OpType.typeless)
             val dataType = attrs.get(AttrTags.DATA_TYPE).map(DataType.withName(_)).getOrElse(UnresolvedDataType)
+            val displayName = attrs.get(AttrTags.DISPLAY_NAME)
 
-            new ParameterField(name, opType, dataType)
+            new ParameterField(name, opType, dataType, displayName)
           }
         })
       case event: EvElemStart if Expression.contains(event.label) => {
@@ -139,12 +140,24 @@ trait TransformationsBuilder extends CommonBuilder
       case EvElemStart(_, ElemTags.CONSTANT, attrs, _)        => makeElem(reader, attrs, new ElemBuilder[Constant] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): Constant = {
           val dataType = attrs.get(AttrTags.DATA_TYPE).map(DataType.withName(_))
+          val missing = attrs.getBoolean(AttrTags.MISSING, false)
           var content: String = null
           traverseElems(reader, ElemTags.CONSTANT, {
             case EvText(text) => content = text
           }, true)
 
-          new Constant(if (dataType.isDefined) Utils.toVal(content, dataType.get) else content, dataType)
+          val value = if (dataType.isDefined) {
+            if (content != null && dataType.get == RealType) {
+              content.toLowerCase match {
+                case "nan"  => Double.NaN
+                case "inf"  => Double.PositiveInfinity
+                case "-inf" => Double.NegativeInfinity
+                case _      => Utils.toVal(content, dataType.get)
+              }
+            } else Utils.toVal(content, dataType.get)
+          } else content
+
+          new Constant(value, dataType, missing)
         }
       })
       case EvElemStart(_, ElemTags.FIELD_REF, attrs, _)       => makeFieldRef(reader, attrs, scope)
@@ -230,7 +243,7 @@ trait TransformationsBuilder extends CommonBuilder
           val maxLevenshteinDistance = attrs.getInt(AttrTags.MAX_LEVENSHTEIN_DISTANCE, 0)
           val countHits = attrs.get(AttrTags.COUNT_HITS).map(CountHits.withName(_)).
             getOrElse(CountHits.allHits)
-          val wordSeparatorCharacterRE = attrs.getString(AttrTags.WORD_SEPARATOR_CHARACTER_RE, "\\s")
+          val wordSeparatorCharacterRE = attrs.getString(AttrTags.WORD_SEPARATOR_CHARACTER_RE, "\\s+")
           val tokenize = attrs.getBoolean(AttrTags.TOKENIZE, true)
           val textIndexNormalizations = mutable.ArrayBuilder.make[TextIndexNormalization]()
           var expression: Expression = null

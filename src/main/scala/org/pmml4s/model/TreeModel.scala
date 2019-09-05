@@ -48,7 +48,10 @@ class TreeModel(
 
   /** Predicts values for a given data series using the model loaded. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
     import MissingValueStrategy._
     import NoTrueChildStrategy._

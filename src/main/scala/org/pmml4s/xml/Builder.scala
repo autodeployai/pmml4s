@@ -170,9 +170,10 @@ trait Builder[T <: Model] extends TransformationsBuilder {
           InvalidValueTreatment
             .withName(x)
         } getOrElse InvalidValueTreatment.returnInvalid
+        val invalidValueReplacement = attrs.get(AttrTags.INVALID_VALUE_REPLACEMENT).flatMap { x => f.toValOption(x) }
 
         new MiningField(name, usageType, opType, importance, outliers, lowValue, highValue, missingValueReplacement,
-          missingValueTreatment, invalidValueTreatment)
+          missingValueTreatment, invalidValueTreatment, invalidValueReplacement)
       }
     })
 
@@ -684,6 +685,7 @@ object Builder {
   register(ElemTags.RULE_SET_MODEL, classOf[RuleSetBuilder])
   register(ElemTags.NEAREST_NEIGHBOR_MODEL, classOf[NearestNeighborBuilder])
   register(ElemTags.SCORECARD, classOf[ScorecardBuilder])
+  register(ElemTags.ANOMALY_DETECTION_MODEL, classOf[AnomalyDetectionBuilder])
 }
 
 trait ElemBuilder[T] {

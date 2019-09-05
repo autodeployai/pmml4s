@@ -39,4 +39,28 @@ object MathUtils {
     }
     res
   }
+
+  def median(x: Seq[Double]): Double = {
+    val sorted = x.sorted
+    val n = sorted.size
+    if (n % 2 == 0) {
+      (sorted(n / 2) + sorted(n / 2 - 1)) / 2.0
+    } else {
+      sorted(n / 2)
+    }
+  }
+
+  def weightedMedian(x: Seq[Double], w: Seq[Double]): Double = {
+    val sorted = x.zip(w).sortBy(_._1)
+    val s = w.sum
+    val s2 = s / 2
+    var sum = s - sorted(0)._2
+    var k = 0
+    while (sum > s2) {
+      k += 1
+      sum -= sorted(k)._2
+    }
+
+    sorted(k)._1
+  }
 }

@@ -99,7 +99,10 @@ class GeneralRegressionModel(
 
   /** Predicts values for a given data series. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
     val outputs = new GeneralRegressionOutputs
     val xs = parameters.map(_.eval(series))

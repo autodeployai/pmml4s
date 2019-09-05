@@ -55,7 +55,11 @@ class NeuralNetwork(
 
   /** Predicts values for a given data series. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
+
     val transformedVals = new mutable.HashMap[String, Double]
     neuralInputs.neuralInputs.foreach(x => {
       val v = x.derivedField.eval(series)

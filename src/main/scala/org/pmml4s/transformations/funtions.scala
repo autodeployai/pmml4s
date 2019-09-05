@@ -38,7 +38,7 @@ object BuiltInFunctions extends FunctionProvider {
     val set = Set(Add, Subtract, Multiply, Divide, // Functions for simple arithmetics.
       Min, Max, Sum, Avg, Median, Product, // Returns an aggregation of a variable number of input fields.
       Log10, Ln, Sqrt, Abs, Exp, Pow, Threshold, Floor, Ceil, Round, Modulo, // Further mathematical functions.
-      IsMissing, IsNotMissing, // Functions for boolean operations.
+      IsMissing, IsNotMissing, IsValid, IsNotValid, // Functions for boolean operations.
       Equal, NotEqual, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual, // Further boolean functions.
       And, Or, Not, IsIn, IsNotIn, If, // Further boolean functions.
       Uppercase, Lowercase, Substring, TrimBlanks, Concat, Replace, Matches, FormatNumber, // Functions for string operations.
@@ -336,6 +336,18 @@ object IsNotMissing extends UnaryBoolean {
   override def symbol: String = "isNotMissing"
 }
 
+object IsValid extends UnaryBoolean {
+  override def eval(a: Any): Boolean = Utils.nonMissing(a)
+
+  override def symbol: String = "isValid"
+}
+
+object IsNotValid extends UnaryBoolean {
+  override def eval(a: Any): Boolean = Utils.isMissing(a)
+
+  override def symbol: String = "isNotValid"
+}
+
 object Equal extends BinaryBoolean {
   override def eval(left: Any, right: Any): Boolean = left == right
 
@@ -363,7 +375,7 @@ object LessOrEqual extends BinaryCompare {
 object GreaterThan extends BinaryCompare {
   override def eval(left: Double, right: Double): Boolean = left > right
 
-  override def symbol: String = "GreaterThan"
+  override def symbol: String = "greaterThan"
 }
 
 object GreaterOrEqual extends BinaryCompare {

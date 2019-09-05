@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.pmml4s.transformations
+package org.pmml4s.util
 
-import org.scalactic.TolerantNumerics
 import org.scalatest.FunSuite
 
 /**
- * Test cases of built-in functions.
+ * Test cases of math utilities.
  */
-class FunctionsTest extends FunSuite {
-  implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.000001)
+class MathUtilsTest extends FunSuite {
 
-  test("modulo") {
-    assert(Modulo.eval(11, 3) === 2.0)
-    assert(Modulo.eval(-17.2, 0.5) === 0.3)
-    assert(Modulo.eval(9, -7) === -5.0)
-    assert(Modulo.eval(-4, -9) === -4.0)
+  test("weightedMedian") {
+    val a = MathUtils.weightedMedian(Seq(1), Seq(0.15))
+    assert(a === 1)
 
-    val f = BuiltInFunctions.getFunction("x-sin")
-    f.get
+    val b = MathUtils.weightedMedian(Seq(1, 2, 3, 4, 5), Seq(0.15, 0.1, 0.2, 0.3, 0.25))
+    assert(b === 4)
   }
+
 }

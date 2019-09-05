@@ -119,7 +119,10 @@ class NearestNeighborModel(
 
   /** Predicts values for a given data series. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
     val xs = knnInputs.knnInputs.map(x => {
       val v = x.field.get(series)

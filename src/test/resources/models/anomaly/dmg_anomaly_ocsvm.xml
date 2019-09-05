@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+    <Header copyright="www.dmg.org" description="Default Description">
+    </Header>
+    <DataDictionary numberOfFields="4">
+        <DataField name="sepal_length" optype="continuous" dataType="double"/>
+        <DataField name="sepal_width" optype="continuous" dataType="double"/>
+        <DataField name="petal_length" optype="continuous" dataType="double"/>
+        <DataField name="petal_width" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <AnomalyDetectionModel functionName="regression" algorithmType="ocsvm" modelName="OneClassSVM">
+        <MiningSchema>
+            <MiningField name="sepal_length" usageType="active"/>
+            <MiningField name="sepal_width" usageType="active"/>
+            <MiningField name="petal_length" usageType="active"/>
+            <MiningField name="petal_width" usageType="active"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="anomalyScore" optype="continuous" dataType="float" feature="predictedValue"/>
+            <OutputField name="anomaly" optype="categorical" dataType="boolean" feature="decision">
+                <Apply function="lessThan">
+                    <FieldRef field="anomalyScore"/>
+                    <Constant dataType="double">0</Constant>
+                </Apply>
+            </OutputField>
+        </Output>
+        <SupportVectorMachineModel functionName="regression" modelName="ocsvm_iris_pmml">
+            <MiningSchema>
+                <MiningField name="sepal_length"/>
+                <MiningField name="sepal_width"/>
+                <MiningField name="petal_length"/>
+                <MiningField name="petal_width"/>
+            </MiningSchema>
+            <Output>
+                <OutputField dataType="double" feature="predictedValue" name="svm_out" optype="continuous"/>
+            </Output>
+            <LinearKernelType/>
+            <VectorDictionary>
+                <VectorFields>
+                    <FieldRef field="sepal_length"/>
+                    <FieldRef field="sepal_width"/>
+                    <FieldRef field="petal_length"/>
+                    <FieldRef field="petal_width"/>
+                </VectorFields>
+                <VectorInstance id="3">
+                    <Array type="real">5.5 4.2 1.4 0.2</Array>
+                </VectorInstance>
+                <VectorInstance id="8">
+                    <Array type="real">4.4 3.0 1.3 0.2</Array>
+                </VectorInstance>
+            </VectorDictionary>
+            <SupportVectorMachine>
+                <SupportVectors>
+                    <SupportVector vectorId="3"/>
+                    <SupportVector vectorId="8"/>
+                </SupportVectors>
+                <Coefficients absoluteValue="-8.33">
+                    <Coefficient value="0.5"/>
+                    <Coefficient value="0.499"/>
+                </Coefficients>
+            </SupportVectorMachine>
+        </SupportVectorMachineModel>
+    </AnomalyDetectionModel>
+</PMML>

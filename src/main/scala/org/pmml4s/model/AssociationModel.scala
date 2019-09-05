@@ -88,7 +88,10 @@ class AssociationModel(
 
   /** Predicts values for a given data series. */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
     val itemset: scala.collection.Set[String] = if (groupField != null) {
       val group = groupField.get(series)

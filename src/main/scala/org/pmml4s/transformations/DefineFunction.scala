@@ -47,7 +47,8 @@ class DefineFunction(
   }
 }
 
-class ParameterField(val name: String, val opType: OpType, val dataType: DataType) extends AbstractField {
+class ParameterField(val name: String, val opType: OpType, val dataType: DataType, displayName: Option[String] = None)
+  extends AbstractField {
 
   /** Field type. */
   override def fieldType: FieldType = FieldType.ParameterField

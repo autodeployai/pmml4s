@@ -73,9 +73,12 @@ class Scorecard(
    * result of the scorecard.
    */
   override def predict(values: Series): Series = {
-    val series = prepare(values)
-    val outputs = createOutputs()
+    val (series, returnInvalid) = prepare(values)
+    if (returnInvalid) {
+      return nullSeries
+    }
 
+    val outputs = createOutputs()
     val results = ch.map(x => x.score(series))
     outputs.predictedValue = results.map(_._1).sum + initialScore
 

@@ -25,6 +25,7 @@ object ModelElement {
    */
   val DATA_MODEL = DataModel
   val TRANSFORMATION_MODEL = TransformationModel
+  val ANOMALY_DETECTION_MODEL = AnomalyDetectionModel
   val ASSOCIATION_MODEL = AssociationModel
   val BAYESIAN_NETWORK_MODEL = BayesianNetworkModel
   val BASELINE_MODEL = BaselineModel
@@ -44,11 +45,13 @@ object ModelElement {
   val TIME_SERIES_MODEL = TimeSeriesModel
   val TREE_MODEL = TreeModel
   val DECISION_TREE = DecisionTree
-  val REGRESSION = Regression  
+  val REGRESSION = Regression
 
   case object DataModel extends ModelElement
 
   case object TransformationModel extends ModelElement
+
+  case object AnomalyDetectionModel extends ModelElement
 
   case object AssociationModel extends ModelElement
 

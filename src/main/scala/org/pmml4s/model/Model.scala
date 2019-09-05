@@ -279,7 +279,7 @@ abstract class Model extends HasParent
   }
 
   /** Pre-process the input series. */
-  protected def prepare(series: Series): Series = {
+  protected def prepare(series: Series): (Series, Boolean) = {
     val newValues = new Array[Any](if (isTopLevelModel) usedFields.length else series.length)
 
     // Some models do not have the Mining Schema, for example the transformation model, and embedded models
@@ -301,10 +301,27 @@ abstract class Model extends HasParent
             field.isMissingValue(value)
 
           newValues(field.index) = if (missing) {
+            if (mf.missingValueTreatment == MissingValueTreatment.returnInvalid) {
+              return (series, true)
+            }
+
             if (mf.missingValueReplacement.isDefined) {
               mf.missingValueReplacement
             } else {
-              value
+              mf.invalidValueTreatment match {
+                case InvalidValueTreatment.returnInvalid | InvalidValueTreatment.asValue => {
+                  if (field.isInvalidValue(value)) {
+                    if (mf.invalidValueTreatment == InvalidValueTreatment.returnInvalid) {
+                      return (series, true)
+                    } else {
+                      mf.invalidValueReplacement.get
+                    }
+                  } else {
+                    value
+                  }
+                }
+                case _                                                                   => value
+              }
             }
           } else {
             if (mf.outliers == OutlierTreatmentMethod.asExtremeValues) {
@@ -343,7 +360,7 @@ abstract class Model extends HasParent
       Series.fromSeq(newValues)
     }
 
-    localTransformations.map(_.transform(transformed)).getOrElse(transformed)
+    (localTransformations.map(_.transform(transformed)).getOrElse(transformed), false)
   }
 
   /** Encodes the input series. */

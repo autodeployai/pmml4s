@@ -26,8 +26,9 @@ import org.pmml4s.metadata.Field
  */
 class Constant(
                 val value: Any,
-                val dataType: Option[DataType] = None) extends LeafExpression {
-  override def eval(series: Series): Any = value
+                val dataType: Option[DataType] = None,
+                val missing: Boolean = false) extends LeafExpression {
+  override def eval(series: Series): Any = if (missing) null else value
 
   override def getDataField: Option[Field] = None
 }
