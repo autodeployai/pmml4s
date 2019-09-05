@@ -86,21 +86,22 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
 
 2. Call `predict(values)` to predict new values that can be in different types, and the type of results is always same as inputs.
 
-    #### `values` in a Map:
+    * `values` in a Map:
 
     ```scala
     scala> val result = model.predict(Map("sepal_length" -> 5.1, "sepal_width" -> 3.5, "petal_length" -> 1.4, "petal_width" -> 0.2))
     result: Map[String,Any] = Map(probability -> 1.0, probability_Iris-versicolor -> 0.0, probability_Iris-setosa -> 1.0, probability_Iris-virginica -> 0.0, predicted_class -> Iris-setosa, node_id -> 1)
     ```
 
-    #### `values` in a list of pairs of keys and values:
+    * `values` in a list of pairs of keys and values:
 
     ```scala
     scala> val result = model.predict("sepal_length" -> 5.1, "sepal_width" -> 3.5, "petal_length" -> 1.4, "petal_width" -> 0.2)
     result: Seq[(String, Any)] = ArraySeq((predicted_class,Iris-setosa), (probability,1.0), (probability_Iris-setosa,1.0), (probability_Iris-versicolor,0.0), (probability_Iris-virginica,0.0), (node_id,1))
     ```
 
-    #### `values` in an Array:
+    * `values` in an Array:
+
     The order of those values is supposed as same as the input fields list, and the order of results is same as the output fields list.
 
     ```scala
@@ -114,10 +115,12 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
     outputNames: Array[String] = Array(predicted_class, probability, probability_Iris-setosa, probability_Iris-versicolor, probability_Iris-virginica, node_id)
     ```
 
-    #### `values` in the JSON format:
+    * `values` in the JSON format:
+
     It supports the following styles, and the JSON string can take more than more records to predict, and the results are still a string in JSON with the same format as input.
-    - `records` : list like [{column -> value}, … , {column -> value}]
-    - `split` : dict like {‘columns’ -> [columns], ‘data’ -> [values]}
+    
+        - `records` : list like [{column -> value}, … , {column -> value}]
+        - `split` : dict like {‘columns’ -> [columns], ‘data’ -> [values]}
 
     ```scala
     scala> val result = model.predict("""[{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}, {"sepal_length": 7, "sepal_width": 3.2, "petal_length": 4.7, "petal_width": 1.4}]""")
@@ -127,7 +130,7 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
     result: String = {"columns":["predicted_class","probability","probability_Iris-setosa","probability_Iris-versicolor","probability_Iris-virginica","node_id"],"data":[["Iris-setosa",1.0,1.0,0.0,0.0,"1"],["Iris-versicolor",0.9074074074074074,0.0,0.9074074074074074,0.09259259259259259,"3"]]}
     ```
 
-    #### `values` in the _PMML4S's_ `Series`:
+    * `values` in the _PMML4S's_ `Series`:
 
     ```scala
     import org.pmml4s.data.Series
@@ -151,7 +154,8 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
     result: org.pmml4s.data.Series = [Iris-setosa,1.0,1.0,0.0,0.0,1], [(predicted_class,string),(probability,double),(probability_Iris-setosa,double),(probability_Iris-versicolor,double),(probability_Iris-virginica,double),(node_id,string)]
     ```
 
-    #### Which format to use?
+    * Which format to use?
+
     You can use any formats of values according to your environment. Except of the `Series` that need to convert the data explicitly, you don't need to call `Utils.toVal` explicitly to convert data to ones defined by PMML for others, the conversion will be operated properly automatically. e.g. those input values are string, not double, you can still get the same correct results.
 
     ```scala
@@ -212,7 +216,7 @@ It's also easy to use and similar as Scala.
 
 2. Call `predict(values)` to predict new values that can be in different types, and the type of results is always same as inputs.
 
-    #### `values` in a Map of Java:
+    * `values` in a Map of Java:
 
     ```java
     import java.util.Map;
@@ -226,7 +230,8 @@ It's also easy to use and similar as Scala.
             }});
     ```
 
-    #### `values` in an Array:
+    * `values` in an Array:
+
     The order of those values is supposed as same as the input fields list, and the order of results is same as the output fields list.
 
     ```java
@@ -234,10 +239,11 @@ It's also easy to use and similar as Scala.
     Object[] result = model.predict(new Double[]{5.1, 3.5, 1.4, 0.2});
     ```
 
-    #### `values` in the JSON format:
+    * `values` in the JSON format:
+
     It's same as Scala
 
-    #### `values` in the _PMML4S's_ `Series`:
+    * `values` in the _PMML4S's_ `Series`:
 
     ```java
     import org.pmml4s.data.Series;
