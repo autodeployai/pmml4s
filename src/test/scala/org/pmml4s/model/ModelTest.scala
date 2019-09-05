@@ -66,7 +66,7 @@ class ModelTest extends BaseModelTest {
     assert(targetFields.map(_.name).sameElements(Array("TARGET_Adjusted")))
 
     val outputFields = model.candidateOutputFields
-    assert(outputFields.map(_.name).sameElements(Array("PredictedValue", "Probability", "Probability_0", "Probability_1", "Node_ID")))
+    assert(outputFields.map(_.name).sameElements(Array("predicted_TARGET_Adjusted", "probability", "probability_0", "probability_1", "node_id")))
     assert(outputFields.map(_.feature).sameElements(Array(ResultFeature.predictedValue, ResultFeature.probability, ResultFeature.probability, ResultFeature.probability, ResultFeature.entityId)))
     assert(outputFields(1).value.isEmpty)
     assert(outputFields(2).value === Some("0"))
@@ -83,11 +83,11 @@ class ModelTest extends BaseModelTest {
       StructField("Deductions", DataType.double),
       StructField("Hours", DataType.integer))))
     assert(model.outputSchema === StructType(Array(
-      StructField("PredictedValue", DataType.string),
-      StructField("Probability", DataType.double),
-      StructField("Probability_0", DataType.double),
-      StructField("Probability_1", DataType.double),
-      StructField("Node_ID", DataType.string)
+      StructField("predicted_TARGET_Adjusted", DataType.string),
+      StructField("probability", DataType.double),
+      StructField("probability_0", DataType.double),
+      StructField("probability_1", DataType.double),
+      StructField("node_id", DataType.string)
     )))
 
     val tree = model.asInstanceOf[TreeModel]

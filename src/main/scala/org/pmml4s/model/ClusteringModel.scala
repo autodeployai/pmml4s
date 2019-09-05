@@ -150,16 +150,16 @@ class ClusteringModel(
   override def defaultOutputFields: Array[OutputField] = {
     val res = mutable.ArrayBuilder.make[OutputField]()
     res.sizeHint(3)
-    res += OutputField.predictedValue("PredictedValue", "Identifier of the winning cluster", StringType, OpType.nominal)
+    res += OutputField.predictedValue("cluster", "Identifier of the winning cluster", StringType, OpType.nominal)
 
     if (clusters.head.name.isDefined) {
-      res += OutputField.predictedDisplayValue("PredictedDisplayValue", "Name of the winning cluster")
+      res += OutputField.predictedDisplayValue("cluster_name", "Name of the winning cluster")
     }
 
     res += (if (modelClass == ModelClass.centerBased) {
-      OutputField.affinity("Distance", "Distance to the predicted entity")
+      OutputField.affinity("distance", "Distance to the predicted entity")
     } else {
-      OutputField.affinity("Similarity", "Similarity to the predicted entity")
+      OutputField.affinity("similarity", "Similarity to the predicted entity")
     })
 
     res.result()

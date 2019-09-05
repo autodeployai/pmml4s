@@ -28,7 +28,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.multinomialLogistic)
     val r = model.predict(Map("sex" -> 1, "minority" -> 0, "age" -> 25, "work" -> 4))
-    assert(r("PredictedValue") === 2.0)
+    assert(r("predicted_jobcat") === 2.0)
   }
 
   test("General Linear Example") {
@@ -39,7 +39,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.generalLinear)
     val r = model.predict(Map("sex" -> 1, "minority" -> 0, "age" -> 25, "work" -> 4))
-    assert(r("PredictedValue") === 1.7710000000000001)
+    assert(r("predicted_jobcat") === 1.7710000000000001)
   }
 
   test("Ordinal Multinomial Example") {
@@ -50,7 +50,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.ordinalMultinomial)
     val r = model.predict(Map("sex" -> 1, "minority" -> 0, "age" -> 25, "work" -> 4))
-    assert(r("PredictedValue") === 2)
+    assert(r("predicted_jobcat") === 2)
   }
 
   test("Simple Regression Example") {
@@ -61,7 +61,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.regression)
     val r = model.predict(Map("age" -> 25, "work" -> 4))
-    assert(r("PredictedValue") === 2.2830000000000004)
+    assert(r("predicted_jobcat") === 2.2830000000000004)
   }
 
   test("Generalized Linear Model Example") {
@@ -72,7 +72,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.generalizedLinear)
     val r = model.predict(Map("sex" -> 1, "minority" -> 0, "age" -> 25, "work" -> 4))
-    assert(r("PredictedValue") === 1.7744268679597344)
+    assert(r("predicted_jobcat") === 1.7744268679597344)
   }
 
   test("Example of a model with contrast matrices") {
@@ -83,7 +83,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.multinomialLogistic)
     val r = model.predict(Map("gender" -> "f", "educ" -> 19, "jobcat" -> 3, "salbegin" -> 45000))
-    assert(r("PredictedValue") === "Low")
+    assert(r("predicted_salCat") === "Low")
   }
 
   test("Cox Regression Model Example") {
@@ -94,7 +94,7 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.CoxRegression)
     val r = model.predict(Map("childs" -> 5, "happy" -> 1, "educ" -> 19))
-    assert(r("PredictedValue") === 0.9508934267989405)
+    assert(r("predicted_life") === 0.9508934267989405)
   }
 
   test("Cox Regression Model Example with baselineStrataVariable") {
@@ -105,6 +105,6 @@ class GeneralRegressionModelTest extends BaseModelTest {
     val reg = model.asInstanceOf[GeneralRegressionModel]
     assert(reg.modelType === GeneralModelType.CoxRegression)
     val r = model.predict(Map("childs" -> 5, "happy" -> 1, "educ" -> 19, "region" -> 3))
-    assert(r("PredictedValue") === 0.9494936567021923)
+    assert(r("predicted_life") === 0.9494936567021923)
   }
 }

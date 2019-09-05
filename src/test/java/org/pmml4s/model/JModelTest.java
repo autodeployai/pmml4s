@@ -115,7 +115,7 @@ public class JModelTest {
             put("petal_width", 0.2);
         }});
         System.out.println(r7.toString());
-        assertEquals("Iris-setosa", r7.get("PredictedValue"));
+        assertEquals("Iris-setosa", r7.get("predicted_class"));
         Map r8 = model.predict(new HashMap<String, Object>() {{
             put("sepal_length", 7);
             put("sepal_width", 3.2);
@@ -123,6 +123,6 @@ public class JModelTest {
             put("petal_width", 1.4);
         }});
         System.out.println(r8.toString());
-        assertEquals("Iris-versicolor", r8.get("PredictedValue"));
+        assertEquals("Iris-versicolor", r8.get("predicted_class"));
     }
 }

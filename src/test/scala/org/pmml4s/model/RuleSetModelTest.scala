@@ -24,47 +24,49 @@ class RuleSetModelTest extends BaseModelTest {
     val model = Model.fromFile("src/test/resources/models/rule/dmg_rule_simple.xml")
     assert(model !== null)
     assert(model.modelElement === ModelElement.RuleSetModel)
+    assert(model.targetName === "$C-Drug")
     val rule = model.asInstanceOf[RuleSetModel]
     val r = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
 
     // The default criterion="weightedSum" scoring
-    assert(r("PredictedValue") === "drugA")
-    assert(r("Confidence") === 0.32)
+    assert(r("predicted_$C-Drug") === "drugA")
+    assert(r("confidence") === 0.32)
 
     // criterion="firstHit" scoring
     rule.criterion = Criterion.firstHit
     val r2 = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
-    assert(r2("PredictedValue") === "drugB")
-    assert(r2("Confidence") === 0.9)
+    assert(r2("predicted_$C-Drug") === "drugB")
+    assert(r2("confidence") === 0.9)
 
     // criterion="weightedMax" scoring
     rule.criterion = Criterion.firstHit
     val r3 = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
-    assert(r3("PredictedValue") === "drugB")
-    assert(r3("Confidence") === 0.9)
+    assert(r3("predicted_$C-Drug") === "drugB")
+    assert(r3("confidence") === 0.9)
   }
 
   test("PMML for the example (using compound rules)") {
     val model = Model.fromFile("src/test/resources/models/rule/dmg_rule_compound.xml")
     assert(model !== null)
     assert(model.modelElement === ModelElement.RuleSetModel)
+    assert(model.targetName === "$C-Drug")
     val rule = model.asInstanceOf[RuleSetModel]
     val r = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
 
     // The default criterion="weightedSum" scoring
-    assert(r("PredictedValue") === "drugA")
-    assert(r("Confidence") === 0.32)
+    assert(r("predicted_$C-Drug") === "drugA")
+    assert(r("confidence") === 0.32)
 
     // criterion="firstHit" scoring
     rule.criterion = Criterion.firstHit
     val r2 = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
-    assert(r2("PredictedValue") === "drugB")
-    assert(r2("Confidence") === 0.9)
+    assert(r2("predicted_$C-Drug") === "drugB")
+    assert(r2("confidence") === 0.9)
 
     // criterion="weightedMax" scoring
     rule.criterion = Criterion.firstHit
     val r3 = model.predict(Map("BP" -> "HIGH", "K" -> 0.0621, "Age" -> 36, "Na" -> 0.5023))
-    assert(r3("PredictedValue") === "drugB")
-    assert(r3("Confidence") === 0.9)
+    assert(r3("predicted_$C-Drug") === "drugB")
+    assert(r3("confidence") === 0.9)
   }
 }

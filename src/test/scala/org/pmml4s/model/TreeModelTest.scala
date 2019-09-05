@@ -43,13 +43,13 @@ class TreeModelTest extends BaseModelTest {
   test("Scoring Procedure in records json format") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_normal.xml")
     val r = model.predict("""[{"temperature": 75, "humidity": 55, "windy": "false", "outlook": "overcast"}]""")
-    assert(r ==="""[{"PredictedValue":"may play"}]""")
+    assert(r ==="""[{"predicted_whatIdo":"may play"}]""")
   }
 
   test("Scoring Procedure in split json format") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_normal.xml")
     val r = model.predict("""{"columns": ["temperature", "humidity", "windy", "outlook"], "data":[[75, 55, "false", "overcast"]]}""")
-    assert(r ==="""{"columns":["PredictedValue"],"data":[["may play"]]}""")
+    assert(r ==="""{"columns":["predicted_whatIdo"],"data":[["may play"]]}""")
   }
 
 
@@ -57,49 +57,49 @@ class TreeModelTest extends BaseModelTest {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_value_strategies.xml")
     val r = model.predict(Map("temperature" -> 45, "outlook" -> "sunny", "humidity" -> 60))
     assert(r.size === 7)
-    assert(r("PredictedValue") === "no play")
-    assert(r("Confidence") === 0.6)
+    assert(r("predicted_whatIdo") === "no play")
+    assert(r("confidence") === 0.6)
   }
 
   test("Scoring with a missing value, and weightedConfidence missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_value_strategies.xml")
     val r = model.predict(Map("outlook" -> "sunny"))
-    assert(r("PredictedValue") === "will play")
-    assert(r("Confidence").asInstanceOf[Double] === 0.8)
+    assert(r("predicted_whatIdo") === "will play")
+    assert(r("confidence").asInstanceOf[Double] === 0.8)
   }
 
   test("Scoring with multiple missing values, and weightedConfidence missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_value_strategies.xml")
     val r = model.predict(Map.empty[String, Any])
-    assert(r("PredictedValue") === "will play")
-    assert(r("Confidence").asInstanceOf[Double] === 0.6)
+    assert(r("predicted_whatIdo") === "will play")
+    assert(r("confidence").asInstanceOf[Double] === 0.6)
   }
 
   test("Scoring with defaultChild missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_defaultChild.xml")
     val r = model.predict(Map("temperature" -> 40, "humidity" -> 70))
-    assert(r("PredictedValue") === "no play")
-    assert(r("Confidence") === 0.48)
+    assert(r("predicted_whatIdo") === "no play")
+    assert(r("confidence") === 0.48)
   }
 
   test("Scoring with lastPredictedValue missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_lastPrediction.xml")
     val r = model.predict(Map("outlook" -> "sunny"))
-    assert(r("PredictedValue") === "will play")
-    assert(r("Confidence") === 0.8)
+    assert(r("predicted_whatIdo") === "will play")
+    assert(r("confidence") === 0.8)
   }
 
   test("Scoring with nullPredictedValue missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_nullPredictedValue.xml")
     val r = model.predict(Map("outlook" -> "sunny"))
-    assert(r("PredictedValue") === null)
-    assert(java.lang.Double.isNaN(r("Confidence").asInstanceOf[Double]))
+    assert(r("predicted_whatIdo") === null)
+    assert(java.lang.Double.isNaN(r("confidence").asInstanceOf[Double]))
   }
 
   test("Scoring with aggregateNodes missing value handling") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_aggregateNodes.xml")
     val r = model.predict(Map("temperature" -> 45, "humidity" -> 90))
-    assert(r("PredictedValue") === "may play")
-    assert(r("Confidence") === 0.4666666666666667)
+    assert(r("predicted_whatIdo") === "may play")
+    assert(r("confidence") === 0.4666666666666667)
   }
 }

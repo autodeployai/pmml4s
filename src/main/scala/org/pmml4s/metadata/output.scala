@@ -109,7 +109,7 @@ object OutputField {
 
   def predictedValue(model: Model): OutputField = {
     if (model.hasTarget) predictedValue(model.targetField) else {
-      new OutputField("PredictedValue",
+      new OutputField("predicted",
         Some(s"Predicted value"),
         if (model.isRegression) RealType else StringType,
         if (model.isRegression) OpType.continuous else OpType.nominal)
@@ -117,7 +117,7 @@ object OutputField {
   }
 
   def predictedValue(target: Field): OutputField = {
-    new OutputField("PredictedValue",
+    new OutputField(s"predicted_${target.name}",
       Some(s"Predicted value of ${target.name}"),
       if (target.dataType == IntegerType) RealType else target.dataType,
       target.opType)
@@ -140,13 +140,13 @@ object OutputField {
 
   def probability(value: Any = null) = {
     if (value == null) {
-      new OutputField("Probability",
+      new OutputField("probability",
         Some("Probability of predicted value"),
         RealType,
         OpType.continuous,
         ResultFeature.probability)
     } else {
-      new OutputField(s"Probability_$value",
+      new OutputField(s"probability_$value",
         Some(s"Probability of $value"),
         RealType,
         OpType.continuous,
@@ -156,7 +156,7 @@ object OutputField {
   }
 
   def confidence(): OutputField = {
-    new OutputField("Confidence",
+    new OutputField("confidence",
       Some("Confidence of predicted value"),
       RealType,
       OpType.continuous,
@@ -164,7 +164,7 @@ object OutputField {
   }
 
   def nodeId(): OutputField = {
-    entityId("Node_ID", "ID of hit node")
+    entityId("node_id", "ID of hit node")
   }
 
   def entityId(name: String, displayName: String): OutputField = {
@@ -184,7 +184,7 @@ object OutputField {
   }
 
   def reasonCode(rank: Int): OutputField = {
-    new OutputField(s"ReasonCode_${rank}",
+    new OutputField(s"reason_code_${rank}",
       Option(s"Reason code ${rank}"),
       StringType,
       OpType.nominal,
