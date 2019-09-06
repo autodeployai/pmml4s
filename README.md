@@ -50,7 +50,7 @@ Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-centr
 
 ##### SBT users
 ```scala
-libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.2"
+libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.3"
 ```
 
 ##### Maven users
@@ -58,7 +58,7 @@ libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.2"
 <dependency>
   <groupId>org.pmml4s</groupId>
   <artifactId>pmml4s_${scala.version}</artifactId>
-  <version>0.9.2</version>
+  <version>0.9.3</version>
 </dependency>
 ```
 
