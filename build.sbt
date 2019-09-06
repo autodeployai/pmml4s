@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "0.9.3-SNAPSHOT"
+version := "0.9.3"
 
 organization := "org.pmml4s"
 
@@ -35,7 +35,7 @@ scalaVersion := "2.12.8"
 
 updateOptions := updateOptions.value.withGigahorse(false)
 
-crossScalaVersions := Seq("2.12.8", "2.11.12", "2.13.0")
+crossScalaVersions := Seq("2.12.8", "2.11.12")
 
 publishMavenStyle := true
 
