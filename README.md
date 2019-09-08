@@ -277,13 +277,13 @@ It's also easy to use and similar as Scala.
 
 3. Understand the result values. See details in Scala above 
 
-## Use in Spark
+## Use PMML in Spark
 See the [PMML4S-Spark](https://github.com/autodeployai/pmml4s-spark) project. _PMML4S-Spark_ is a PMML scoring library for Spark as SparkML Transformer.
 
-## Use in PySpark
+## Use PMML in PySpark
 See the [PyPMML-Spark](https://github.com/autodeployai/pypmml-spark) project. _PyPMML-Spark_ is a Python PMML scoring library for PySpark as SparkML Transformer, it really is the Python API for PMML4s-Spark.
 
-## Use in Python
+## Use PMML in Python
 See the [PyPMML](https://github.com/autodeployai/pypmml) project. _PyPMML_ is a Python PMML scoring library, it really is the Python API for PMML4S.
 
 ## Deploy PMML as REST API
