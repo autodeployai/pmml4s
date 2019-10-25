@@ -296,15 +296,15 @@ trait DataTypeLike extends Serializable {
   /** Returns true if `other` is an acceptable input type for a function that expects this. */
   def accepts(other: DataType): Boolean = this == other
 
-  def isNumeric: Boolean = dataType.isNumeric
+  def isNumeric: Boolean = false
 
-  def isString: Boolean = dataType.isString
+  def isString: Boolean = false
 
-  def isDate: Boolean = dataType.isDate
+  def isDate: Boolean = false
 
-  def isTime: Boolean = dataType.isTime
+  def isTime: Boolean = false
 
-  def isTimestamp: Boolean = dataType.isTimestamp
+  def isTimestamp: Boolean = false
 
   def isDateTime: Boolean = isDate || isTime || isTimestamp
 
