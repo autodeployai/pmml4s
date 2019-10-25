@@ -19,7 +19,7 @@ import java.util
 
 import scala.reflect.ClassTag
 
-trait Vector[@specialized(Int, Long, Float, Double) V] {
+trait Vector[@specialized(Int, Long, Float, Double) V] extends java.io.Serializable {
 
   def size: Int
 

@@ -26,8 +26,8 @@ class AnomalyDetectionModelTest extends BaseModelTest {
     model.asInstanceOf[AnomalyDetectionModel]
     assert(model.inputNames === Array("sepal_length", "petal_length", "petal_width"))
     assert(model.outputNames === Array("anomalyScore", "anomaly"))
-    val r = model.predict(Map("sepal_length" -> 1.5, "petal_length" -> 5.8, "petal_width" -> 4.6))
-    assert(r("anomalyScore") === 0.40917716054246367)
+    val r = model.predict(Map("petal_length" -> 1.5, "petal_width" -> 5.8, "sepal_length" -> 4.6))
+    assert(r("anomalyScore") === 0.3525574921994582)
     assert(r("anomaly") === true)
   }
 

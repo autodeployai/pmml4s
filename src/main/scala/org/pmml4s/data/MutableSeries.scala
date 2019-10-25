@@ -20,7 +20,7 @@ import org.pmml4s.common.{Clearable, StructType}
 /**
  * A basic trait allows the values for each column to be updated.
  */
-trait MutableSeries extends Series with Clearable {
+trait MutableSeries extends Series with Clearable with java.io.Serializable {
   def setNullAt(i: Int): Unit
 
   def update(i: Int, value: Any)
