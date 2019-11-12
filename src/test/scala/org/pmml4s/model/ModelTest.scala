@@ -84,9 +84,9 @@ class ModelTest extends BaseModelTest {
       StructField("Hours", DataType.integer))))
     assert(model.outputSchema === StructType(Array(
       StructField("predicted_TARGET_Adjusted", DataType.string),
-      StructField("probability", DataType.double),
-      StructField("probability_0", DataType.double),
-      StructField("probability_1", DataType.double),
+      StructField("probability", DataType.real),
+      StructField("probability_0", DataType.real),
+      StructField("probability_1", DataType.real),
       StructField("node_id", DataType.string)
     )))
 

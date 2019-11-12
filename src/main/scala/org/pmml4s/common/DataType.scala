@@ -85,10 +85,32 @@ class IntegerType private() extends NumericType {
 }
 
 /**
- * The data type representing `Float` or `Double` values.
+ * The data type representing `Float` values.
+ */
+class FloatType private() extends NumericType {
+  override def toString: String = ValTags.FLOAT
+
+  override def isFloat: Boolean = true
+}
+
+/**
+ * The data type representing `Double` values.
+ */
+class DoubleType private() extends NumericType {
+  override def toString: String = ValTags.DOUBLE
+
+  override def isDouble: Boolean = true
+}
+
+/**
+ * The data type representing `Float` or `Double` values, the `Real` is an extended type beyond PMML
  */
 class RealType private() extends NumericType {
-  override def toString: String = ValTags.DOUBLE
+  override def toString: String = "real"
+
+  override def isFloat: Boolean = true
+
+  override def isDouble: Boolean = true
 }
 
 case object UnresolvedDataType extends DataType {
@@ -100,6 +122,10 @@ case object StringType extends StringType
 case object IntegerType extends IntegerType
 
 case object RealType extends RealType
+
+case object FloatType extends FloatType
+
+case object DoubleType extends DoubleType
 
 case object BooleanType extends BooleanType
 
@@ -226,8 +252,8 @@ object DataType {
   import DateTimeSecondSinceYearType._
 
   val string = StringType
-  val float = RealType
-  val double = RealType
+  val float = FloatType
+  val double = DoubleType
   val integer = IntegerType
   val boolean = BooleanType
   val date = DateType
@@ -243,10 +269,14 @@ object DataType {
   val `dateTimeSecondsSince[1970]` = DateTimeSecondSinceYear1970Type
   val `dateTimeSecondsSince[1980]` = DateTimeSecondSinceYear1980Type
 
+  /** Extended type */
+  val real = RealType
+  val REAL = RealType
+
   /** Defines const variables could be used in Java, names above could be invalid for Java. */
   val STRING = StringType
-  val FLOAT = RealType
-  val DOUBLE = RealType
+  val FLOAT = FloatType
+  val DOUBLE = DoubleType
   val INTEGER = IntegerType
   val BOOLEAN = BooleanType
   val DATE = DateType
@@ -266,8 +296,8 @@ object DataType {
     s match {
       case ValTags.STRING                       => StringType
       case ValTags.INTEGER                      => IntegerType
-      case ValTags.FLOAT                        => RealType
-      case ValTags.DOUBLE                       => RealType
+      case ValTags.FLOAT                        => FloatType
+      case ValTags.DOUBLE                       => DoubleType
       case ValTags.BOOLEAN                      => BooleanType
       case ValTags.DATE                         => DateType
       case ValTags.TIME                         => TimeType
@@ -298,6 +328,10 @@ trait DataTypeLike extends Serializable {
 
   def isNumeric: Boolean = false
 
+  def isFloat: Boolean = false
+
+  def isDouble: Boolean = false
+
   def isString: Boolean = false
 
   def isDate: Boolean = false
@@ -308,6 +342,7 @@ trait DataTypeLike extends Serializable {
 
   def isDateTime: Boolean = isDate || isTime || isTimestamp
 
+  def isReal: Boolean = isFloat || isDouble
 }
 
 trait HasDataType extends DataTypeLike
