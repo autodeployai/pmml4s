@@ -215,6 +215,7 @@ class MiningModel(
               case `continue`      =>
             }
 
+            var evalPredictedValue = true
             val matrix = probabilities.transpose
             outputs.probabilities = method match {
               case `average`         => {
@@ -225,6 +226,7 @@ class MiningModel(
                 classes.zip(matrix.map(x => MathUtils.product(x, weights) / sum)).toMap
               }
               case `max`             => {
+                evalPredictedValue = false
                 outputs.predictedValue = classes.zip(matrix.map(_.max)).maxBy(_._2)
                 val contributions = probabilities.filter(x => classes.zip(x).maxBy(_._2)._1 == outputs.predictedValue)
                 classes.zip(contributions.transpose.map(_.sum / contributions.size)).toMap
@@ -236,6 +238,10 @@ class MiningModel(
                 classes.zip(matrix.map(x => MathUtils.weightedMedian(x, weights))).toMap
               }
             }
+
+            if (evalPredictedValue) {
+              outputs.evalPredictedValueByProbabilities()
+            }            
           }
 
           result(series, outputs)
