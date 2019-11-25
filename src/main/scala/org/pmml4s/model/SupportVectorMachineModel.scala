@@ -57,8 +57,18 @@ class SupportVectorMachineModel(
   require((isRegression || (isClassification && supportVectorMachines.forall(_.targetCategory.isDefined))),
     "The attribute targetCategory is required for classification models and gives the corresponding class label")
 
+  // The attribute alternateTargetCategory could be absent in case of binary classification models with only one
+  // SupportVectorMachine element in some model examples, then we can infer it based on the targetCategory attribute.
+  val isBinaryWithOnlyOneSupportVectorMachine = (isBinary && supportVectorMachines.length == 1)
+  val alternateTargetCategoryInferred: Option[Any] = if (isBinaryWithOnlyOneSupportVectorMachine &&
+    supportVectorMachines(0).targetCategory.isDefined &&
+    supportVectorMachines(0).alternateTargetCategory.isEmpty) {
+    Option(if (classes(0) == supportVectorMachines(0).targetCategory.get) classes(1) else classes(0))
+  } else None
+
   val alternateTargetCategoryRequired = if (isClassification) {
-    (isBinary && supportVectorMachines.length == 1) || (!isBinary && classificationMethod == SVMClassificationMethod.OneAgainstOne)
+    (isBinaryWithOnlyOneSupportVectorMachine && alternateTargetCategoryInferred.isEmpty) ||
+      (!isBinary && classificationMethod == SVMClassificationMethod.OneAgainstOne)
   } else false
 
   require((!alternateTargetCategoryRequired || supportVectorMachines.forall(_.alternateTargetCategory.isDefined)),
@@ -85,7 +95,7 @@ class SupportVectorMachineModel(
         outputs.predictedValue = if (isClassification) {
           if (classificationMethod == SVMClassificationMethod.OneAgainstOne ||
             (classificationMethod == SVMClassificationMethod.OneAgainstAll && isBinary && supportVectorMachines.length == 1)) {
-            val values = supportVectorMachines.map(_.predict(xs, kernelType, maxWins, threshold))
+            val values = supportVectorMachines.map(_.predict(xs, kernelType, maxWins, threshold, alternateTargetCategoryInferred))
             val votes = Utils.reduceByKey(values.map(x => (x, 1)))
             // compute probabilities
             outputs.probabilities = classes.map(x => (x, votes.getOrElse(x, 0) / values.length.toDouble)).toMap
@@ -258,10 +268,15 @@ class SupportVectorMachine(val supportVectors: Option[SupportVectors],
     }
   }
 
-  def predict(xs: Array[Double], kernelType: KernelType, maxWins: Boolean, threshold: Double): Any = {
+  def predict(xs: Array[Double],
+              kernelType: KernelType,
+              maxWins: Boolean,
+              threshold: Double,
+              alternateTargetCategoryInferred: Option[Any]): Any = {
     val a = eval(xs, kernelType)
     val t = this.threshold.getOrElse(threshold)
-    if ((maxWins && a > t) || (!maxWins && a < t)) targetCategory.get else alternateTargetCategory.get
+    if ((maxWins && a > t) || (!maxWins && a < t)) targetCategory.get else
+      alternateTargetCategory.getOrElse(alternateTargetCategoryInferred.get)
   }
 }
 
