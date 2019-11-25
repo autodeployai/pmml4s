@@ -36,7 +36,7 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
     this.parent = parent
     this.attributes = makeAttributes(attrs)
 
-    traverseModel(reader, ElemTags.REGRESSION_MODEL, {
+    traverseModel(reader, ElemTags.NEURAL_NETWORK, {
       case EvElemStart(_, ElemTags.NEURAL_INPUTS, attrs, _)  => neuralInputs = makeNeuralInputs(reader, attrs)
       case EvElemStart(_, ElemTags.NEURAL_LAYER, attrs, _)   => neuralLayers += makeNeuralLayer(reader, attrs)
       case EvElemStart(_, ElemTags.NEURAL_OUTPUTS, attrs, _) => neuralOutputs = makeNeuralOutputs(reader, attrs)
