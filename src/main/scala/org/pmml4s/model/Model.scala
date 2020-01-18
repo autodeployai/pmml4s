@@ -306,7 +306,7 @@ abstract class Model extends HasParent
             }
 
             if (mf.missingValueReplacement.isDefined) {
-              mf.missingValueReplacement
+              mf.missingValueReplacement.get
             } else {
               mf.invalidValueTreatment match {
                 case InvalidValueTreatment.returnInvalid | InvalidValueTreatment.asValue => {
