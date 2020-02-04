@@ -119,7 +119,7 @@ object OutputField {
   def predictedValue(target: Field): OutputField = {
     new OutputField(s"predicted_${target.name}",
       Some(s"Predicted value of ${target.name}"),
-      if (target.dataType == IntegerType) RealType else target.dataType,
+      if (target.dataType == IntegerType && OpType.isRegression(target.opType)) RealType else target.dataType,
       target.opType)
   }
 
