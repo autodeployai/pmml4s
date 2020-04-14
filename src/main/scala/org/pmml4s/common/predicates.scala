@@ -114,7 +114,7 @@ class SimplePredicate(
  */
 class CompoundPredicate(
                          booleanOperator: CompoundPredicate.BooleanOperator.Value,
-                         children: Seq[Predicate]) extends Predicate {
+                         children: Array[Predicate]) extends Predicate {
 
   import CompoundPredicate.BooleanOperator._
 

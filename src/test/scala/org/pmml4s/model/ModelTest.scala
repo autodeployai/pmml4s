@@ -148,18 +148,18 @@ class ModelTest extends BaseModelTest {
 
     // Series with schema
     val schema = model.inputSchema
-    val r = model.predict(Series.fromSeq(Array(5.1, 3.5, 1.4, 0.2), schema))
+    val r = model.predict(Series.fromArray(Array(5.1, 3.5, 1.4, 0.2), schema))
     assert(r.schema === model.outputSchema)
     assert(r.toArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
-    val r2 = model.predict(Series.fromSeq(Array(7, 3.2, 4.7, 1.4), schema))
+    val r2 = model.predict(Series.fromArray(Array(7, 3.2, 4.7, 1.4), schema))
     assert(r2.schema === model.outputSchema)
     assert(r2.toArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
 
     // Series without schema
-    val r3 = model.predict(Series.fromSeq(Array(5.1, 3.5, 1.4, 0.2)))
+    val r3 = model.predict(Series.fromArray(Array(5.1, 3.5, 1.4, 0.2)))
     assert(r3.schema === model.outputSchema)
     assert(r3.toArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
-    val r4 = model.predict(Series.fromSeq(Array(7, 3.2, 4.7, 1.4)))
+    val r4 = model.predict(Series.fromArray(Array(7, 3.2, 4.7, 1.4)))
     assert(r4.schema === model.outputSchema)
     assert(r4.toArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
 

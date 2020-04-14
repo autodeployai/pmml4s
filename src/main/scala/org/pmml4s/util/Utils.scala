@@ -30,7 +30,7 @@ object Utils {
   def toDouble(value: Any): Double = value match {
     case x: Double     => x
     case x: Float      => x.toDouble
-    case x: BigDecimal => x.doubleValue()
+    case x: BigDecimal => x.doubleValue
     case x: Int        => x.toDouble
     case x: Long       => x.toDouble
     case x: Short      => x.toDouble
@@ -47,7 +47,7 @@ object Utils {
   def toLong(a: Any): Long = a match {
     case x: Long       => x
     case x: Int        => x.toLong
-    case x: BigDecimal => x.longValue()
+    case x: BigDecimal => x.longValue
     case x: Double     => x.toLong
     case x: Float      => x.toLong
     case x: Short      => x.toLong
@@ -59,7 +59,7 @@ object Utils {
   def toInt(a: Any): Int = a match {
     case x: Int        => x
     case x: Long       => x.toInt
-    case x: BigDecimal => x.intValue()
+    case x: BigDecimal => x.intValue
     case x: Double     => x.toInt
     case x: Float      => x.toInt
     case x: Short      => x.toInt
@@ -147,9 +147,9 @@ object Utils {
 
   def nonMissing(value: Double): Boolean = value == value
 
-  def anyMissing(values: Seq[Double]): Boolean = values.exists(x => x != x)
+  def anyMissing(values: Array[Double]): Boolean = values.exists(x => x != x)
 
-  def reduceByKey[K, V](collection: Traversable[(K, V)])(implicit num: Numeric[V]): Map[K, V] = {
+  def reduceByKey[K, V](collection: Iterable[(K, V)])(implicit num: Numeric[V]): Map[K, V] = {
     import num._
     collection.groupBy(_._1).map { case (_: K, traversable) => traversable.reduce((a, b) => (a._1, a._2 + b._2)) }
   }

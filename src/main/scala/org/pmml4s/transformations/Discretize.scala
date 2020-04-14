@@ -26,7 +26,7 @@ import scala.collection.mutable
  * Discretization of numerical input fields is a mapping from continuous to discrete values using intervals.
  */
 class Discretize(
-                  val discretizeBins: Seq[DiscretizeBin],
+                  val discretizeBins: Array[DiscretizeBin],
                   val field: Field,
                   val mapMissingTo: Option[Any],
                   val defaultValue: Option[Any],

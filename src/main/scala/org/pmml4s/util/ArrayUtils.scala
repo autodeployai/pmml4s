@@ -25,24 +25,30 @@ object ArrayUtils {
 
   def toDouble(a: Array[String]): Array[Double] = {
     val res = new Array[Double](a.length)
-    for (i <- 0 until a.length) {
+    var i = 0
+    while (i < a.length) {
       res(i) = a(i).toDouble
+      i += 1
     }
     res
   }
 
   def toInt(a: Array[String]): Array[Int] = {
     val res = new Array[Int](a.length)
-    for (i <- 0 until a.length) {
+    var i = 0
+    while (i < a.length) {
       res(i) = a(i).toInt
+      i += 1
     }
     res
   }
 
   def toLong(a: Array[String]): Array[Long] = {
     val res = new Array[Long](a.length)
-    for (i <- 0 until a.length) {
+    var i = 0
+    while (i < a.length) {
       res(i) = a(i).toLong
+      i += 1
     }
     res
   }

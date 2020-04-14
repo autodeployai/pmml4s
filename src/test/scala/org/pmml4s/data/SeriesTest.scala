@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.pmml4s.util
+package org.pmml4s.data
 
 import org.scalatest.FunSuite
 
-/**
- * Test cases of math utilities.
- */
-class MathUtilsTest extends FunSuite {
+class SeriesTest extends FunSuite {
 
-  test("weightedMedian") {
-    val a = MathUtils.weightedMedian(Array(1), Array(0.15))
-    assert(a === 1)
+  test("filter") {
+    val series = Series.fromMap(Map("f1" -> 1.0, "f2" -> 2.0, "f3" -> 3.0, "f4" -> 4.0))
+    assert(series.filter(null).toArray  === Array(1.0, 2.0, 3.0, 4.0))
+    assert(series.filter(Seq()).toArray  === Array(1.0, 2.0, 3.0, 4.0))
 
-    val b = MathUtils.weightedMedian(Array(1, 2, 3, 4, 5), Array(0.15, 0.1, 0.2, 0.3, 0.25))
-    assert(b === 4)
+    val result1 = series.filter(Seq("f1", "f3"))
+    assert(result1.toArray  === Array(1.0, 3.0))
+
+    val result2 = series.filter(Seq("f4", "f2"))
+    assert(result2.toArray  === Array(4.0, 2.0))
+
+    val result3 = series.filter(Seq("f3", "f4", "f5"))
+    assert(result3.toArray  === Array(3.0, 4.0))
   }
-
 }
+

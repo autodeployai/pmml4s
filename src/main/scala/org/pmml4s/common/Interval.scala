@@ -111,7 +111,7 @@ object Interval {
 }
 
 trait HasIntervals {
-  def intervals: Seq[Interval]
+  def intervals: Array[Interval]
 
   def isIn(value: Any): Boolean = if (intervals.isEmpty) true else intervals.exists(x => x.contains(Utils.toDouble(value)))
 }

@@ -29,7 +29,7 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
   protected var attributes: NeuralNetworkAttributes = _
   private var neuralInputs: NeuralInputs = _
   private var neuralOutputs: NeuralOutputs = _
-  private val neuralLayers = mutable.ArrayBuilder.make[NeuralLayer]()
+  private val neuralLayers = mutable.ArrayBuilder.make[NeuralLayer]
 
   /** Builds a Neural Network model from a specified XML reader. */
   override def build(reader: XMLEventReader, attrs: XmlAttrs, parent: Model): NeuralNetwork = {

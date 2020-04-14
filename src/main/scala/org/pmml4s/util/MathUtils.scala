@@ -25,8 +25,10 @@ object MathUtils {
   def product(x1: Array[Double], x2: Array[Double]): Double = {
     var res = 0.0
     val len = Math.min(x1.length, x2.length)
-    for (i <- 0 until len) {
+    var i = 0
+    while (i < len) {
       res += x1(i) * x2(i)
+      i += 1
     }
     res
   }
@@ -34,13 +36,15 @@ object MathUtils {
   def product(x1: Array[Double], x2: Vector[Double]): Double = {
     var res = 0.0
     val len = Math.min(x1.length, x2.length)
-    for (i <- 0 until len) {
+    var i = 0
+    while (i < len) {
       res += x1(i) * x2(i)
+      i += 1
     }
     res
   }
 
-  def median(x: Seq[Double]): Double = {
+  def median(x: Array[Double]): Double = {
     val sorted = x.sorted
     val n = sorted.size
     if (n % 2 == 0) {
@@ -50,7 +54,7 @@ object MathUtils {
     }
   }
 
-  def weightedMedian(x: Seq[Double], w: Seq[Double]): Double = {
+  def weightedMedian(x: Array[Double], w: Array[Double]): Double = {
     val sorted = x.zip(w).sortBy(_._1)
     val s = w.sum
     val s2 = s / 2

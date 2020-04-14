@@ -23,7 +23,7 @@ import org.pmml4s.common.{Clearable, StructType}
 trait MutableSeries extends Series with Clearable with java.io.Serializable {
   def setNullAt(i: Int): Unit
 
-  def update(i: Int, value: Any)
+  def update(i: Int, value: Any): Unit
 
   def setBoolean(i: Int, value: Boolean): Unit = {
     update(i, value)
@@ -48,8 +48,10 @@ trait MutableSeries extends Series with Clearable with java.io.Serializable {
   def toSeries: Series
 
   override def clear(): Unit = {
-    for (i <- 0 until length) {
+    var i = 0
+    while (i < length) {
       setNullAt(i)
+      i += 1
     }
   }
 }
@@ -72,7 +74,7 @@ class GenericMutableSeries(values: Array[Any]) extends MutableSeries {
 
   override def get(i: Int): Any = values(i)
 
-  override def toSeq: Seq[Any] = values.clone()
+  override def toSeq: Seq[Any] = values.toSeq
 
   override def copy(): GenericSeries = new GenericSeries(values.clone())
 

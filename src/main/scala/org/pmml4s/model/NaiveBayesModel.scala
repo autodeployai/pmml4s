@@ -63,9 +63,12 @@ class NaiveBayesModel(
     val probLog = targetCounts.clone()
     for (bayesInput <- bayesInputs.inputs) {
       val p = bayesInput.eval(series, threshold)
-      for (i <- 0 until p.length) {
+
+      var i = 0
+      while (i < p.length) {
         // using log-sum-exp trick to fix underflow and overflow
         probLog(i) += math.log(p(i))
+        i += 1
       }
     }
 
@@ -109,8 +112,10 @@ class BayesInput(val fieldName: Field,
     val l = classes.length
     if (targetValueStats.isDefined) {
       distributions = Array.ofDim(l)
-      for (i <- 0 until l) {
+      var i = 0
+      while (i < l) {
         distributions(i) = targetValueStats.get.getDist(classes(i)).get
+        i += 1
       }
     } else {
       val f = derivedField.getOrElse(fieldName)
@@ -127,14 +132,18 @@ class BayesInput(val fieldName: Field,
         }
       }
 
-      for (i <- 0 until n) {
-        for (j <- 0 until l) {
+      var i = 0
+      while (i < n) {
+        var j = 0
+        while (j < l) {
           if (probabilities(i)(j) > 0) {
             probabilities(i)(j) /= counts(j)
           } else {
             probabilities(i)(j) = threshold
           }
+          j += 1
         }
+        i += 1
       }
     }
   }

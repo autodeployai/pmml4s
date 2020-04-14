@@ -84,11 +84,13 @@ class Scorecard(
 
     if (useReasonCodes) {
       val pointsMissed = mutable.HashMap(reasonCodes.map(x => x -> 0.0).toSeq: _*)
-      for (i <- 0 until ch.length) {
+      var i = 0
+      while (i < ch.length) {
         val baseline = ch(i).baselineScore.getOrElse(baselineScore.get)
         val difference = if (reasonCodeAlgorithm == ReasonCodeAlgorithm.pointsBelow)
           baseline - results(i)._1 else results(i)._1 - baseline
         pointsMissed += results(i)._2 -> (pointsMissed(results(i)._2) + difference)
+        i += 1
       }
 
       // if the difference between partial and baseline scores is the same for competing reason codes, the reason
@@ -114,12 +116,14 @@ class Scorecard(
 
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   override lazy val defaultOutputFields: Array[OutputField] = {
-    val result = mutable.ArrayBuilder.make[OutputField]()
+    val result = mutable.ArrayBuilder.make[OutputField]
     result += OutputField.predictedValue(this)
 
     if (useReasonCodes) {
-      for (i <- 0 until reasonCodes.size) {
+      var i = 0
+      while (i < reasonCodes.size) {
         result += OutputField.reasonCode(i + 1)
+        i += 1
       }
     }
 

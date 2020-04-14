@@ -121,7 +121,7 @@ class CombinedSeries(val rows: Array[Series]) extends Series {
 }
 
 object CombinedSeries {
-  def expand(rows: Seq[Series]): Array[Series] = {
+  def expand(rows: Array[Series]): Array[Series] = {
     val res = mutable.ArrayBuilder.make[Series]
     for (s <- rows) {
       s match {

@@ -73,11 +73,13 @@ class TextIndex(
 
         var frequency = 0
         var minDistance = Integer.MAX_VALUE
-        for (i <- 0 to textTokensTest.length - termTokensTest.length) {
+        var i = 0
+        while (i <= textTokensTest.length - termTokensTest.length) {
           var sumDistance = 0
           var hit = true
           breakable {
-            for (j <- 0 until termTokensTest.length) {
+            var j = 0
+            while (j < termTokensTest.length) {
               val levenshteinDistance = new LevenshteinDistance(maxLevenshteinDistance - sumDistance)
               val distance = levenshteinDistance.apply(textTokensTest(i + j), termTokensTest(j))
               if (distance == -1) {
@@ -86,6 +88,7 @@ class TextIndex(
               } else {
                 sumDistance += distance
               }
+              j += 1
             }
           }
 
@@ -100,6 +103,7 @@ class TextIndex(
               }
             }
           }
+          i += 1
         }
         localTermWeights match {
           case LocalTermWeights.termFrequency                    => frequency
@@ -167,7 +171,8 @@ class TextIndexNormalization(
       var stop = false
       breakable {
         while (!stop) {
-          for (i <- 0 until rowNum) {
+          var i = 0
+          while (i < rowNum) {
             val previous = result
             val row = table(i)
             val in = row(inField).toString
@@ -186,11 +191,13 @@ class TextIndexNormalization(
               stop = true
               break
             }
+            i += 1
           }
         }
       }
     } else {
-      for (i <- 0 until rowNum) {
+      var i = 0
+      while (i < rowNum) {
         val row = table(i)
         val in = row(inField).toString
         val out = row(outField).toString
@@ -203,6 +210,7 @@ class TextIndexNormalization(
               matcher(result).replaceAll(Matcher.quoteReplacement(out))
           }
         }
+        i += 1
       }
     }
 

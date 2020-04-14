@@ -157,7 +157,7 @@ class MutableMiningModel extends MutableModel {
   /** Returns the field of a given name, None if a field with the given name does not exist. */
   override def getField(name: String): Option[Field] = {
     if (multipleModelMethod != null && multipleModelMethod == MultipleModelMethod.modelChain) {
-      for (i <- 0 until segments.size reverse) {
+      for (i <- (0 until segments.size).reverse) {
         val f = segments(i).model.output.flatMap(_.getField(name))
         if (f.isDefined)
           return f

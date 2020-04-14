@@ -42,7 +42,7 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
   def index: Int = -1
 
   /** Sets the index of this field. */
-  def index_=(i: Int)
+  def index_=(i: Int): Unit
 
   /** Tests if the index of this field is defined */
   def indexDefined: Boolean = index >= 0
@@ -99,7 +99,7 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
   def referenced: Boolean = false
 
   /** Sets the referenced flag of the field. */
-  def referenced_=(r: Boolean)
+  def referenced_=(r: Boolean): Unit
 
   override def labels: Map[Any, String] = attribute.labels
 
@@ -117,7 +117,7 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
 
   override def isValidValue(value: Any): Boolean = attribute.isValidValue(value)
 
-  override def intervals: Seq[Interval] = attribute.intervals
+  override def intervals: Array[Interval] = attribute.intervals
 
   override def numCategories: Int = attribute.numCategories
 

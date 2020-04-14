@@ -40,7 +40,7 @@ class MapValues(
     }
   }
 
-  override def children: Seq[Expression] = fieldColumnPairs.map(x => new FieldRef(x.field))
+  override def children: Array[Expression] =  fieldColumnPairs.map(x => new FieldRef(x.field))
 
   override def getDataField: Option[Field] = {
     // Returns the first one

@@ -28,7 +28,7 @@ import org.pmml4s.util.Utils
  */
 class Apply(
              val function: Function,
-             val children: Seq[Expression],
+             val children: Array[Expression],
              val mapMissingTo: Option[Any] = None,
              val defaultValue: Option[Any] = None,
              val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid) extends Expression {

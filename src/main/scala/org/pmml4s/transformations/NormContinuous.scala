@@ -30,7 +30,7 @@ import org.pmml4s.util.Utils
  * input values produce a missing result.
  */
 class NormContinuous(
-                      val linearNorms: Seq[LinearNorm],
+                      val linearNorms: Array[LinearNorm],
                       val field: Field,
                       val mapMissingTo: Option[Double],
                       val outliers: OutlierTreatmentMethod = OutlierTreatmentMethod.asIs)
@@ -74,20 +74,24 @@ class NormContinuous(
   }
 
   private def findOrig(value: Double): (Double, Double) = {
-    for (i <- 0 until linearNorms.size - 1) {
+    var i = 0
+    while (i < linearNorms.size - 1) {
       if (value >= linearNorms(i).orig && value <= linearNorms(i + 1).orig) {
         return (slopes(i), intercepts(i))
       }
+      i += 1
     }
 
     (Double.NaN, Double.NaN)
   }
 
   private def findNorm(value: Double): (Double, Double) = {
-    for (i <- 0 until linearNorms.size - 1) {
+    var i = 0
+    while (i < linearNorms.size - 1) {
       if (value >= linearNorms(i).norm && value <= linearNorms(i + 1).norm) {
         return (slopes(i), intercepts(i))
       }
+      i += 1
     }
 
     (Double.NaN, Double.NaN)

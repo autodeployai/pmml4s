@@ -40,11 +40,8 @@ class FieldRef(
     }
   }
 
-  override def deeval(input: Any) = if (field.isDerivedField) {
-    val df = field.asInstanceOf[DerivedField]
-    df.deeval(input)
-  } else {
-    // itself
-    input
+  override def deeval(input: Any) = field match {
+    case df: DerivedField => df.deeval(input)
+    case  _ => input // itself
   }
 }

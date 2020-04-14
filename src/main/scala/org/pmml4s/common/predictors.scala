@@ -58,7 +58,7 @@ class CategoricalPredictor(val field: Field, val coefficient: Double, val value:
  * The type of all fields referenced within PredictorTerm must be continuous. Note that if the input value is missing,
  * the result evaluates to a missing value.
  */
-class PredictorTerm(val name: Option[String], val coefficient: Double, val fields: Seq[FieldRef]) extends RegressionPredictor {
+class PredictorTerm(val name: Option[String], val coefficient: Double, val fields: Array[FieldRef]) extends RegressionPredictor {
   override def eval(series: Series): Double = {
     var result = coefficient
     for (f <- fields) {
@@ -77,7 +77,7 @@ class PredictorTerm(val name: Option[String], val coefficient: Double, val field
  * then there is only one RegressionTable and the attribute targetCategory may be missing. If the model is used to predict a categorical field,
  * then there are two or more RegressionTables and each one must have the attribute targetCategory defined with a unique value.
  */
-class RegressionTable(val predictors: Seq[RegressionPredictor], val intercept: Double, val targetCategory: Option[Any] = None) extends
+class RegressionTable(val predictors: Array[RegressionPredictor], val intercept: Double, val targetCategory: Option[Any] = None) extends
   RegressionPredictor {
   override def eval(series: Series): Double = {
     var result = intercept

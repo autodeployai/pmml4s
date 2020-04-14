@@ -105,10 +105,13 @@ object Series {
 
   def fromMap(map: java.util.Map[String, Any], schema: StructType): Series = {
     val values = new Array[Any](schema.size)
-    for (i <- 0 until schema.size) {
+    var i = 0
+    val len = schema.size
+    while (i < len) {
       val f = schema(i)
       val v = map.get(f.name)
       values(i) = if (v != null) Utils.toVal(v, f.dataType) else null
+      i += 1
     }
 
     new GenericSeriesWithSchema(values, schema)
@@ -199,9 +202,12 @@ trait Series {
 
   def toMap: Map[String, Any] = {
     val result = new mutable.HashMap[String, Any]
-    result.sizeHint(size)
-    for (i <- 0 until size) {
+    val len = size
+    result.sizeHint(len)
+    var i = 0
+    while (i < len) {
       result.put(if (schema != null) schema.fieldName(i) else i.toString, get(i))
+      i += 1
     }
 
     result.toMap
@@ -209,9 +215,12 @@ trait Series {
 
 
   def toJavaMap: java.util.Map[String, Any] = {
-    val result = new util.HashMap[String, Any](size)
-    for (i <- 0 until size) {
+    val len = size
+    val result = new util.HashMap[String, Any](len)
+    var i = 0
+    while (i < len) {
       result.put(if (schema != null) schema.fieldName(i) else i.toString, get(i))
+      i += 1
     }
 
     return result
@@ -219,7 +228,7 @@ trait Series {
 
   def toPairSeq: Seq[(String, Any)] = {
     if (schema != null) {
-      schema.fieldNames.zip(toArray)
+      schema.fieldNames.zip(toArray).toSeq
     } else {
       0 until size map (_.toString) zip toArray
     }
@@ -304,6 +313,24 @@ trait Series {
     schema.fieldNames
   }
 
+  def filter(filter: Seq[String]): Series = {
+    if (filter == null || filter.isEmpty) {
+      this
+    } else {
+      if (schema == null) {
+        Series.empty
+      } else {
+        val idxBuilder = mutable.ArrayBuilder.make[Int]
+        idxBuilder.sizeHint(filter.size)
+        for (name <- filter) {
+          schema.getFieldIndex(name).foreach(x => idxBuilder+= x)
+        }
+
+        val idx = idxBuilder.result()
+        new GenericSeriesWithSchema(idx.map(get), StructType(idx.map(schema.apply)))
+      }
+    }
+  }
 }
 
 /**

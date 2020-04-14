@@ -25,22 +25,22 @@ class DataField(
                  override val displayName: Option[String],
                  override val dataType: DataType,
                  override val opType: OpType,
-                 override val intervals: Seq[Interval] = Seq.empty,
-                 val values: Seq[Value] = Seq.empty,
+                 override val intervals: Array[Interval] = Array.empty,
+                 val values: Array[Value] = Array.empty,
                  val taxonomy: Option[String] = None,
                  val isCyclic: Boolean = true
                ) extends AbstractField with PmmlElement {
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, values: Seq[Value]) {
-    this(name, displayName, dataType, opType, Seq.empty[Interval], values)
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, values: Array[Value]) {
+    this(name, displayName, dataType, opType, Array.empty[Interval], values)
   }
 
   def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval) {
-    this(name, displayName, dataType, opType, Seq(interval), Seq.empty[Value])
+    this(name, displayName, dataType, opType, Array(interval), Array.empty[Value])
   }
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval, values: Seq[Value]) {
-    this(name, displayName, dataType, opType, Seq(interval), values)
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval, values: Array[Value]) {
+    this(name, displayName, dataType, opType, Array(interval), values)
   }
 
   def this(name: String) {

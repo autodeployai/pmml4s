@@ -167,8 +167,10 @@ class PolynomialKernelType(val gamma: Double = 1.0,
 class RadialBasisKernelType(val gamma: Double = 1.0, val description: Option[String] = None) extends KernelType with PmmlElement {
   override def compute(x: Array[Double], y: Vector[Double]): Double = {
     var res = 0.0
-    for (i <- 0 until x.length) {
+    var i = 0
+    while (i < x.length) {
       res += (x(i) - y(i)) * (x(i) - y(i))
+      i += 1
     }
     Math.exp(-gamma * res)
   }
@@ -202,11 +204,13 @@ class VectorDictionary(val vectorFields: VectorFields,
 class VectorFields(val vectorFields: Array[DoubleEvaluator]) extends PmmlElement {
   def eval(series: Series): Either[Boolean, Array[Double]] = {
     val res = new Array[Double](vectorFields.length)
-    for (i <- 0 until vectorFields.length) {
+    var i = 0
+    while (i < vectorFields.length) {
       res(i) = vectorFields(i).asDouble(series)
       if (Utils.isMissing(res(i))) {
         return Left(true)
       }
+      i += 1
     }
     Right(res)
   }

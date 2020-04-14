@@ -324,7 +324,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
             ElemBuilder[CompoundPredicate] {
           def build(reader: XMLEventReader, attrs: XmlAttrs): CompoundPredicate = {
             val booleanOperator = CompoundPredicate.BooleanOperator.withName(attrs(AttrTags.BOOLEAN_OPERATOR))
-            val children: Seq[Predicate] = makeElems(reader, ElemTags.COMPOUND_PREDICATE, Predicate.values, new
+            val children: Array[Predicate] = makeElems(reader, ElemTags.COMPOUND_PREDICATE, Predicate.values, new
                 GroupElemBuilder[Predicate] {
               def build(reader: XMLEventReader, event: EvElemStart): Predicate = makePredicate(reader, event)
             })
@@ -338,11 +338,11 @@ trait Builder[T <: Model] extends TransformationsBuilder {
             val f = field(attrs(AttrTags.FIELD))
             val booleanOperator = SimpleSetPredicate.BooleanOperator.withName(attrs(AttrTags.BOOLEAN_OPERATOR))
             val array = makeElem(reader, ElemTags.SIMPLE_SET_PREDICATE, ElemTags.ARRAY,
-              new ElemBuilder[mutable.WrappedArray[Any]] {
-                override def build(reader: XMLEventReader, attrs: XmlAttrs): mutable.WrappedArray[Any] =
+              new ElemBuilder[Array[_]] {
+                override def build(reader: XMLEventReader, attrs: XmlAttrs): Array[_] =
                   makeArray(reader, attrs)
               })
-            val values = array.get map { x => f.encode(x) } toSet
+            val values = array.get.map(x => f.encode(x)).toSet
 
             new SimpleSetPredicate(f, booleanOperator, values)
           }
@@ -391,7 +391,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
       }
     })
 
-  def makeArray(reader: XMLEventReader, attrs: XmlAttrs): mutable.WrappedArray[Any] = {
+  def makeArray(reader: XMLEventReader, attrs: XmlAttrs): Array[_] = {
     val arrayType = ArrayType.withName(attrs(AttrTags.TYPE))
     val n = attrs.getInt(AttrTags.N)
 
@@ -405,17 +405,17 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         for (i <- 0 until a.size) {
           result(i) = a(i).toLong
         }
-        mutable.WrappedArray.make(result)
+        result
       }
       case `real`   => {
         val result = new Array[Double](a.size)
         for (i <- 0 until a.size) {
           result(i) = a(i).toDouble
         }
-        mutable.WrappedArray.make(result)
+        result
       }
       case `string` => {
-        mutable.WrappedArray.make(a.toArray)
+        a
       }
     }
   }
@@ -497,9 +497,9 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     val nbCols = attrs.getInt(AttrTags.NB_COLS)
     val diagDefault = attrs.getDouble(AttrTags.DIAG_DEFAULT)
     val offDiagDefault = attrs.getDouble(AttrTags.OFF_DIAG_DEFAULT)
-    val arrays = mutable.ArrayBuilder.make[Array[Double]]()
+    val arrays = mutable.ArrayBuilder.make[Array[Double]]
     nbRows.foreach(arrays.sizeHint(_))
-    val matCells = mutable.ArrayBuilder.make[MatCell]()
+    val matCells = mutable.ArrayBuilder.make[MatCell]
 
     traverseElems(reader, ElemTags.MATRIX, {
       case EvElemStart(_, ElemTags.ARRAY, attrs, _)    => arrays += makeRealArray(reader, attrs)
@@ -557,7 +557,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
       return ArrayUtils.emptyStringArray
     }
 
-    val a = mutable.ArrayBuilder.make[String]()
+    val a = mutable.ArrayBuilder.make[String]
     var (begin, end) = (-1, -1)
     var i = 0
     while (i < text.length) {

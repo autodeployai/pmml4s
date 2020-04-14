@@ -30,7 +30,7 @@ class DerivedField(
                     override val displayName: Option[String],
                     override val dataType: DataType,
                     override val opType: OpType,
-                    override val values: Seq[Value],
+                    override val values: Array[Value],
                     val expr: Expression) extends DataField(name, displayName, dataType, opType, values)
   with Expression
   with Clearable {
@@ -39,7 +39,7 @@ class DerivedField(
   @transient private[this] var written: Boolean = false
 
   def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, expr: Expression) {
-    this(name, displayName, dataType, opType, Seq.empty, expr)
+    this(name, displayName, dataType, opType, Array.empty, expr)
   }
 
   def this(name: String, expr: Expression) {
@@ -52,12 +52,12 @@ class DerivedField(
   /** Retrieve its value from the specified series, return null if missing */
   override def get(series: Series): Any = {
     if (!written) {
-      if (series.isInstanceOf[CombinedSeries]) {
-        val cs = series.asInstanceOf[CombinedSeries]
-        val last = cs.last
-        write(series, last.asInstanceOf[MutableSeries], index + (cs.length - last.length))
-      } else {
-        eval(series)
+      series match {
+        case cs: CombinedSeries => {
+          val last = cs.last
+          write(series, last.asInstanceOf[MutableSeries], index + (cs.length - last.length))
+        }
+        case _ => eval(series)
       }
     } else {
       super.get(series)
@@ -87,7 +87,7 @@ class DerivedField(
     value
   }
 
-  override def children: Seq[Expression] = expr.children
+  override def children: Array[Expression] = expr.children
 
   override def deeval(input: Any): Any = expr.deeval(input)
 

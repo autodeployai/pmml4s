@@ -26,11 +26,11 @@ class Value(
              val property: Property = Property.valid) extends PmmlElement
 
 object Value {
-  def distinguish(values: Seq[Value], dataType: DataType): (Array[Any], Set[Any], Set[Any], Map[Any, String]) = {
-    val valid = mutable.ArrayBuilder.make[Any]();
+  def distinguish(values: Array[Value], dataType: DataType): (Array[Any], Set[Any], Set[Any], Map[Any, String]) = {
+    val valid = mutable.ArrayBuilder.make[Any]
     valid.sizeHint(values)
-    val invalid = new mutable.HashSet[Any]();
-    val missing = new mutable.HashSet[Any]();
+    val invalid = new mutable.HashSet[Any]()
+    val missing = new mutable.HashSet[Any]()
     val labels = new mutable.HashMap[Any, String]()
 
     for (v <- values) {
@@ -48,7 +48,7 @@ object Value {
     (valid.result(), invalid.toSet, missing.toSet, labels.toMap)
   }
 
-  def labels(values: Seq[Value]): Map[Any, String] = {
+  def labels(values: Array[Value]): Map[Any, String] = {
     val result = new mutable.HashMap[Any, String]()
     for (v <- values) {
       if (v.displayValue.isDefined)

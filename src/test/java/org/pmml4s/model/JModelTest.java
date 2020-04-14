@@ -31,7 +31,9 @@ import static org.junit.Assert.*;
 
 /**
  * Examples how to use PMML4S in Java
- */
+ *
+ * !!! NOTE: these test cases are only available against scala 2.12 and 2.13.
+*/
 public class JModelTest {
 
     @Test
@@ -51,7 +53,7 @@ public class JModelTest {
         assertTrue(f.dataType() == DataType.DOUBLE());
         assertTrue(f.opType() == OpType.CONTINUOUS());
         assertTrue(f.attrType() == AttributeType.CONTINUOUS());
-        assertTrue(f.attribute().intervals().head().equals(Interval.apply(4.3, 7.9, Closure.closedClosed())));
+        assertTrue(f.attribute().intervals()[0].equals(Interval.apply(4.3, 7.9, Closure.closedClosed())));
 
         DataField t = model.dataDictionary().apply("class");
         assertEquals("class", t.name());

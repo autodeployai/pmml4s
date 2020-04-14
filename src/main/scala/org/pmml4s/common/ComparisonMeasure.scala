@@ -42,7 +42,8 @@ trait Distance extends PmmlElement {
 
   def matrix(xs: Array[Double], ys: Array[Double]) = {
     var a11, a10, a01, a00 = 0.0
-    for (i <- 0 until xs.length) {
+    var i = 0
+    while (i < xs.length) {
       if (xs(i) == 0 && ys(i) == 0) {
         a00 += 1
       } else if (xs(i) == 0 && ys(i) == 1) {
@@ -52,6 +53,7 @@ trait Distance extends PmmlElement {
       } else if (xs(i) == 1 && ys(i) == 1) {
         a11 += 1
       }
+      i += 1
     }
 
     (a11, a10, a01, a00)

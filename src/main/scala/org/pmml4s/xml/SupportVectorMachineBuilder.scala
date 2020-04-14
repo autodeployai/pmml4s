@@ -30,7 +30,7 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
   protected var attributes: SupportVectorMachineAttributes = _
   private var kernelType: KernelType = _
   private var vectorDictionary: VectorDictionary = _
-  private val supportVectorMachines = mutable.ArrayBuilder.make[SupportVectorMachine]()
+  private val supportVectorMachines = mutable.ArrayBuilder.make[SupportVectorMachine]
 
   /** Builds a PMML model from a specified XML reader. */
   override def build(reader: XMLEventReader, attrs: XmlAttrs, parent: Model): SupportVectorMachineModel = {
@@ -102,7 +102,7 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): VectorDictionary = {
         val numberOfVectors = attrs.getInt(AttrTags.NUMBER_OF_VECTORS)
         var vectorFields: VectorFields = null
-        val vectorInstances = mutable.ArrayBuilder.make[VectorInstance]()
+        val vectorInstances = mutable.ArrayBuilder.make[VectorInstance]
         numberOfVectors.foreach(vectorInstances.sizeHint(_))
         traverseElems(reader, ElemTags.VECTOR_DICTIONARY, {
           case EvElemStart(_, ElemTags.VECTOR_FIELDS, attrs, _)   => vectorFields = makeElem(reader, attrs,

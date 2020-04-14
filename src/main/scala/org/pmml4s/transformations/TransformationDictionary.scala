@@ -56,15 +56,19 @@ class TransformationDictionary(
     // Set correct indices for all fields before calculate their values.
     if (series.size != startPos) {
       startPos = series.size
-      for (i <- 0 until length) {
+      var i = 0
+      while (i < length) {
         fields(i).index = startPos + i
+        i += 1
       }
     }
 
     outputSeries.clear()
     val combinedSeries = Series.merge(series, outputSeries)
-    for (i <- 0 until length) {
+    var i = 0
+    while (i < length) {
       fields(i).write(combinedSeries, outputSeries, i)
+      i += 1
     }
 
     combinedSeries

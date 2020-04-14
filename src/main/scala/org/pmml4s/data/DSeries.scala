@@ -63,6 +63,8 @@ object DSeries {
    */
   def fromSeq(values: Seq[Double]): DSeries = new GenericDSeries(values.toArray)
 
+  def fromArray(values: Array[Double]): DSeries = new GenericDSeries(values)
+
   def fromTuple(tuple: Product): DSeries = fromSeq(tuple.productIterator.toSeq.map(x => Utils.toDouble(x)))
 
   /**
@@ -86,7 +88,7 @@ class GenericDSeries(val values: Array[Double]) extends DSeries {
 
   override def get(i: Int): Double = values(i)
 
-  override def toSeq: Seq[Double] = values.clone()
+  override def toSeq: Seq[Double] = values.toSeq
 
   override def copy(): GenericDSeries = this
 

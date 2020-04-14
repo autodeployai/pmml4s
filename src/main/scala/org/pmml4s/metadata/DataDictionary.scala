@@ -38,7 +38,7 @@ class DataDictionary(override val fields: Array[DataField]) extends Dictionary[D
         s"Field ${nonExistFields.mkString(",")} does not exist.")
     }
     // Preserve the original order of fields.
-    DataDictionary(fields.filter(f => names.contains(f.name)))
+    new DataDictionary(fields.filter(f => names.contains(f.name)))
   }
 }
 

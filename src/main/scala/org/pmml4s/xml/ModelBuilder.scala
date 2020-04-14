@@ -22,6 +22,7 @@ import org.pmml4s.transformations.TransformationDictionary
 import org.pmml4s.xml.XmlImplicits._
 import org.pmml4s.{ElementNotFoundException, NotSupportedException, PmmlException, metadata}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import scala.xml.MetaData
@@ -105,8 +106,8 @@ class ModelBuilder extends TransformationsBuilder
         val opType = OpType.withName(attrs(AttrTags.OPTYPE))
         val dataType = attrs.get(AttrTags.DATA_TYPE).map { x => DataType.withName(x) } getOrElse (UnresolvedDataType)
         val displayName = attrs.get(AttrTags.DISPLAY_NAME)
-        val intervals = new ArrayBuffer[Interval]
-        val values = new ArrayBuffer[Value]
+        val intervals = mutable.ArrayBuilder.make[Interval]
+        val values = mutable.ArrayBuilder.make[Value]
 
         traverseElems(reader, ElemTags.DATA_FIELD, {
           case EvElemStart(_, ElemTags.INTERVAL, attrs, _) => intervals += makeInterval(reader, attrs)
@@ -114,7 +115,7 @@ class ModelBuilder extends TransformationsBuilder
           case _                                           =>
         })
 
-        new DataField(name, displayName, dataType, opType, intervals, values)
+        new DataField(name, displayName, dataType, opType, intervals.result(), values.result())
       }
     })
 

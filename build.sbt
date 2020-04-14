@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "0.9.4"
+version := "0.9.5"
 
 organization := "org.pmml4s"
 
@@ -18,24 +18,24 @@ scalacOptions := Seq("-feature", "-language:_", "-unchecked", "-deprecation", "-
 
 scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
+scalaVersion := "2.12.11"
+
+crossScalaVersions := Seq("2.12.11", "2.11.12", "2.13.1")
+
 libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
+    "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     "org.apache.commons" % "commons-math3" % "3.6.1",
     "org.apache.commons" % "commons-text" % "1.6",
     "io.spray" %% "spray-json" % "1.3.5",
-    "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.8" % "test",
     "junit" % "junit" % "4.12" % "test"
   )
 }
 
-scalaVersion := "2.12.8"
-
 // publishing
 
 updateOptions := updateOptions.value.withGigahorse(false)
-
-crossScalaVersions := Seq("2.12.8", "2.11.12")
 
 publishMavenStyle := true
 

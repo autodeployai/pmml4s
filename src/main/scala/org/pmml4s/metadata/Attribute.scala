@@ -110,13 +110,13 @@ object Attribute {
 
   import org.pmml4s.common.OpType._
 
-  def apply(dataType: DataType, opType: OpType, intervals: Seq[Interval], values: Seq[Value]): Attribute = {
+  def apply(dataType: DataType, opType: OpType, intervals: Array[Interval], values: Array[Value]): Attribute = {
     val (validVals, invalidVals, missingVals, labels) = Value.distinguish(values, dataType)
     apply(opType, intervals, validVals, invalidVals, missingVals, labels)
   }
 
   def apply(opType: OpType,
-            intervals: Seq[Interval],
+            intervals: Array[Interval],
             validVals: Array[Any],
             invalidVals: Set[Any],
             missingVals: Set[Any],
@@ -142,7 +142,7 @@ trait MutableAttribute extends Attribute with MutableValueIndexer {
 }
 
 class ContinuousAttribute(
-                           override val intervals: Seq[Interval] = Seq.empty,
+                           override val intervals: Array[Interval] = Array.empty,
                            override val validValues: Array[Any] = Array.empty,
                            override val invalidValues: Set[Any] = Set.empty,
                            override val missingValues: Set[Any] = Set.empty,
@@ -163,9 +163,9 @@ class ContinuousAttribute(
 
 object ContinuousAttribute {
 
-  def apply(interval: Interval): ContinuousAttribute = new ContinuousAttribute(Seq(interval))
+  def apply(interval: Interval): ContinuousAttribute = new ContinuousAttribute(Array(interval))
 
-  def apply(intervals: Seq[Interval], values: Array[Any], invalidVals: Set[Any], missingVals: Set[Any], labels: Map[Any, String]) =
+  def apply(intervals: Array[Interval], values: Array[Any], invalidVals: Set[Any], missingVals: Set[Any], labels: Map[Any, String]) =
     new ContinuousAttribute(intervals, values, invalidVals, missingVals, labels)
 }
 
@@ -177,7 +177,7 @@ abstract class CategoricalAttribute(
 
   override def isBinary: Boolean = numCategories == 2
 
-  override def intervals: Seq[Interval] = Seq.empty
+  override def intervals: Array[Interval] = Array.empty
 }
 
 object CategoricalAttribute {
@@ -241,7 +241,7 @@ object TypelessAttribute extends Attribute {
 
   override def missingValues: Set[Any] = Set.empty
 
-  override def intervals: Seq[Interval] = Seq.empty
+  override def intervals: Array[Interval] = Array.empty
 
   override def labels: Map[Any, String] = Map.empty
 

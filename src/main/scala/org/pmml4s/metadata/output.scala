@@ -248,10 +248,12 @@ trait HasOutput {
 
   def outputIndex(feature: ResultFeature, value: Option[Any] = None): Int = {
     val ofs = candidateOutputFields
-    for (i <- 0 until ofs.length) {
+    var i = 0
+    while (i < ofs.length) {
       if (ofs(i).feature == feature && ofs(i).value == value) {
         return i
       }
+      i += 1
     }
     -1
   }

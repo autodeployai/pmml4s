@@ -107,18 +107,22 @@ class TreeModel(
             if (leaves.nonEmpty) {
               val records = new Array[Double](numClasses)
               leaves.foreach(x => {
-                for (i <- 0 until numClasses) {
+                var i = 0
+                while (i < numClasses) {
                   x.scoreDistributions.valueToDistribution.get(classes(i)).foreach(y => records(i) += y.recordCount)
+                  i += 1
                 }
               })
 
               var max = 0.0
-              for (i <- 0 until numClasses) {
+              var i = 0
+              while (i < numClasses) {
                 if (records(i) > max) {
                   max = records(i)
                   outputs.predictedValue = classes(i)
                   outputs.confidence = max / records.sum
                 }
+                i += 1
               }
             }
 
@@ -170,7 +174,7 @@ class TreeModel(
 
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   override lazy val defaultOutputFields: Array[OutputField] = {
-    val result = mutable.ArrayBuilder.make[OutputField]()
+    val result = mutable.ArrayBuilder.make[OutputField]
     result += OutputField.predictedValue(this)
 
     // Check if the first leaf node contains score distributions
@@ -203,13 +207,18 @@ class TreeModel(
 
   private def traverseNode(n: Node, series: Series): (Option[Node], Predication) = {
     var unknown = false
-    for (child <- n.children) {
+    
+    // The performance of while loop is better than for comprehension
+    var i = 0
+    while (i < n.children.length) {
+      val child = n.children(i)
       child.eval(series) match {
         case TRUE      => return (Some(child), TRUE)
         case SURROGATE => return (Some(child), SURROGATE)
         case UNKNOWN   => unknown = true
         case _         =>
       }
+      i += 1
     }
 
     (None, if (unknown) UNKNOWN else FALSE)
@@ -371,15 +380,15 @@ class Node(
 
   def eval(series: Series): Predication = predicate.eval(series)
 
-  def isLeaf: Boolean = children.isEmpty
+  val isLeaf: Boolean = children.isEmpty
 
-  def isSplit: Boolean = children.nonEmpty
+  val isSplit: Boolean = children.nonEmpty
 
-  def size: Int = children.length
+  val size: Int = children.length
 
   def apply(i: Int): Node = children(i)
 
-  def defaultChildNode: Option[Node] = defaultChild.flatMap {
+  val defaultChildNode: Option[Node] = defaultChild.flatMap {
     x =>
       children.find {
         y => y.id.contains(x)

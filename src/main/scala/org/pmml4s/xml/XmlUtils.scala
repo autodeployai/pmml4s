@@ -115,7 +115,7 @@ trait XmlUtils extends XmlBase {
                              child: String,
                              builder: ElemBuilder[T],
                              sizeHint: Option[Int] = None): Array[T] = {
-    val res = mutable.ArrayBuilder.make[T]()
+    val res = mutable.ArrayBuilder.make[T]
     sizeHint.foreach(res.sizeHint(_))
     var done = false
     while (!done && reader.hasNext) {
@@ -133,8 +133,8 @@ trait XmlUtils extends XmlBase {
   def makeElems[A: ClassTag, B: ClassTag](reader: XMLEventReader, parent: String,
                                           child1: String, builder1: ElemBuilder[A],
                                           child2: String, builder2: ElemBuilder[B]): (Array[A], Array[B]) = {
-    val res1 = mutable.ArrayBuilder.make[A]()
-    val res2 = mutable.ArrayBuilder.make[B]()
+    val res1 = mutable.ArrayBuilder.make[A]
+    val res2 = mutable.ArrayBuilder.make[B]
     var done = false
     while (!done && reader.hasNext) {
       reader.next match {
@@ -150,7 +150,7 @@ trait XmlUtils extends XmlBase {
   }
 
   def makeElems[T: ClassTag](reader: XMLEventReader, parent: String, children: Set[String], builder: GroupElemBuilder[T]): Array[T] = {
-    val res = mutable.ArrayBuilder.make[T]()
+    val res = mutable.ArrayBuilder.make[T]
     var done = false
     while (!done && reader.hasNext) {
       reader.next match {

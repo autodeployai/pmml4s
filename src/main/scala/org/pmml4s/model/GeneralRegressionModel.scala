@@ -57,8 +57,8 @@ class GeneralRegressionModel(
 
   private[this] val parameters: Array[RegressionParameter] = parameterList.parameters.map(x => {
     val cells = ppMatrix.getPPCells(x.name)
-    val factors = mutable.ArrayBuilder.make[FactorPredictor]()
-    val covariances = mutable.ArrayBuilder.make[CovariatePredictor]()
+    val factors = mutable.ArrayBuilder.make[FactorPredictor]
+    val covariances = mutable.ArrayBuilder.make[CovariatePredictor]
     factors.sizeHint(cells.length)
     covariances.sizeHint(cells.length)
     cells.map(y => {

@@ -76,8 +76,12 @@ class AssociationModel(
   private val idToItemset: Map[String, Set[String]] =
     itemsets.map(x => (x.id, x.itemRefs.map(y => idToItem(y.itemRef)))).toMap
 
-  for (i <- 0 until associationRules.length) {
-    associationRules(i).init(idToItemset, i)
+  {
+    var i = 0
+    while (i < associationRules.length) {
+      associationRules(i).init(idToItemset, i)
+      i += 1
+    }
   }
 
   @transient private var lastGroup: Any = null

@@ -16,6 +16,7 @@
 package org.pmml4s.model
 
 import java.io.{File, InputStream}
+import java.nio.file.Path
 
 import org.pmml4s.common._
 import org.pmml4s.data.{DSeries, GenericMutableSeriesWithSchema, JoinedSeries, Series}
@@ -116,7 +117,7 @@ abstract class Model extends HasParent
   /** The class labels of all categorical targets. */
   lazy val targetClasses: Map[String, Array[Any]] = targetFields.filter(_.isCategorical).map(x => {
     (x.name, targets.flatMap(y => y.categories(x.name)).getOrElse(x.validValues))
-  }) toMap
+  }).toMap
 
   /** The schema of inputs. */
   lazy val inputSchema: StructType = StructType(inputFields.map {
@@ -195,8 +196,16 @@ abstract class Model extends HasParent
   /** Predicts values for a given Array, and the order of those values is supposed as same as the input fields list */
   def predict[T](values: Array[T]): Array[Any] = {
     // convert the values based on the required types of inputs
-    val convertedValues = (0 until inputSchema.size).map(i => if (i < values.length) Utils.toVal(values(i), inputSchema(i).dataType) else null)
-    predict(Series.fromSeq(convertedValues)).toArray
+    val len = inputSchema.size
+    val convertedValues = new Array[Any](len)
+    var i = 0
+    while (i < len) {
+      if (i < values.length) {
+        convertedValues(i) = Utils.toVal(values(i), inputSchema(i).dataType)
+      }
+      i += 1
+    }
+    predict(Series.fromArray(convertedValues)).toArray
   }
 
   /**
@@ -257,7 +266,7 @@ abstract class Model extends HasParent
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   def defaultOutputFields: Array[OutputField] = {
     if (isClassification || isRegression) {
-      val result = mutable.ArrayBuilder.make[OutputField]()
+      val result = mutable.ArrayBuilder.make[OutputField]
       result.sizeHint(if (isClassification) numClasses + 2 else 1)
       result += OutputField.predictedValue(targetField)
       if (probabilitiesSupported) {
@@ -284,7 +293,9 @@ abstract class Model extends HasParent
 
     // Some models do not have the Mining Schema, for example the transformation model, and embedded models
     if (miningSchema != null) {
-      for (i <- 0 until usedFields.length) {
+      var i = 0
+      val len = usedFields.length
+      while (i < len) {
         val field = usedFields(i)
 
         // If there is no schema in the input series, that means its values can only be accessed by index, not name.
@@ -301,7 +312,7 @@ abstract class Model extends HasParent
             field.isMissingValue(value)
 
           newValues(field.index) = if (missing) {
-            if (mf.missingValueTreatment == MissingValueTreatment.returnInvalid) {
+            if (mf.missingValueTreatment == Some(MissingValueTreatment.returnInvalid)) {
               return (series, true)
             }
 
@@ -330,9 +341,12 @@ abstract class Model extends HasParent
             } else value
           }
         }
+        i += 1
       }
     } else {
-      for (i <- 0 until usedFields.length) {
+      var i = 0
+      val len = usedFields.length
+      while (i < len) {
         val field = usedFields(i)
         val idx = if (series.schema != null) series.fieldIndex(field.name) else field.index
         if (idx >= 0) {
@@ -344,20 +358,25 @@ abstract class Model extends HasParent
             value
           }
         }
+        i += 1
       }
     }
 
     val transformed = if (isTopLevelModel && parent != null) {
       // Compute the values of all referenced derived fields for the top level model
-      parent.predict(Series.fromSeq(newValues))
+      parent.predict(Series.fromArray(newValues))
     } else {
       // Copy the values of referenced derived fields of its parent model
-      for (df <- implicitInputDerivedFields) {
+      var i = 0
+      val len = implicitInputDerivedFields.length
+      while (i < len) {
+        val df = implicitInputDerivedFields(i)
         if (df.indexDefined) {
           newValues(df.index) = series(df.index)
         }
+        i += 1
       }
-      Series.fromSeq(newValues)
+      Series.fromArray(newValues)
     }
 
     (localTransformations.map(_.transform(transformed)).getOrElse(transformed), false)
@@ -366,14 +385,16 @@ abstract class Model extends HasParent
   /** Encodes the input series. */
   protected def encode(series: Series): DSeries = {
     val values = Array.fill(series.size)(Double.NaN)
-    for (i <- 0 until inputFields.length) {
+    var i = 0
+    while (i < inputFields.length) {
       val field = inputFields(i)
       if (field.indexDefined) {
         values(field.index) = field.encode(series(field.index))
       }
+      i += 1
     }
 
-    DSeries.fromSeq(values)
+    DSeries.fromArray(values)
   }
 
   /** Returns true if there are any missing values of all input fields in the specified series. */
@@ -405,8 +426,11 @@ abstract class Model extends HasParent
 
     import ResultFeature._
 
-    val isMultiple = multiTargets && modelOutputs.isInstanceOf[MultiModelOutputs]
-    for (i <- 0 until candidateOutputFields.length) {
+    val isMultiple = multiTargets && modelOutputs.isInstanceOf[MultiModelOutputs] 
+    
+    var i = 0
+    val len = candidateOutputFields.length
+    while (i < len) {
       val of = candidateOutputFields(i)
 
       breakable {
@@ -555,6 +579,7 @@ abstract class Model extends HasParent
           case _                                                 => ???
         }
       }
+      i += 1
     }
 
 
@@ -629,7 +654,7 @@ abstract class Model extends HasParent
   }
 
   /** A series with all null values is returned when can not produce a result. */
-  lazy val nullSeries: Series = Series.fromSeq(new Array[Any](outputSchema.size), outputSchema)
+  lazy val nullSeries: Series = Series.fromArray(new Array[Any](outputSchema.size), outputSchema)
 
   /**
    * Setup indices to retrieve data from series faster by index instead of name, the index is immutable when model is
@@ -658,6 +683,9 @@ object Model {
 
   /** Helper method for loading a model from PMML file with given the Java file object. */
   def fromFile(file: File): Model = apply(Source.fromFile(file))
+
+  /** Helper method for loading a model from PMML file with given the Java path object. */
+  def fromPath(path: Path): Model = fromFile(path.toFile)
 
   /** Helper method for loading a model from PMML in array of bytes. */
   def fromBytes(bytes: Array[Byte]): Model = apply(Source.fromBytes(bytes))

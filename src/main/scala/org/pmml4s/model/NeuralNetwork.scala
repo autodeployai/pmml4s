@@ -39,7 +39,7 @@ class NeuralNetwork(
                      override val attributes: NeuralNetworkAttributes,
                      override val miningSchema: MiningSchema,
                      val neuralInputs: NeuralInputs,
-                     val neuralLayers: Seq[NeuralLayer],
+                     val neuralLayers: Array[NeuralLayer],
                      val neuralOutputs: NeuralOutputs,
                      override val output: Option[Output] = None,
                      override val targets: Option[Targets] = None,
@@ -61,15 +61,19 @@ class NeuralNetwork(
     }
 
     val transformedVals = new mutable.HashMap[String, Double]
-    neuralInputs.neuralInputs.foreach(x => {
-      val v = x.derivedField.eval(series)
+
+    var i = 0
+    while (i < neuralInputs.neuralInputs.length) {
+      val neuralInput = neuralInputs.neuralInputs(i)
+      val v = neuralInput.derivedField.eval(series)
 
       // check if it's missing
       if (Utils.isMissing(v)) {
         return nullSeries
       }
-      transformedVals.put(x.id, Utils.toDouble(v))
-    })
+      transformedVals.put(neuralInput.id, Utils.toDouble(v))
+      i += 1
+    }
 
     for (layer <- neuralLayers) {
       val af = layer.activationFunction.getOrElse(activationFunction)
@@ -242,7 +246,7 @@ class NeuralNetworkAttributes(
  * function. The normalization is defined using the elements NormContinuous and NormDiscrete defined in the
  * Transformation Dictionary. The element DerivedField is the general container for these transformations.
  */
-class NeuralInputs(val neuralInputs: Seq[NeuralInput], val numberOfInputs: Option[Int]) extends PmmlElement
+class NeuralInputs(val neuralInputs: Array[NeuralInput], val numberOfInputs: Option[Int]) extends PmmlElement
 
 /**
  * Defines how input fields are normalized so that the values can be processed in the neural network. For example,
@@ -251,7 +255,7 @@ class NeuralInputs(val neuralInputs: Seq[NeuralInput], val numberOfInputs: Optio
 class NeuralInput(val id: String, val derivedField: DerivedField) extends PmmlElement
 
 class NeuralLayer(
-                   val neurons: Seq[Neuron],
+                   val neurons: Array[Neuron],
                    val numberOfNeurons: Option[Int] = None,
                    val activationFunction: Option[ActivationFunction] = None,
                    val threshold: Option[Double] = None,
@@ -260,7 +264,7 @@ class NeuralLayer(
                    val normalizationMethod: Option[NNNormalizationMethod] = None
                  ) extends PmmlElement
 
-class NeuralOutputs(val neuralOutputs: Seq[NeuralOutput], val numberOfOutputs: Option[Int]) extends PmmlElement
+class NeuralOutputs(val neuralOutputs: Array[NeuralOutput], val numberOfOutputs: Option[Int]) extends PmmlElement
 
 /**
  * Defines how the output of the neural network must be interpreted.
@@ -278,7 +282,7 @@ class NeuralOutput(val outputNeuron: String, val derivedField: DerivedField) ext
  * Weighted connections between neural net nodes are represented by Con elements.
  */
 class Neuron(
-              val cons: Seq[Con],
+              val cons: Array[Con],
               val id: String,
               val bias: Option[Double] = None,
               val width: Option[Double] = None,

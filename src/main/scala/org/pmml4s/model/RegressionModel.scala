@@ -74,7 +74,7 @@ class RegressionModel(
         }
       outputs.predictedValue = if (Utils.isMissing(prediction)) null else prediction
     } else {
-      val y = regressionTables.map(x => (x.targetCategory.get, x.eval(series))).toArray
+      val y = regressionTables.map(x => (x.targetCategory.get, x.eval(series))).toSeq
       val probabilities: Map[Any, Double] = if (!y.exists(x => Utils.isMissing(x._2))) {
         val pairs: Seq[(Any, Double)] = normalizationMethod match {
           case `softmax`   => {

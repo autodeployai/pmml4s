@@ -33,7 +33,7 @@ trait Expression extends Evaluator with PmmlElement {
 
   def deeval(value: Any): Any = new UnsupportedOperationException("Can not support de-normalized operation.")
 
-  def children: Seq[Expression]
+  def children: Array[Expression]
 
   def getDataField: Option[Field]
 
@@ -41,13 +41,13 @@ trait Expression extends Evaluator with PmmlElement {
 }
 
 trait LeafExpression extends Expression {
-  override final def children: Seq[Expression] = Nil
+  override final def children: Array[Expression] = Array.empty
 }
 
 trait UnaryExpression extends Expression {
   def child: Expression
 
-  override final def children: Seq[Expression] = child :: Nil
+  override final def children: Array[Expression] = Array(child)
 }
 
 trait FieldExpression extends UnaryExpression {

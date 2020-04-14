@@ -29,9 +29,9 @@ import scala.xml.pull.{EvElemStart, XMLEventReader}
 class ClusteringBuilder extends Builder[ClusteringModel] {
   protected var attributes: ClusteringAttributes = _
   private var comparisonMeasure: ComparisonMeasure = _
-  private val clusteringFields = mutable.ArrayBuilder.make[ClusteringField]()
+  private val clusteringFields = mutable.ArrayBuilder.make[ClusteringField]
   private var missingValueWeights: MissingValueWeights = _
-  private val clusters = mutable.ArrayBuilder.make[Cluster]()
+  private val clusters = mutable.ArrayBuilder.make[Cluster]
 
   /** Builds a PMML model from a specified XML reader. */
   override def build(reader: XMLEventReader, attrs: XmlAttrs, parent: Model): ClusteringModel = {

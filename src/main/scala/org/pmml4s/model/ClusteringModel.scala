@@ -73,16 +73,19 @@ class ClusteringModel(
     }
 
     var nonMissing: Double = 0.0
-    val nonMissingIdx = mutable.ArrayBuilder.make[Int]
-    nonMissingIdx.sizeHint(clusteringFields.length)
+    val nonMissingIdxBuilder = mutable.ArrayBuilder.make[Int]
+    nonMissingIdxBuilder.sizeHint(clusteringFields.length)
     val xs = new Array[Double](clusteringFields.length)
-    for (i <- 0 until clusteringFields.length) {
+    var i = 0
+    while (i < clusteringFields.length) {
       xs(i) = clusteringFields(i).field.getDouble(series)
       if (Utils.nonMissing(xs(i))) {
         nonMissing += Qi(i)
-        nonMissingIdx += i
+        nonMissingIdxBuilder += i
       }
+      i += 1
     }
+    val nonMissingIdx = nonMissingIdxBuilder.result()
 
     if (nonMissing == 0) {
       return nullSeries
@@ -101,8 +104,9 @@ class ClusteringModel(
         var selected: String = null
         var name: Option[String] = None
         val distances = mutable.Map.empty[String, Double]
-        for (i <- 0 until clusters.length) {
-          val distance = dis.distance(nonMissingIdx.result(), compareFunctions, xs, clusters(i).array.get, weights,
+        var i = 0
+        while (i < clusters.length) {
+          val distance = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
             adjustM, similarityScales(i))
           val id = clusters(i).id.getOrElse("" + (i + 1))
           if (distance < min) {
@@ -111,6 +115,7 @@ class ClusteringModel(
             name = clusters(i).name
           }
           distances.put(id, distance)
+          i += 1
         }
         (selected, name, distances)
       }
@@ -119,8 +124,9 @@ class ClusteringModel(
         var selected: String = null
         var name: Option[String] = None
         val similarities = mutable.Map.empty[String, Double]
-        for (i <- 0 until clusters.length) {
-          val similarity = dis.distance(nonMissingIdx.result(), compareFunctions, xs, clusters(i).array.get, weights,
+        var i = 0
+        while (i < clusters.length) {
+          val similarity = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
             adjustM, similarityScales(i))
           val id = clusters(i).id.getOrElse("" + (i + 1))
           if (similarity > max) {
@@ -129,6 +135,7 @@ class ClusteringModel(
             name = clusters(i).name
           }
           similarities.put(id, similarity)
+          i += 1
         }
         (selected, name, similarities)
       }
@@ -148,7 +155,7 @@ class ClusteringModel(
 
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   override def defaultOutputFields: Array[OutputField] = {
-    val res = mutable.ArrayBuilder.make[OutputField]()
+    val res = mutable.ArrayBuilder.make[OutputField]
     res.sizeHint(3)
     res += OutputField.predictedValue("cluster", "Identifier of the winning cluster", StringType, OpType.nominal)
 

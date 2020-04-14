@@ -79,21 +79,29 @@ class NearestNeighborModel(
     // Check if there are derived fields in KNN inputs that not in training instances
     if (!knnInputs.containsDeriveField(trainingInstances.names.toSet)) {
       val columns = trainingInstances.columns(knnInputs.names)
-      for (i <- 0 until trainingInstances.nbRows) {
+      var i = 0
+      while (i < trainingInstances.nbRows) {
         val values = trainingInstances(i, columns)
-        for (j <- 0 until values.length) {
+        var j = 0
+        while (j < values.length) {
           res(i)(j) = Utils.toDouble(values(j))
+          j += 1
         }
+        i += 1
       }
     } else {
       val fields = knnInputs.fields
-      for (i <- 0 until trainingInstances.nbRows) {
+      var i = 0
+      while (i < trainingInstances.nbRows) {
         val series = trainingInstances.series(i)
         val transformed = parent.predict(series)
         val localTransformed = localTransformations.map(_.transform(transformed)).getOrElse(transformed)
-        for (j <- 0 until fields.length) {
+        var j = 0
+        while (j < fields.length) {
           res(i)(j) = fields(j).getDouble(localTransformed)
+          j += 1
         }
+        i += 1
       }
     }
 
@@ -104,12 +112,16 @@ class NearestNeighborModel(
   private lazy val numCases4CatTargets: Map[String, Map[Any, Long]] = {
     val catTargets = targetFields.filter(_.isCategorical).map(_.name)
     val distributions: Array[Array[Any]] = Array.ofDim(trainingInstances.nbRows, catTargets.length)
-    for (i <- 0 until trainingInstances.nbRows) {
+    var i = 0
+    while (i < trainingInstances.nbRows) {
       val row = trainingInstances.row(i)
       val cats = catTargets.map(row(_))
-      for (j <- 0 until catTargets.length) {
+      var j = 0
+      while (j < catTargets.length) {
         distributions(i)(j) = cats(j)
+        j += 1
       }
+      i += 1
     }
     catTargets.zipWithIndex.map(x => (x._1, Utils.reduceByKey(distributions(x._2).map(y => (y, 1L))))).toMap
   }
@@ -135,12 +147,15 @@ class NearestNeighborModel(
     })
 
     val nonMissing = Array.range(0, knnInputs.size)
-    val distances = for (i <- 0 until matrix.length) yield {
-      dis.distance(nonMissing, compareFunctions, xs, matrix(i), weights)
+    val distances = Array.ofDim[Double](matrix.length)
+    var i = 0
+    while (i < matrix.length) {
+      distances(i) = dis.distance(nonMissing, compareFunctions, xs, matrix(i), weights)
+      i += 1
     }
 
     val sorted = distances.zipWithIndex.sortBy(_._1)
-    val topK: Seq[(Double, Int)] = comparisonMeasure.kind match {
+    val topK: Array[(Double, Int)] = comparisonMeasure.kind match {
       case ComparisonMeasureKind.distance   => {
         sorted.take(numberOfNeighbors)
       }
@@ -168,7 +183,7 @@ class NearestNeighborModel(
     result(series, outputs)
   }
 
-  def createOutputsByTarget(topK: Seq[(Double, Int)], target: Field): ModelOutputs = {
+  def createOutputsByTarget(topK: Array[(Double, Int)], target: Field): ModelOutputs = {
     val outputs = createOutputs
 
     val col = trainingInstances.column(target.name)
@@ -268,7 +283,7 @@ class TrainingInstances(val instanceFields: InstanceFields,
 
   def series(i: Int): Series = {
     val row = table(i)
-    Series.fromSeq(columns.map(x => row(x)), schema)
+    Series.fromArray(columns.map(x => row(x)), schema)
   }
 
   def row(i: Int): Row = {

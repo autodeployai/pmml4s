@@ -48,9 +48,9 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
       val nbCorrect = attrs.getInt(AttrTags.NB_CORRECT)
       val defaultScore = attrs.get(AttrTags.DEFAULT_SCORE).map(verifyScore(_))
       val defaultConfidence = attrs.getDouble(AttrTags.DEFAULT_CONFIDENCE)
-      val ruleSelectionMethods = mutable.ArrayBuilder.make[RuleSelectionMethod]()
-      val scoreDistributions = mutable.ArrayBuilder.make[ScoreDistribution]()
-      val rules = mutable.ArrayBuilder.make[Rule]()
+      val ruleSelectionMethods = mutable.ArrayBuilder.make[RuleSelectionMethod]
+      val scoreDistributions = mutable.ArrayBuilder.make[ScoreDistribution]
+      val rules = mutable.ArrayBuilder.make[Rule]
 
       traverseElems(reader, ElemTags.RULE_SET, {
         case EvElemStart(_, ElemTags.RULE_SELECTION_METHOD, attrs, _) => ruleSelectionMethods += makeRuleSelectionMethod(reader, attrs)
@@ -74,7 +74,7 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
           val confidence = attrs.getDouble(AttrTags.CONFIDENCE, 1.0)
           val weight = attrs.getDouble(AttrTags.WEIGHT, 1.0)
           var predicate: Predicate = null
-          val scoreDistributions = mutable.ArrayBuilder.make[ScoreDistribution]()
+          val scoreDistributions = mutable.ArrayBuilder.make[ScoreDistribution]
           traverseElems(reader, ElemTags.SIMPLE_RULE, {
             case event: EvElemStart if Predicate.contains(event.label) => predicate = makePredicate(reader, event)
             case EvElemStart(_, ElemTags.SCORE_DISTRIBUTION, attrs, _) => scoreDistributions += makeScoreDistribution(reader, attrs)
@@ -85,7 +85,7 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
       })
       case EvElemStart(_, ElemTags.COMPOUND_RULE, attrs, _) => makeElem(reader, attrs, new ElemBuilder[CompoundRule] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): CompoundRule = {
-          val rules = mutable.ArrayBuilder.make[Rule]()
+          val rules = mutable.ArrayBuilder.make[Rule]
           var predicate: Predicate = null
 
           traverseElems(reader, ElemTags.SIMPLE_RULE, {

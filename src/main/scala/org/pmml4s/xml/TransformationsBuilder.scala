@@ -59,8 +59,8 @@ trait TransformationsBuilder extends CommonBuilder
 
   /** Parses the transformation dictionary. */
   def makeTransformationDictionary(reader: XMLEventReader): TransformationDictionary = {
-    val defineFunctions = mutable.ArrayBuilder.make[DefineFunction]()
-    val derivedFields = mutable.ArrayBuilder.make[DerivedField]()
+    val defineFunctions = mutable.ArrayBuilder.make[DefineFunction]
+    val derivedFields = mutable.ArrayBuilder.make[DerivedField]
     traverseElems(reader, ElemTags.TRANSFORMATION_DICTIONARY, {
       case EvElemStart(_, ElemTags.DEFINE_FUNCTION, attrs, _) => {
         defineFunctions += (provider += makeDefineFunction(reader, attrs))
@@ -119,15 +119,16 @@ trait TransformationsBuilder extends CommonBuilder
     val displayName = attrs.get(AttrTags.DISPLAY_NAME)
     val opType = OpType.withName(attrs(AttrTags.OPTYPE))
     val dataType = attrs.get(AttrTags.DATA_TYPE).map { x => DataType.withName(x) } getOrElse (UnresolvedDataType)
-    val values = new ArrayBuffer[Value]()
+    val valuesBuilder = mutable.ArrayBuilder.make[Value]
     var expression: Expression = null
 
     traverseElems(reader, ElemTags.DERIVED_FIELD, {
       case event: EvElemStart if Expression.contains(event.label) => expression = makeExpression(reader, event, this)
-      case EvElemStart(_, ElemTags.VALUE, attrs, _)               => values :+ makeValue(reader, attrs)
+      case EvElemStart(_, ElemTags.VALUE, attrs, _)               => valuesBuilder += makeValue(reader, attrs)
       case _                                                      =>
     })
 
+    var values = valuesBuilder.result()
     if (values.isEmpty && expression.categories.nonEmpty) {
       values ++= expression.categories.map(x => new Value(x.toString))
     }
@@ -212,7 +213,7 @@ trait TransformationsBuilder extends CommonBuilder
           val dataType = attrs.get(AttrTags.DATA_TYPE).map(DataType.withName(_))
           val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO)
           val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE)
-          val fieldColumnPairs = mutable.ArrayBuilder.make[FieldColumnPair]()
+          val fieldColumnPairs = mutable.ArrayBuilder.make[FieldColumnPair]
           var table: Table = null
           val dataTypes = mutable.Map.empty[String, DataType]
           dataType.foreach(x => dataTypes += outputColumn -> x)
@@ -245,7 +246,7 @@ trait TransformationsBuilder extends CommonBuilder
             getOrElse(CountHits.allHits)
           val wordSeparatorCharacterRE = attrs.getString(AttrTags.WORD_SEPARATOR_CHARACTER_RE, "\\s+")
           val tokenize = attrs.getBoolean(AttrTags.TOKENIZE, true)
-          val textIndexNormalizations = mutable.ArrayBuilder.make[TextIndexNormalization]()
+          val textIndexNormalizations = mutable.ArrayBuilder.make[TextIndexNormalization]
           var expression: Expression = null
 
           traverseElems(reader, ElemTags.TEXT_INDEX, {
@@ -286,7 +287,7 @@ trait TransformationsBuilder extends CommonBuilder
           val invalidValueTreatment = attrs.get(AttrTags.INVALID_VALUE_TREATMENT).map(InvalidValueTreatment.withName(_)).
             getOrElse(InvalidValueTreatment.returnInvalid)
 
-          val children = mutable.ArrayBuilder.make[Expression]()
+          val children = mutable.ArrayBuilder.make[Expression]
           traverseElems(reader, ElemTags.APPLY, {
             case event: EvElemStart if Expression.contains(event.label) => children += makeExpression(reader, event, scope)
             case _                                                      =>

@@ -26,9 +26,9 @@ import scala.xml.pull.{EvElemStart, XMLEventReader}
  */
 class AssociationBuilder extends Builder[AssociationModel] {
   protected var attributes: AssociationAttributes = _
-  private val items = mutable.ArrayBuilder.make[Item]()
-  private val itemsets = mutable.ArrayBuilder.make[Itemset]()
-  private val associationRules = mutable.ArrayBuilder.make[AssociationRule]()
+  private val items = mutable.ArrayBuilder.make[Item]
+  private val itemsets = mutable.ArrayBuilder.make[Itemset]
+  private val associationRules = mutable.ArrayBuilder.make[AssociationRule]
 
   /** Builds a PMML model from a specified XML reader. */
   override def build(reader: XMLEventReader, attrs: XmlAttrs, parent: Model): AssociationModel = {

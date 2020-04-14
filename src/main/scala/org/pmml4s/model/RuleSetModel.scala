@@ -88,7 +88,7 @@ class RuleSetModel(override var parent: Model,
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   override def defaultOutputFields: Array[OutputField] = {
     if (isClassification) {
-      val result = mutable.ArrayBuilder.make[OutputField]()
+      val result = mutable.ArrayBuilder.make[OutputField]
       result.sizeHint(2)
       result += OutputField.predictedValue(this)
       result += OutputField.confidence()

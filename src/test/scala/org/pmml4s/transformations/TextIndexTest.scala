@@ -124,7 +124,7 @@ class TextIndexTest extends FunSuite with TransformationsBuilder {
     } else ???
 
     val derivedField = new DerivedField("isGoodUI",
-      new Apply(myIndexFunction, Seq(new FieldRef(new DataField("Review")), new Constant("ui_good"))))
+      new Apply(myIndexFunction, Array(new FieldRef(new DataField("Review")), new Constant("ui_good"))))
 
     val text = "Testing the app for a few days convinced me the interfaces are excellent!"
     val value = derivedField.eval(Series.fromMap(Map("Review" -> text)))
