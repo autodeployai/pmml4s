@@ -2,6 +2,25 @@
 
 _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala. It provides both Scala and Java Evaluator API for PMML.
 
+## Table of Contents
+
+- [Features](#features)
+    - [Model types support](#model-types-support)
+    - [Transformations support](#transformations-support)
+- [Installation](#installation)
+    - [SBT users](#sbt-users)
+    - [Maven users](#maven-users)
+- [Use in Scala](#use-in-scala)
+- [Use in Java](#use-in-java)
+- [Use PMML in Spark](#use-pmml-in-spark)
+- [Use PMML in PySpark](#use-pmml-in-pyspark)
+- [Use PMML in Python](#use-pmml-in-python)
+- [Deploy PMML as REST API](#deploy-pmml-as-rest-api)
+- [Deploy and Manage AI/ML models at scale](#deploy-and-manage-aiml-models-at-scale)
+- [Attentions](#attentions)
+- [Support](#support)
+- [License](#license)
+
 ## Features
 _PMML4S_ is a lightweight, clean and efficient implementation based on the PMML specification from 2.0 through to the latest 4.4.
 
@@ -287,10 +306,18 @@ See the [PyPMML-Spark](https://github.com/autodeployai/pypmml-spark) project. _P
 See the [PyPMML](https://github.com/autodeployai/pypmml) project. _PyPMML_ is a Python PMML scoring library, it really is the Python API for PMML4S.
 
 ## Deploy PMML as REST API
-See the [DaaS](https://www.autodeploy.ai/) system that deploys AI & ML models in production at scale on Kubernetes.
+See the [AI-Serving](https://github.com/autodeployai/ai-serving) project. _AI-Serving_ is serving AI/ML models in the open standard formats PMML and ONNX with both HTTP and gRPC endpoints.
 
-## Attention
-Except of the Association model with transaction, all model objects are read-only, so you are free to use them in a multi-threaded environment.
+## Deploy and Manage AI/ML models at scale
+See the [DaaS](https://www.autodeploy.ai/) system that deploys AI/ML models in production at scale on Kubernetes.
+
+## Attentions
+* Thread Safe. 
+
+  Except of the Association model with transaction, all model objects are read-only, so you are free to use them in a multi-threaded environment.
+* Scoring Assumptions.
+
+  For the `regression` model with an integer target, float numeric predictions will be produced when there are no round methods specified explicitly.
 
 ## Support
 If you have any questions about the _PMML4S_ library, please open issues on this repository.
