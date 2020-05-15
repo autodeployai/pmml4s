@@ -1,0 +1,256 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="4">
+        <DataField name="SEPALLEN" optype="continuous" dataType="double"/>
+        <DataField name="SEPALWID" optype="continuous" dataType="double"/>
+        <DataField name="PETALLEN" optype="continuous" dataType="double"/>
+        <DataField name="PETALWID" optype="categorical" dataType="double"/>
+        <DataField name="SPECIES" optype="categorical" dataType="integer"/>
+    </DataDictionary>
+    <MiningModel functionName="classification" algorithmName="Random Forests">
+        <MiningSchema>
+            <MiningField name="SPECIES" usageType="predicted" missingValueTreatment="asIs"
+                         invalidValueTreatment="asMissing"/>
+            <MiningField name="SEPALLEN" usageType="active" invalidValueTreatment="asMissing" importance="0.010374"
+                         missingValueReplacement="5.8"/>
+            <MiningField name="SEPALWID" usageType="active" invalidValueTreatment="asMissing" importance="0.000788"
+                         missingValueReplacement="3"/>
+            <MiningField name="PETALLEN" usageType="active" invalidValueTreatment="asMissing" importance="1"
+                         missingValueReplacement="4.35"/>
+            <MiningField name="PETALWID" usageType="active" invalidValueTreatment="asMissing" importance="0.168946"
+                         missingValueReplacement="1.3"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="PROB_1" optype="continuous" dataType="double" feature="probability" targetField="SPECIES"
+                         value="1"/>
+            <OutputField name="PROB_2" optype="continuous" dataType="double" feature="probability" targetField="SPECIES"
+                         value="2"/>
+        </Output>
+        <Segmentation multipleModelMethod="weightedMajorityVote">
+            <Segment id="1">
+                <True/>
+                <TreeModel modelName="Tree1" functionName="classification" splitCharacteristic="binarySplit">
+                    <MiningSchema>
+                        <MiningField name="SPECIES" usageType="predicted"/>
+                        <MiningField name="SEPALLEN" usageType="active"/>
+                        <MiningField name="PETALLEN" usageType="active"/>
+                        <MiningField name="PETALWID" usageType="active"/>
+                    </MiningSchema>
+                    <Output>
+                        <OutputField name="PredTree1" optype="categorical" dataType="integer" feature="predictedValue"/>
+                        <OutputField name="NodeTree1" optype="categorical" dataType="integer" feature="entityId"/>
+                        <OutputField name="WEIGHT1" displayName="Tree Weight" optype="continuous" dataType="double"
+                                     feature="transformedValue" isFinalResult="false">
+                            <MapValues outputColumn="weight" defaultValue="1" dataType="double">
+                                <FieldColumnPair field="NodeTree1" column="node"/>
+                                <InlineTable>
+                                    <row>
+                                        <node>1</node>
+                                        <weight>2.5</weight>
+                                    </row>
+                                    <row>
+                                        <node>2</node>
+                                        <weight>4.75</weight>
+                                    </row>
+                                    <row>
+                                        <node>3</node>
+                                        <weight>1.5</weight>
+                                    </row>
+                                    <row>
+                                        <node>4</node>
+                                        <weight>0.666667</weight>
+                                    </row>
+                                    <row>
+                                        <node>5</node>
+                                        <weight>0.666667</weight>
+                                    </row>
+                                    <row>
+                                        <node>6</node>
+                                        <weight>0.4</weight>
+                                    </row>
+                                    <row>
+                                        <node>7</node>
+                                        <weight>0.4</weight>
+                                    </row>
+                                </InlineTable>
+                            </MapValues>
+                        </OutputField>
+                    </Output>
+                    <Node id="-1">
+                        <True/>
+                        <Node id="1" score="1">
+                            <SimplePredicate field="PETALLEN" operator="lessOrEqual" value="2.45000004768"/>
+                        </Node>
+                        <Node id="-2">
+                            <True/>
+                            <Node id="-3">
+                                <SimplePredicate field="PETALLEN" operator="lessOrEqual" value="4.75"/>
+                                <Node id="2" score="3">
+                                    <SimplePredicate field="SEPALLEN" operator="lessOrEqual" value="4.94999980927"/>
+                                </Node>
+                                <Node id="3" score="2">
+                                    <True/>
+                                </Node>
+                            </Node>
+                            <Node id="-4">
+                                <True/>
+                                <Node id="-5">
+                                    <SimplePredicate field="PETALWID" operator="lessOrEqual" value="1.75"/>
+                                    <Node id="-6">
+                                        <SimplePredicate field="SEPALLEN" operator="lessOrEqual" value="6.5"/>
+                                        <Node id="4" score="3">
+                                            <SimplePredicate field="PETALWID" operator="lessOrEqual"
+                                                             value="1.54999995232"/>
+                                        </Node>
+                                        <Node id="5" score="2">
+                                            <True/>
+                                        </Node>
+                                    </Node>
+                                    <Node id="6" score="2">
+                                        <True/>
+                                    </Node>
+                                </Node>
+                                <Node id="7" score="3">
+                                    <True/>
+                                </Node>
+                            </Node>
+                        </Node>
+                    </Node>
+                </TreeModel>
+                <VariableWeight field="WEIGHT1"/>
+            </Segment>
+            <Segment id="2">
+                <True/>
+                <TreeModel modelName="Tree2" functionName="classification" splitCharacteristic="binarySplit">
+                    <MiningSchema>
+                        <MiningField name="SPECIES" usageType="predicted"/>
+                        <MiningField name="SEPALLEN" usageType="active"/>
+                        <MiningField name="PETALLEN" usageType="active"/>
+                        <MiningField name="PETALWID" usageType="active"/>
+                    </MiningSchema>
+                    <Output>
+                        <OutputField name="PredTree2" optype="categorical" dataType="integer" feature="predictedValue"/>
+                        <OutputField name="NodeTree2" optype="categorical" dataType="integer" feature="entityId"/>
+                        <OutputField name="WEIGHT2" displayName="Tree Weight" optype="continuous" dataType="double"
+                                     feature="transformedValue" isFinalResult="false">
+                            <MapValues outputColumn="weight" defaultValue="1" dataType="double">
+                                <FieldColumnPair field="NodeTree2" column="node"/>
+                                <InlineTable>
+                                    <row>
+                                        <node>1</node>
+                                        <weight>2.0</weight>
+                                    </row>
+                                    <row>
+                                        <node>2</node>
+                                        <weight>0.5</weight>
+                                    </row>
+                                    <row>
+                                        <node>3</node>
+                                        <weight>0.666667</weight>
+                                    </row>
+                                    <row>
+                                        <node>4</node>
+                                        <weight>1.0</weight>
+                                    </row>
+                                </InlineTable>
+                            </MapValues>
+                        </OutputField>
+                    </Output>
+                    <Node id="-1">
+                        <True/>
+                        <Node id="1" score="1">
+                            <SimplePredicate field="PETALLEN" operator="lessOrEqual" value="2.59999990463"/>
+                        </Node>
+                        <Node id="-2">
+                            <True/>
+                            <Node id="-3">
+                                <SimplePredicate field="PETALWID" operator="lessOrEqual" value="1.75"/>
+                                <Node id="2" score="2">
+                                    <SimplePredicate field="SEPALLEN" operator="lessOrEqual" value="7.09999990463"/>
+                                </Node>
+                                <Node id="3" score="3">
+                                    <True/>
+                                </Node>
+                            </Node>
+                            <Node id="4" score="3">
+                                <True/>
+                            </Node>
+                        </Node>
+                    </Node>
+                </TreeModel>
+                <VariableWeight field="WEIGHT2"/>
+            </Segment>
+            <Segment id="3">
+                <True/>
+                <TreeModel modelName="Tree3" functionName="classification" splitCharacteristic="binarySplit">
+                    <MiningSchema>
+                        <MiningField name="SPECIES" usageType="predicted"/>
+                        <MiningField name="SEPALWID" usageType="active"/>
+                        <MiningField name="PETALLEN" usageType="active"/>
+                        <MiningField name="PETALWID" usageType="active"/>
+                    </MiningSchema>
+                    <Output>
+                        <OutputField name="PredTree3" optype="categorical" dataType="integer" feature="predictedValue"/>
+                        <OutputField name="NodeTree3" optype="categorical" dataType="integer" feature="entityId"/>
+                        <OutputField name="WEIGHT3" displayName="Tree Weight" optype="continuous" dataType="double"
+                                     feature="transformedValue" isFinalResult="false">
+                            <MapValues outputColumn="weight" defaultValue="1" dataType="double">
+                                <FieldColumnPair field="NodeTree3" column="node"/>
+                                <InlineTable>
+                                    <row>
+                                        <node>1</node>
+                                        <weight>2.0</weight>
+                                    </row>
+                                    <row>
+                                        <node>2</node>
+                                        <weight>1.0</weight>
+                                    </row>
+                                    <row>
+                                        <node>3</node>
+                                        <weight>0.5</weight>
+                                    </row>
+                                    <row>
+                                        <node>4</node>
+                                        <weight>0.5</weight>
+                                    </row>
+                                    <row>
+                                        <node>5</node>
+                                        <weight>1.0</weight>
+                                    </row>
+                                </InlineTable>
+                            </MapValues>
+                        </OutputField>
+                    </Output>
+                    <Node id="-1">
+                        <True/>
+                        <Node id="1" score="1">
+                            <SimplePredicate field="PETALLEN" operator="lessOrEqual" value="2.34999990463"/>
+                        </Node>
+                        <Node id="-2">
+                            <True/>
+                            <Node id="-3">
+                                <SimplePredicate field="PETALLEN" operator="lessOrEqual" value="4.94999980927"/>
+                                <Node id="2" score="2">
+                                    <SimplePredicate field="PETALWID" operator="lessOrEqual" value="1.65000009537"/>
+                                </Node>
+                                <Node id="-4">
+                                    <True/>
+                                    <Node id="3" score="3">
+                                        <SimplePredicate field="SEPALWID" operator="lessOrEqual" value="3"/>
+                                    </Node>
+                                    <Node id="4" score="2">
+                                        <True/>
+                                    </Node>
+                                </Node>
+                            </Node>
+                            <Node id="5" score="3">
+                                <True/>
+                            </Node>
+                        </Node>
+                    </Node>
+                </TreeModel>
+                <VariableWeight field="WEIGHT3"/>
+            </Segment>
+        </Segmentation>
+    </MiningModel>
+</PMML>

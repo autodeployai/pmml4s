@@ -169,4 +169,32 @@ class ModelTest extends BaseModelTest {
     val r6 = model.predict(Array(7, 3.2, 4.7, 1.4))
     assert(r6.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
   }
+
+  test("custom model outputs") {
+    val model = Model.fromFile("src/test/resources/models/mining/dmg_weighted_majority_vote_mining_revised.xml")
+    assert(model.output.isDefined)
+    assert(!model.supplementOutput)
+    assert(model.customOutputFields.isEmpty)
+    assert(model.outputNames === Array("PROB_1", "PROB_2"))
+    assert(model.defaultOutputFields.map(_.name) === Array("predicted_SPECIES", "probability", "probability_1", "probability_3", "probability_2"))
+    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    assert(r.length === 2)
+
+    // Set the flag `supplementOutput` to true
+    model.setSupplementOutput(true)
+    assert(model.supplementOutput)
+    assert(model.outputNames === Array("PROB_1", "PROB_2", "predicted_SPECIES", "probability", "probability_3"))
+    val r2 = model.predict(Series(2.0, 1.75, 30, 2.0))
+    assert(r2.length === 5)
+    assert(r2(2) === 3)
+    assert(r2(3) === 0.7999999999999999)
+
+    // Specify custom outputs with only the prediction
+    val outputFields = model.outputFields
+    model.setOutputFields(Array(outputFields(2)))
+    assert(model.outputNames === Array("predicted_SPECIES"))
+    val r3 = model.predict(Series(2.0, 1.75, 30, 2.0))
+    assert(r3.length === 1)
+    assert(r3(0) === 3)
+  }  
 }

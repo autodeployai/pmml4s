@@ -17,6 +17,8 @@ package org.pmml4s.metadata
 
 import org.pmml4s.PmmlDeprecated
 
+import scala.collection.mutable
+
 /** Result Features */
 object ResultFeature extends Enumeration {
   type ResultFeature = Value
@@ -232,15 +234,50 @@ class Output(override val outputFields: Array[OutputField])
 
 trait HasOutput {
   self: Model =>
+
+  /**
+   * User-defined custom output fields, both the internal output of PMML and predefined output are ignored when the
+   * field is specified.
+   */
+  var customOutputFields: Array[OutputField] = Array.empty
+
+  /** A flag for whether to return those predefined output fields not exist in the output element explicitly. */
+  var supplementOutput: Boolean = false
+
+  def setSupplementOutput(value: Boolean): this.type = {
+    supplementOutput = value
+    this
+  }
+
+  def unionCandidateOutputFields: Array[OutputField] = output.map(x =>
+    combineOutputFields(x.outputFields, defaultOutputFields)).getOrElse(defaultOutputFields)
+
+  def unionOutputFields: Array[OutputField] = output.map(x =>
+    combineOutputFields(x.finalOutputFields, defaultOutputFields)).getOrElse(defaultOutputFields)
+
   def output: Option[Output]
 
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
   def defaultOutputFields: Array[OutputField]
 
-  def candidateOutputFields: Array[OutputField] = if (output != null)
-    output.map(_.outputFields).getOrElse(defaultOutputFields) else Array.empty
+  def candidateOutputFields: Array[OutputField] = {
+    if (customOutputFields != null && customOutputFields.nonEmpty)
+      customOutputFields
+    else
+      output.map(x => if (supplementOutput) unionCandidateOutputFields else x.outputFields).getOrElse(defaultOutputFields)
+  }
 
-  def outputFields: Array[OutputField] = output.map(_.finalOutputFields).getOrElse(defaultOutputFields)
+  def outputFields: Array[OutputField] = {
+    if (customOutputFields != null && customOutputFields.nonEmpty)
+      customOutputFields
+    else
+      output.map(x => if (supplementOutput) unionOutputFields else x.finalOutputFields).getOrElse(defaultOutputFields)
+  }
+
+  def setOutputFields(outputFields: Array[OutputField]): this.type = {
+    customOutputFields = outputFields
+    this
+  }
 
   def outputNames: Array[String] = outputFields.map(_.name)
 
@@ -267,4 +304,40 @@ trait HasOutput {
 
   def targetNamesOfResidual = candidateOutputFields.filter(_.feature == ResultFeature.residual).
     map(x => x.targetField.getOrElse(targetName)).toSet.toArray
+
+  def combineOutputFields(listA: Array[OutputField], listB: Array[OutputField]): Array[OutputField] = {
+    val result = mutable.ArrayBuilder.make[OutputField]
+    result.sizeHint(listA.size + listB.size)
+    result ++= listA
+
+    for(x <- listB) {
+      var i = 0
+      var exist = false
+      while (i < listA.length && !exist) {
+        val y = listA(i)
+        if (x.feature == y.feature) {
+          exist = true
+          x.feature match {
+            case ResultFeature.predictedValue => {
+              if (multiTargets && x.targetField != y.targetField) {
+                exist = false
+              }
+            }
+            case ResultFeature.probability => {
+              if (x.value != y.value)
+                exist = false
+            }
+            case _ =>
+          }
+        }
+        i += 1
+      }
+
+      if (!exist) {
+        result += x
+      }
+    }
+
+    result.result()
+  }
 }
