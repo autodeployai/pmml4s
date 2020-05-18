@@ -180,28 +180,28 @@ abstract class Model extends HasParent
 
   /** Predicts values for a given data map. */
   def predict(values: Map[String, Any]): Map[String, Any] = {
-    predict(Series.fromMap(values, inputSchema)).toMap
+    predict(Series.fromMap(values, usedSchema)).toMap
   }
 
   /** Predicts values for a given data map of Java. */
   def predict(values: java.util.Map[String, Any]): java.util.Map[String, Any] = {
-    predict(Series.fromMap(values, inputSchema)).toJavaMap
+    predict(Series.fromMap(values, usedSchema)).toJavaMap
   }
 
   /** Predicts values for a given list of key/value pairs. */
   def predict(values: (String, Any)*): Seq[(String, Any)] = {
-    predict(Series.fromMap(Map(values: _*), inputSchema)).toPairSeq
+    predict(Series.fromMap(Map(values: _*), usedSchema)).toPairSeq
   }
 
   /** Predicts values for a given Array, and the order of those values is supposed as same as the input fields list */
   def predict[T](values: Array[T]): Array[Any] = {
     // convert the values based on the required types of inputs
-    val len = inputSchema.size
+    val len = usedSchema.size
     val convertedValues = new Array[Any](len)
     var i = 0
     while (i < len) {
       if (i < values.length) {
-        convertedValues(i) = Utils.toVal(values(i), inputSchema(i).dataType)
+        convertedValues(i) = Utils.toVal(values(i), usedSchema(i).dataType)
       }
       i += 1
     }
@@ -224,7 +224,7 @@ abstract class Model extends HasParent
       case x: JsArray  => {
         JsArray(x.elements.map(y => {
           val record = y.asJsObject
-          val outputs = predict(Series.fromMap(record, inputSchema))
+          val outputs = predict(Series.fromMap(record, usedSchema))
           outputs.toJson()
         }))
       }
@@ -234,7 +234,7 @@ abstract class Model extends HasParent
         var outputColumns: JsArray = null
         val outputData = JsArray(data.elements.map(y => {
           val values = y.asInstanceOf[JsArray]
-          val outputs = predict(Series.fromMap(JsObject(columns.zip(values.elements).toMap), inputSchema))
+          val outputs = predict(Series.fromMap(JsObject(columns.zip(values.elements).toMap), usedSchema))
           if (outputColumns == null) outputColumns = JsArray(outputs.columns.toVector.map(JsString(_)))
           outputs.toJson(false)
         }))
@@ -513,8 +513,9 @@ abstract class Model extends HasParent
               } else if (isClassification) {
                 outputs match {
                   case x: HasPredictedValueWithProbabilities => {
+                    val category = of.value.getOrElse(x.predictedValue)
                     outputSeries.setDouble(i,
-                      if (targetField.get(series) == x.predictedValue) 1.0 else 0.0 - x.probability(x.predictedValue))
+                      (if (targetField.get(series) == category) 1.0 else 0.0) - x.probability(category))
                   }
                 }
               }
@@ -669,6 +670,11 @@ abstract class Model extends HasParent
     ones.zipWithIndex.foreach(x => x._1.index = x._2)
     ones
   } else inputFields
+
+  /** The schema of used fields. */
+  lazy val usedSchema: StructType = StructType(usedFields.map {
+    x => StructField(x.name, x.dataType)
+  })
 }
 
 object Model {
