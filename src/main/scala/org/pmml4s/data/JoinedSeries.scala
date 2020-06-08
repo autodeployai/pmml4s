@@ -15,6 +15,8 @@
  */
 package org.pmml4s.data
 
+import org.pmml4s.common.StructType
+
 /**
  * A wrapper that makes two series appear as a single concatenated series.
  */
@@ -32,7 +34,18 @@ class JoinedSeries(val series1: Series, val series2: Series) extends Series {
     series1.toSeq ++ series2.toSeq
   }
 
+  override val schema: StructType = if (series1.schema != null && series2.schema != null) {
+    StructType(series1.schema.fields ++ series2.schema.fields)
+  } else null
+
   override val length: Int = series1.length + series2.length
+
+  /**
+   * Returns the index of a given field name.
+   */
+  override def fieldIndex(name: String): Int = if (schema != null) {
+    schema.getFieldIndex(name).getOrElse(-1)
+  } else -1
 
   override def get(i: Int): Any =
     if (i < series1.length) series1.get(i) else series2.get(i - series1.length)

@@ -141,15 +141,13 @@ abstract class Model extends HasParent
   def numClasses(name: String): Int = classes(name).length
 
   /** Tests if this is a classification model. */
-  override def isClassification: Boolean = super.isClassification &&
-    (targetField == null || OpType.isCategorical(targetField.opType))
+  override def isClassification: Boolean = super.isClassification 
 
   /** Tests if this is a classification model of the specified target, it's applicable for multiple targets. */
   def isClassification(name: String): Boolean = hasTarget && OpType.isCategorical(opType(name))
 
   /** Tests if this is a regression model. */
-  override def isRegression: Boolean = super.isRegression &&
-    (targetField == null || OpType.isRegression(targetField.opType))
+  override def isRegression: Boolean = super.isRegression
 
   /** Tests if this is a regression model of the specified target, it's applicable for multiple targets. */
   def isRegression(name: String): Boolean = hasTarget && OpType.isRegression(opType(name))
@@ -208,6 +206,13 @@ abstract class Model extends HasParent
     predict(Series.fromArray(convertedValues)).toArray
   }
 
+  def predict(values: java.util.List[Any]): java.util.List[Any] = {
+    val array = predict(values.toArray())
+    val result = new java.util.ArrayList[Any](array.length)
+    array.foreach(x => result.add(x))
+    result
+  }
+  
   /**
    * Predicts one or multiple records in json format, there are two formats supported:
    *
@@ -290,6 +295,7 @@ abstract class Model extends HasParent
   /** Pre-process the input series. */
   protected def prepare(series: Series): (Series, Boolean) = {
     val newValues = new Array[Any](if (isTopLevelModel) usedFields.length else series.length)
+    val newSchema = if (isTopLevelModel) usedSchema else series.schema
 
     // Some models do not have the Mining Schema, for example the transformation model, and embedded models
     if (miningSchema != null) {
@@ -300,7 +306,7 @@ abstract class Model extends HasParent
 
         // If there is no schema in the input series, that means its values can only be accessed by index, not name.
         // Then the order of that series is supposed as same as the used fields list
-        val idx = if (series.schema != null) series.fieldIndex(field.name) else field.index
+        val idx = if (field.index >= 0) field.index else series.fieldIndex(field.name)
         if (idx >= 0) {
           val value = series(idx)
           val mf = miningSchema(field.name)
@@ -311,7 +317,7 @@ abstract class Model extends HasParent
             (mf.invalidValueTreatment == InvalidValueTreatment.asMissing && field.isInvalidValue(value)) ||
             field.isMissingValue(value)
 
-          newValues(field.index) = if (missing) {
+          newValues(idx) = if (missing) {
             if (mf.missingValueTreatment == Some(MissingValueTreatment.returnInvalid)) {
               return (series, true)
             }
@@ -348,11 +354,11 @@ abstract class Model extends HasParent
       val len = usedFields.length
       while (i < len) {
         val field = usedFields(i)
-        val idx = if (series.schema != null) series.fieldIndex(field.name) else field.index
+        val idx = if (field.index >= 0) field.index else series.fieldIndex(field.name)
         if (idx >= 0) {
           val value = series(idx)
           val missing = !field.isValidValue(value)
-          newValues(field.index) = if (missing) {
+          newValues(idx) = if (missing) {
             null /*value*/
           } else {
             value
@@ -364,7 +370,7 @@ abstract class Model extends HasParent
 
     val transformed = if (isTopLevelModel && parent != null) {
       // Compute the values of all referenced derived fields for the top level model
-      parent.predict(Series.fromArray(newValues))
+      parent.predict(Series.fromArray(newValues, newSchema))
     } else {
       // Copy the values of referenced derived fields of its parent model
       var i = 0
@@ -376,7 +382,7 @@ abstract class Model extends HasParent
         }
         i += 1
       }
-      Series.fromArray(newValues)
+      Series.fromArray(newValues, newSchema)
     }
 
     (localTransformations.map(_.transform(transformed)).getOrElse(transformed), false)
@@ -441,8 +447,9 @@ abstract class Model extends HasParent
           modelOutputs.asInstanceOf[MultiModelOutputs](of.targetField.get)
         } else modelOutputs
 
-        // Set the index of output fields as position of appended the input series.
-        of.index = series.size + i
+        // NOT set the index of output fields because the input series could contain values of local derived fields,
+        // which are only available within the local scope, and not returned.
+        // of.index = series.size + i
         of.feature match {
           case `predictedValue`                                  => outputs match {
             // The expected data type could be different from the storage type of value, so try to convert it
@@ -527,7 +534,7 @@ abstract class Model extends HasParent
           case `clusterId` | `entityId` | `ruleId`               => outputs match {
             // The expected data type could be different from the storage type of value, so try to convert it
             case x: HasEntityId         => outputSeries.update(i, Utils.toVal(x.entityId, of.dataType))
-            case x: HasEntityIds        => outputSeries.update(i, x.entityId(of.rank))
+            case x: HasEntityIds        => outputSeries.update(i, Utils.toVal(x.entityId(of.rank), of.dataType))
             case x: HasAssociationRules => outputSeries.update(i,
               x.getRule(of.criterion, of.rank).map(_.entityId).orNull)
             case _                      =>

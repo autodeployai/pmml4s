@@ -39,6 +39,13 @@ class CombinedSeries(val rows: Array[Series]) extends Series {
 
   override val length: Int = indices(indices.length - 1)
 
+  /**
+   * Returns the index of a given field name.
+   */
+  override def fieldIndex(name: String): Int = if (schema != null) {
+    schema.getFieldIndex(name).getOrElse(-1)
+  } else -1
+  
   override def toArray: Array[Any] = {
     val result = new Array[Any](length)
     var i = 0

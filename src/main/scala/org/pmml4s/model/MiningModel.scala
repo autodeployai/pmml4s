@@ -76,6 +76,18 @@ class MiningModel(
   val isWeighted = isSegmentation && (Set(`weightedMajorityVote`, `weightedAverage`, `weightedMedian`, `weightedSum`)
     contains segmentation.get.multipleModelMethod)
 
+  // enable the predicted value if it's not
+  if (isSegmentation &&
+    (!Set(`selectFirst`, `selectAll`, `modelChain`).contains(segmentation.get.multipleModelMethod)) &&
+    (isRegression || ((isClassification || isClustering) && (segmentation.get.multipleModelMethod == majorityVote || segmentation.get.multipleModelMethod == weightedMajorityVote)))) {
+      segmentation.get.segments.foreach(x =>{
+        val idx = x.model.outputIndex(ResultFeature.predictedValue)
+        if (idx == -1) {
+          x.model.setSupplementOutput(true)
+        }
+      })
+  }
+
   /** Model element type. */
   override def modelElement: ModelElement = ModelElement.MiningModel
 
@@ -138,13 +150,12 @@ class MiningModel(
           if (selections.isEmpty) return nullSeries
 
           if (isRegression || ((isClassification || isClustering) && (method == majorityVote || method == weightedMajorityVote))) {
-            // Suppose all child model has the same output schema
-            val outSeries = selections.map(_.predict(series))
-            val predictedIndex = selections.head.model.outputIndex(ResultFeature.predictedValue)
-            var predictions = outSeries.map(_.get(predictedIndex))
+            // The child model could have different output schema
+            val outSeries = selections.map(x => (x.predict(series), x))
+            var predictions = outSeries.map(x => x._1.get(x._2.model.predictedValueIndex))
 
             // Compute model weights
-            var weights = if (isWeighted) outSeries.zip(selections).map(x => x._2.weight(Series.merge(series, x._1))) else Array.fill(selections.length)(1.0)
+            var weights = if (isWeighted) outSeries.map(x => x._2.weight(Series.merge(series, x._1))) else Array.fill(selections.length)(1.0)
 
             // Check missing results
             seg.missingPredictionTreatment match {
@@ -173,12 +184,12 @@ class MiningModel(
                 case `median`          => {
                   MathUtils.median(realPredictions)
                 }
-                case `weightedMedian`  => {
+                case `weightedMedian` | `x-weightedMedian`  => {
                   MathUtils.weightedMedian(realPredictions, weights)
                 }
                 case `sum`             =>
                   realPredictions.sum
-                case `weightedSum`     =>
+                case `weightedSum` | `x-weightedSum`     =>
                   MathUtils.product(realPredictions, weights)
               }
             } else {
@@ -234,7 +245,7 @@ class MiningModel(
               case `median`          => {
                 classes.zip(matrix.map(x => MathUtils.median(x))).toMap
               }
-              case `weightedMedian`  => {
+              case `weightedMedian` | `x-weightedMedian`  => {
                 classes.zip(matrix.map(x => MathUtils.weightedMedian(x, weights))).toMap
               }
             }
@@ -269,12 +280,14 @@ class MiningModel(
   override def createOutputs(): MiningOutputs = new MiningOutputs
 
   /** Returns all candidates output fields of this model when there is no output specified explicitly. */
-  override lazy val defaultOutputFields: Array[OutputField] = {
+  override def defaultOutputFields: Array[OutputField] = {
     if (isSegmentation) {
       import MultipleModelMethod._
       segmentation.get.multipleModelMethod match {
         case `modelChain` if segmentation.get.segments.last.predicate == True => {
-          segmentation.get.segments.last.model.candidateOutputFields
+          val lastModel = segmentation.get.segments.last.model
+          lastModel.setSupplementOutput(supplementOutput)
+          lastModel.candidateOutputFields
         }
         case `selectAll`                                                      => {
           segmentation.get.segments.map(_.model.candidateOutputFields).flatten
@@ -328,14 +341,16 @@ object MultipleModelMethod extends Enumeration {
    * - median, weightedMedian: if the number of models with predicates that resolve to true is odd consider the model(s) that have the chose
    */
   val majorityVote, weightedMajorityVote, average, weightedAverage, median, weightedMedian, max, sum, weightedSum, selectFirst, selectAll, modelChain = Value
+  val `x-weightedMedian`= Value("x-weightedMedian")
+  val `x-weightedSum` = Value("x-weightedSum")
 
   def support(mmm: MultipleModelMethod, mf: MiningFunction): Boolean = mmm match {
     case `selectFirst` | `selectAll` | `modelChain` => true
     case `majorityVote` | `weightedMajorityVote`
       if mf == MiningFunction.clustering            => true
-    case `average` | `weightedAverage` | `median` | `sum` | `weightedSum`
+    case `average` | `weightedAverage` | `median` | `weightedMedian` | `x-weightedMedian` | `sum` | `weightedSum` | `x-weightedSum`
       if mf == MiningFunction.regression            => true
-    case `majorityVote` | `weightedMajorityVote` | `average` | `weightedAverage` | `median` | `weightedMedian` | `max`
+    case `majorityVote` | `weightedMajorityVote` | `average` | `weightedAverage` | `median` | `weightedMedian` | `x-weightedMedian` | `max`
       if mf == MiningFunction.classification        => true
     case _                                          => false
   }

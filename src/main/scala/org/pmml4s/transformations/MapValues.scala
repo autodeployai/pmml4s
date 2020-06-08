@@ -35,7 +35,7 @@ class MapValues(
     if (fieldColumnPairs.exists(x => x.field.isMissing(series))) {
       mapMissingTo.getOrElse(null)
     } else {
-      val r = table.find(fieldColumnPairs.map(x => (x.column, series(x.field.index))).toMap, outputColumn)
+      val r = table.find(fieldColumnPairs.map(x => (x.column, x.field.get(series))).toMap, outputColumn)
       r.getOrElse(defaultValue.getOrElse(null))
     }
   }

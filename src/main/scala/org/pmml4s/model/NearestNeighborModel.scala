@@ -149,8 +149,9 @@ class NearestNeighborModel(
     val nonMissing = Array.range(0, knnInputs.size)
     val distances = Array.ofDim[Double](matrix.length)
     var i = 0
+    val s = Array.fill(nonMissing.length)(1.0)
     while (i < matrix.length) {
-      distances(i) = dis.distance(nonMissing, compareFunctions, xs, matrix(i), weights)
+      distances(i) = dis.distance(nonMissing, compareFunctions, xs, matrix(i), weights, s=s)
       i += 1
     }
 
@@ -234,10 +235,14 @@ class NearestNeighborModel(
       }
     }
 
-    instanceIdVariable.foreach(x => {
-      val entities = topK.map(k => trainingInstances.row(k._2)(x))
-      outputs.setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
-    })
+    if (instanceIdVariable.isDefined) {
+      instanceIdVariable.foreach(x => {
+        val entities = topK.map(k => trainingInstances.row(k._2)(x))
+        outputs.setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
+      })
+    } else {
+      outputs.setEntitiesId(topK.map(x => x._2 + 1)).setAffinities(topK.map(x => (x._2 + 1, x._1)).toMap)
+    }
 
     outputs
   }

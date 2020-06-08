@@ -208,8 +208,11 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         val targetField = attrs.get(AttrTags.TARGET_FIELD)
         val isFinalResult = attrs.getBoolean(AttrTags.IS_FINAL_RESULT, true)
         val value = attrs.get(AttrTags.VALUE).map(x => if (feature == ResultFeature.probability) {
-          val t = targetField.flatMap(getField(_)).getOrElse(target)
-          t.toVal(x)
+          var t = targetField.flatMap(getField(_)).getOrElse(target)
+          if (t == null && parent != null && parent.targetField != null && parent.targetField.isCategorical) {
+            t = parent.targetField
+          }
+          if (t != null) t.toVal(x) else x
         } else x)
         val ruleFeature = attrs.get(AttrTags.RULE_FEATURE) map { x => RuleFeature.withName(x) } getOrElse RuleFeature
           .consequent

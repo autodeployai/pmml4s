@@ -295,6 +295,8 @@ trait HasOutput {
     -1
   }
 
+  lazy val predictedValueIndex: Int = outputIndex(ResultFeature.predictedValue)
+
   def isPredictionOnly: Boolean = {
     candidateOutputFields.length == 1 && candidateOutputFields(0).feature == ResultFeature.predictedValue
   }

@@ -59,17 +59,21 @@ class ModelBuilder extends TransformationsBuilder
         case EvElemStart(_, ElemTags.TRANSFORMATION_DICTIONARY, _, _)        => {
           transDict = makeTransformationDictionary(reader)
         }
-        case EvElemStart(_, label, attrs, _) if ModelBuilder.contains(label) => {
-          validate()
-          val parent = new DataModel(version, header, dataDict, Option(transDict))
-          val builder = Builder.get(label).getOrElse(throw new NotSupportedException(label))
-          val model = builder.build(reader, attrs, parent)
-          if (dataDict.exists(_.isMutable)) {
-            dataDict.foreach(_.toImmutable())
-          }
-          builder.postBuild()
+        case EvElemStart(_, label, attrs, _) => {
+          if (ModelBuilder.contains(label)) {
+            validate()
+            val parent = new DataModel(version, header, dataDict, Option(transDict))
+            val builder = Builder.get(label).getOrElse(throw new NotSupportedException(label))
+            val model = builder.build(reader, attrs, parent)
+            if (dataDict.exists(_.isMutable)) {
+              dataDict.foreach(_.toImmutable())
+            }
+            builder.postBuild()
 
-          return model
+            return model
+          } else {
+            throw new PmmlException(s"${label} is not a standard of PMML")
+          }
         }
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _)                    => {
           extHandler(reader, attrs).foreach(extensions += _)

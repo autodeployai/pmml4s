@@ -107,7 +107,7 @@ class ClusteringModel(
         var i = 0
         while (i < clusters.length) {
           val distance = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
-            adjustM, similarityScales(i))
+            adjustM, similarityScales)
           val id = clusters(i).id.getOrElse("" + (i + 1))
           if (distance < min) {
             min = distance
@@ -127,7 +127,7 @@ class ClusteringModel(
         var i = 0
         while (i < clusters.length) {
           val similarity = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
-            adjustM, similarityScales(i))
+            adjustM, similarityScales)
           val id = clusters(i).id.getOrElse("" + (i + 1))
           if (similarity > max) {
             max = similarity

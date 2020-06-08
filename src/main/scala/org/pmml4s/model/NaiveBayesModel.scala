@@ -149,10 +149,10 @@ class BayesInput(val fieldName: Field,
   }
 
   def eval(series: Series, threshold: Double): Array[Double] = {
-    if (series.isMissingAt(fieldName.index)) {
+    if (fieldName.isMissing(series)) {
       Array.emptyDoubleArray
     } else if (distributions != null) {
-      distributions.map(x => Math.max(threshold, x.probability(Utils.toDouble(series.get(fieldName.index)))))
+      distributions.map(x => Math.max(threshold, x.probability(Utils.toDouble(fieldName.get(series)))))
     } else {
       val v = derivedField.map(x => x.encode(x.eval(series))).getOrElse(fieldName.encode(series))
       probabilities(v.toInt)

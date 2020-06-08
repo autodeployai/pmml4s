@@ -38,7 +38,7 @@ trait Distance extends PmmlElement {
                ys: Array[Double],
                weights: Array[Double],
                adjustM: Double = 1.0,
-               s: Double = 1.0): Double
+               s: Array[Double]): Double
 
   def matrix(xs: Array[Double], ys: Array[Double]) = {
     var a11, a10, a01, a00 = 0.0
@@ -84,10 +84,10 @@ object Distance {
 
 object euclidean extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     var sum = 0.0
     for (i <- nonMissing) {
-      val d = compare(fs(i), xs(i), ys(i), s)
+      val d = compare(fs(i), xs(i), ys(i), s(i))
       sum += (d * d * weights(i))
     }
 
@@ -97,10 +97,10 @@ object euclidean extends Distance {
 
 object squaredEuclidean extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     var sum = 0.0
     for (i <- nonMissing) {
-      val d = compare(fs(i), xs(i), ys(i), s)
+      val d = compare(fs(i), xs(i), ys(i), s(i))
       sum += (d * d * weights(i))
     }
 
@@ -110,18 +110,18 @@ object squaredEuclidean extends Distance {
 
 object chebychev extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
-    val arr = for (i <- nonMissing) yield compare(fs(i), xs(i), ys(i), s) * weights(i)
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
+    val arr = for (i <- nonMissing) yield compare(fs(i), xs(i), ys(i), s(i)) * weights(i)
     arr.max * adjustM
   }
 }
 
 object cityBlock extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     var sum = 0.0
     for (i <- nonMissing) {
-      sum += (compare(fs(i), xs(i), ys(i), s) * weights(i))
+      sum += (compare(fs(i), xs(i), ys(i), s(i)) * weights(i))
     }
 
     sum * adjustM
@@ -130,10 +130,10 @@ object cityBlock extends Distance {
 
 class minkowski(val p: Double) extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     var sum = 0.0
     for (i <- nonMissing) {
-      val d = Math.pow(compare(fs(i), xs(i), ys(i), s), p)
+      val d = Math.pow(compare(fs(i), xs(i), ys(i), s(i)), p)
       sum += (d * weights(i))
     }
 
@@ -143,7 +143,7 @@ class minkowski(val p: Double) extends Distance {
 
 object simpleMatching extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     val (a11, a10, a01, a00) = matrix(xs, ys)
     (a11 + a00) / (a11 + a10 + a01 + a00)
   }
@@ -151,7 +151,7 @@ object simpleMatching extends Distance {
 
 object jaccard extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     val (a11, a10, a01, a00) = matrix(xs, ys)
     (a11) / (a11 + a10 + a01)
   }
@@ -159,7 +159,7 @@ object jaccard extends Distance {
 
 object tanimoto extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     val (a11, a10, a01, a00) = matrix(xs, ys)
     (a11 + a00) / (a11 + 2 * (a10 + a01) + a00)
   }
@@ -174,7 +174,7 @@ class binarySimilarity(val c00: Double,
                        val d10: Double,
                        val d11: Double) extends Distance {
   override def distance(nonMissing: Array[Int], fs: Array[CompareFunction], xs: Array[Double], ys: Array[Double],
-                        weights: Array[Double], adjustM: Double, s: Double): Double = {
+                        weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     val (a11, a10, a01, a00) = matrix(xs, ys)
     (c11 * a11 + c10 * a10 + c01 * a01 + c00 * a00) / (d11 * a11 + d10 * a10 + d01 * a01 + d00 * a00)
   }
