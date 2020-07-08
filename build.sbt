@@ -20,11 +20,13 @@ scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
 scalaVersion := "2.12.11"
 
-crossScalaVersions := Seq("2.12.11", "2.11.12", "2.13.1")
+crossScalaVersions := Seq("2.12.11", "2.11.12", "2.13.1", "2.10.7")
 
 libraryDependencies ++= {
-  Seq(
-    "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+  (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, scalaMajor)) if scalaMajor <= 10 => None
+    case _ => Some("org.scala-lang.modules" %% "scala-xml" % "1.2.0")
+  }).toSeq ++ Seq(
     "org.apache.commons" % "commons-math3" % "3.6.1",
     "org.apache.commons" % "commons-text" % "1.6",
     "io.spray" %% "spray-json" % "1.3.5",

@@ -391,7 +391,10 @@ class Node(
   val defaultChildNode: Option[Node] = defaultChild.flatMap {
     x =>
       children.find {
-        y => y.id.contains(x)
+        y => y.id match {
+          case Some(id) => id == x
+          case None => false
+        }
       }
   }
 }
