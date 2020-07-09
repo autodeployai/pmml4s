@@ -35,8 +35,15 @@ libraryDependencies ++= {
   )
 }
 
-// publishing
+// Exclude src/test/java in the test configuration for scala version less than 2.12
+Test / unmanagedSourceDirectories := {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, scalaMajor)) if scalaMajor < 12 => (Test / scalaSource).value :: Nil
+    case _ => (Test / unmanagedSourceDirectories).value
+  }
+}
 
+// publishing
 updateOptions := updateOptions.value.withGigahorse(false)
 
 publishMavenStyle := true
