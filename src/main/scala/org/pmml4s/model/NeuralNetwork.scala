@@ -101,7 +101,7 @@ class NeuralNetwork(
           val activation = af match {
             case ActivationFunction.threshold   => if (z > layer.threshold.getOrElse(threshold)) 1.0 else 0.0
             case ActivationFunction.logistic    => 1.0 / (1.0 + Math.exp(-z))
-            case ActivationFunction.tanh        => (1.0 - Math.exp(-2.0 * z) / (1.0 + Math.exp(-2.0 * z)))
+            case ActivationFunction.tanh        => Math.tanh(z)
             case ActivationFunction.identity    => z
             case ActivationFunction.exponential => Math.exp(z)
             case ActivationFunction.reciprocal  => 1.0 / z
