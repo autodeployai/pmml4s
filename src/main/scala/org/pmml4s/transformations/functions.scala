@@ -41,7 +41,7 @@ object BuiltInFunctions extends FunctionProvider {
       IsMissing, IsNotMissing, IsValid, IsNotValid, // Functions for boolean operations.
       Equal, NotEqual, LessThan, LessOrEqual, GreaterThan, GreaterOrEqual, // Further boolean functions.
       And, Or, Not, IsIn, IsNotIn, If, // Further boolean functions.
-      Uppercase, Lowercase, Substring, TrimBlanks, Concat, Replace, Matches, FormatNumber, // Functions for string operations.
+      Uppercase, Lowercase, StringLength, Substring, TrimBlanks, Concat, Replace, Matches, FormatNumber, // Functions for string operations.
       FormatDatetime, DateDaysSinceYear, DateSecondsSinceYear, DateSecondsSinceMidnight, // Function for transforming dates into integers.
       NormalCDF, NormalPDF, StdNormalCDF, StdNormalPDF, Erf, NormalIDF, StdNormalIDF, // Functions for normal distribution
       Sin, ASin, SinH, Cos, ACos, CosH, Tan, ATan, TanH, // Trigonometric functions.
@@ -469,6 +469,15 @@ object Concat extends Function {
   }).mkString
 
   override def symbol: String = "concat"
+}
+
+object StringLength extends UnaryFunction {
+  override def eval(a: Any): Any = a match {
+    case s: String =>  s.length
+    case _ => null
+  }
+
+  override def symbol: String = "stringLength"
 }
 
 object Substring extends TernaryFunction {

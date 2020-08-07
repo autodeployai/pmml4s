@@ -24,7 +24,7 @@ object ResultFeature extends Enumeration {
   type ResultFeature = Value
   val predictedValue, predictedDisplayValue, transformedValue, decision, probability, affinity, residual, standardError,
   standardDeviation, clusterId, clusterAffinity, entityId, entityAffinity, warning, ruleValue, reasonCode, antecedent,
-  consequent, rule, ruleId, confidence, support, lift, leverage = Value
+  consequent, rule, ruleId, confidence, support, lift, leverage, confidenceIntervalLower, confidenceIntervalUpper = Value
 }
 
 /**
