@@ -198,7 +198,7 @@ class GeneralRegressionModel(
           }
         })
 
-        if (distribution.isDefined && distribution.get == Distribution.binomial) {
+        if (distribution.isDefined && distribution.get == Distribution.binomial && isClassification) {
           val p1 = if (predictedValue < 0) 0 else if (predictedValue > 1) 1 else predictedValue
           outputs.probabilities = Map(betas.head._1 -> p1)
           outputs.evalPredictedValueByProbabilities(classes)
