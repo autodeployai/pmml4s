@@ -5,7 +5,7 @@ _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala.
 ## Table of Contents
 
 - [Features](#features)
-    - [Model types support](#model-types-support)
+    - [Models support](#models-support)
     - [Transformations support](#transformations-support)
 - [Installation](#installation)
     - [SBT users](#sbt-users)
@@ -24,7 +24,7 @@ _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala.
 ## Features
 _PMML4S_ is a lightweight, clean and efficient implementation based on the PMML specification from 2.0 through to the latest 4.4.
 
-### Model types support
+### Models support
 
 It supports the following models:
 * [Anomaly Detection Models](http://dmg.org/pmml/v4-4/AnomalyDetectionModel.html)
@@ -69,7 +69,7 @@ Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-centr
 
 ##### SBT users
 ```scala
-libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.7"
+libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.8"
 ```
 
 ##### Maven users
@@ -77,7 +77,7 @@ libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.7"
 <dependency>
   <groupId>org.pmml4s</groupId>
   <artifactId>pmml4s_${scala.version}</artifactId>
-  <version>0.9.7</version>
+  <version>0.9.8</version>
 </dependency>
 ```
 
@@ -306,7 +306,7 @@ See the [PyPMML-Spark](https://github.com/autodeployai/pypmml-spark) project. _P
 See the [PyPMML](https://github.com/autodeployai/pypmml) project. _PyPMML_ is a Python PMML scoring library, it really is the Python API for PMML4S.
 
 ## Deploy PMML as REST API
-See the [AI-Serving](https://github.com/autodeployai/ai-serving) project. _AI-Serving_ is serving AI/ML models in the open standard formats PMML and ONNX with both HTTP and gRPC endpoints.
+See the [AI-Serving](https://github.com/autodeployai/ai-serving) project. _AI-Serving_ is serving AI/ML models in the open standard formats PMML and ONNX with both HTTP (REST API) and gRPC endpoints.
 
 ## Deploy and Manage AI/ML models at scale
 See the [DaaS](https://www.autodeploy.ai/) system that deploys AI/ML models in production at scale on Kubernetes.
@@ -318,6 +318,9 @@ See the [DaaS](https://www.autodeploy.ai/) system that deploys AI/ML models in p
 * Scoring Assumptions.
 
   For the `regression` model with an integer target, float numeric predictions will be produced when there are no round methods specified explicitly.
+* Use PMML4S library in Android.
+
+  You need to use the Scala 2.11 version in Andriod, the Scala core library `scala-library` of 2.12 and 2.13 depend on the class `java.lang.ClassValue` that is missing in the [java.lang package](https://developer.android.com/reference/java/lang/package-summary).
 
 ## Support
 If you have any questions about the _PMML4S_ library, please open issues on this repository.
