@@ -142,6 +142,11 @@ class MiningModel(
               }
             })
             outputs.probabilities = probabilities.toMap
+
+            // Derive the predicted value from probabilities if it's not set
+            if (outputs.probabilities.nonEmpty && outputs.predictedValue == null) {
+              outputs.evalPredictedValueByProbabilities()
+            }
             result(series, outputs)
           } else last
         }
