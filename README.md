@@ -22,32 +22,32 @@ _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala.
 - [License](#license)
 
 ## Features
-_PMML4S_ is a lightweight, clean and efficient implementation based on the PMML specification from 2.0 through to the latest 4.4.
+_PMML4S_ is a lightweight, clean and efficient implementation based on the [PMML](http://dmg.org/) specification from 2.0 through to the latest 4.4.1.
 
 ### Models support
 
 It supports the following models:
-* [Anomaly Detection Models](http://dmg.org/pmml/v4-4/AnomalyDetectionModel.html)
-* [Association Rules](http://dmg.org/pmml/v4-4/AssociationRules.html)
-* [Cluster Models](http://dmg.org/pmml/v4-4/ClusteringModel.html)
-* [General Regression](http://dmg.org/pmml/v4-4/GeneralRegression.html)
-* [k-Nearest Neighbors](http://dmg.org/pmml/v4-4/KNN.html)
-* [Naive Bayes](http://dmg.org/pmml/v4-4/NaiveBayes.html)
-* [Neural Network](http://dmg.org/pmml/v4-4/NeuralNetwork.html)
-* [Regression](http://dmg.org/pmml/v4-4/Regression.html)
-* [Ruleset](http://dmg.org/pmml/v4-4/RuleSet.html)
-* [Scorecard](http://dmg.org/pmml/v4-4/Scorecard.html)
-* [Trees](http://dmg.org/pmml/v4-4/TreeModel.html)
-* [Vector Machine](http://dmg.org/pmml/v4-4/SupportVectorMachine.html)
-* [Multiple Models](http://dmg.org/pmml/v4-4/MultipleModels.html)
+* [Anomaly Detection Models](http://dmg.org/pmml/v4-4-1/AnomalyDetectionModel.html)
+* [Association Rules](http://dmg.org/pmml/v4-4-1/AssociationRules.html)
+* [Cluster Models](http://dmg.org/pmml/v4-4-1/ClusteringModel.html)
+* [General Regression](http://dmg.org/pmml/v4-4-1/GeneralRegression.html)
+* [k-Nearest Neighbors](http://dmg.org/pmml/v4-4-1/KNN.html)
+* [Naive Bayes](http://dmg.org/pmml/v4-4-1/NaiveBayes.html)
+* [Neural Network](http://dmg.org/pmml/v4-4-1/NeuralNetwork.html)
+* [Regression](http://dmg.org/pmml/v4-4-1/Regression.html)
+* [Ruleset](http://dmg.org/pmml/v4-4-1/RuleSet.html)
+* [Scorecard](http://dmg.org/pmml/v4-4-1/Scorecard.html)
+* [Trees](http://dmg.org/pmml/v4-4-1/TreeModel.html)
+* [Vector Machine](http://dmg.org/pmml/v4-4-1/SupportVectorMachine.html)
+* [Multiple Models](http://dmg.org/pmml/v4-4-1/MultipleModels.html)
 
 Not yet supported models:
-* [Baseline Models](http://dmg.org/pmml/v4-4/BaselineModel.html)
-* [Bayesian Network](http://dmg.org/pmml/v4-4/BayesianNetwork.html)
-* [Gaussian Process](http://dmg.org/pmml/v4-4/GaussianProcess.html)
-* [Sequences](http://dmg.org/pmml/v4-4/Sequence.html)
-* [Text Models](http://dmg.org/pmml/v4-4/Text.html)
-* [Time Series](http://dmg.org/pmml/v4-4/TimeSeriesModel.html)
+* [Baseline Models](http://dmg.org/pmml/v4-4-1/BaselineModel.html)
+* [Bayesian Network](http://dmg.org/pmml/v4-4-1/BayesianNetwork.html)
+* [Gaussian Process](http://dmg.org/pmml/v4-4-1/GaussianProcess.html)
+* [Sequences](http://dmg.org/pmml/v4-4-1/Sequence.html)
+* [Text Models](http://dmg.org/pmml/v4-4-1/Text.html)
+* [Time Series](http://dmg.org/pmml/v4-4-1/TimeSeriesModel.html)
 
 ### Transformations support
 
