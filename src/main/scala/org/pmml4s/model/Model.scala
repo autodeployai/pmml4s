@@ -109,7 +109,12 @@ abstract class Model extends HasParent
   } else ArrayUtils.emptyAnyArray
 
   /** The sub-classes can override this method to provide classes of target inside model. */
-  def inferClasses: Array[Any] = ArrayUtils.emptyAnyArray
+  def inferClasses: Array[Any] = {
+    if (isClassification) {
+      // collect classes from the output fields with probability
+      outputFields.filter(x => x.feature == ResultFeature.probability && x.value.isDefined).map(_.value.get)
+    } else ArrayUtils.emptyAnyArray
+  }
 
   /** The number of class labels in a classification model. */
   lazy val numClasses: Int = classes.length
@@ -155,7 +160,9 @@ abstract class Model extends HasParent
   /** Tests if the target is a binary field */
   def isBinary: Boolean = isClassification && {
     // Firstly, check the number of target values if Target is present, then values defined by DataField
-    targets.map(x => if (x.hasTarget) x.categories.length == 2 else false).getOrElse(targetField.isBinary)
+    targets.map(x => if (x.hasTarget) x.categories.length == 2 else false).getOrElse({
+      if (targetField != null) targetField.isBinary else classes.length == 2
+    })
   }
 
   /** Tests if the target is an ordinal field */
