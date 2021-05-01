@@ -29,7 +29,6 @@ class TransformationDictionary(
                               ) extends Dictionary[DerivedField] with Transformer with FunctionProvider with PmmlElement {
   /** The schema of output. */
   lazy val outputSchema: StructType = StructType(fields.map { x => StructField(x.name, x.dataType) })
-  private lazy val outputSeries = new GenericMutableSeriesWithSchema(fields.length, outputSchema)
   private lazy val nameToFunction: Map[String, DefineFunction] = defineFunctions.map(x => (x.name, x)).toMap
 
   def this(fields: Array[DerivedField]) = this(fields, Array.empty)
@@ -63,6 +62,7 @@ class TransformationDictionary(
       }
     }
 
+    val outputSeries = new GenericMutableSeriesWithSchema(fields.length, outputSchema)
     outputSeries.clear()
     val combinedSeries = Series.merge(series, outputSeries)
     var i = 0
@@ -76,8 +76,9 @@ class TransformationDictionary(
 
   override def getFunction(name: String): Option[DefineFunction] = nameToFunction.get(name)
 
-  def referencedFields = fields.filter(_.referenced)
+  def referencedFields: Array[DerivedField] = fields.filter(_.referenced)
 
   /** Identifies the using start position of output series. */
   @transient private[this] var startPos = -1
 }
+

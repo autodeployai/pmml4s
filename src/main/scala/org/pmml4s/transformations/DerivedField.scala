@@ -32,11 +32,7 @@ class DerivedField(
                     override val opType: OpType,
                     override val values: Array[Value],
                     val expr: Expression) extends DataField(name, displayName, dataType, opType, values)
-  with Expression
-  with Clearable {
-  @transient private[this] var value: Any = _
-  @transient private[this] var evaluated: Boolean = false
-  @transient private[this] var written: Boolean = false
+  with Expression {
 
   def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, expr: Expression) {
     this(name, displayName, dataType, opType, Array.empty, expr)
@@ -47,11 +43,12 @@ class DerivedField(
   }
   
   /** Field type. */
-  override def fieldType = FieldType.DerivedField
+  override def fieldType: FieldType = FieldType.DerivedField
 
   /** Retrieve its value from the specified series, return null if missing */
   override def get(series: Series): Any = {
-    if (!written) {
+    val result = super.get(series)
+    if (result == null) {
       series match {
         case cs: CombinedSeries => {
           val last = cs.last
@@ -60,31 +57,25 @@ class DerivedField(
         case _ => eval(series)
       }
     } else {
-      super.get(series)
+      result
     }
   }
 
   def write(series: Series, mutableSeries: MutableSeries, pos: Int): Any = {
     val res = eval(series)
     mutableSeries.update(pos, res)
-    written = true
     res
   }
 
-  override def clear(): Unit = {
-    evaluated = false
-    written = false
-    value = null
-  }
-
   override def eval(series: Series): Any = {
-    if (!evaluated) {
-      value = expr.eval(series)
+    val result = super.get(series)
+
+    if (result == null) {
+      val value = expr.eval(series)
 
       // Convert the result based on the field's data type
-      value = Utils.orNull(value, Utils.toVal(value, dataType))
-    }
-    value
+      Utils.orNull(value, Utils.toVal(value, dataType))
+    } else result
   }
 
   override def children: Array[Expression] = expr.children
@@ -93,3 +84,4 @@ class DerivedField(
 
   override def getDataField: Option[Field] = expr.getDataField
 }
+

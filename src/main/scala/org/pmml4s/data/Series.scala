@@ -223,7 +223,7 @@ trait Series {
       i += 1
     }
 
-    return result
+    result
   }
 
   def toPairSeq: Seq[(String, Any)] = {
@@ -357,7 +357,7 @@ class GenericSeriesWithSchema(values: Array[Any], override val schema: StructTyp
   /** No-arg constructor for serialization. */
   protected def this() = this(null, null)
 
-  override def fieldIndex(name: String): Int = schema.fieldIndex(name)
+  override def fieldIndex(name: String): Int = schema.getFieldIndex(name).getOrElse(-1)
 }
 
 object NullSeries extends Series {
