@@ -63,13 +63,13 @@ Not yet supported transformations:
 * Lag
 
 ## Installation
-_PMML4S_ is available from maven central.
+[_PMML4S_](https://mvnrepository.com/artifact/org.pmml4s/pmml4s) is available from the maven central.
 
 Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12)
 
 ##### SBT users
 ```scala
-libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.9"
+libraryDependencies += "org.pmml4s" %%  "pmml4s" % pmml4sVersion
 ```
 
 ##### Maven users
@@ -77,7 +77,7 @@ libraryDependencies += "org.pmml4s" %%  "pmml4s" % "0.9.9"
 <dependency>
   <groupId>org.pmml4s</groupId>
   <artifactId>pmml4s_${scala.version}</artifactId>
-  <version>0.9.9</version>
+  <version>${pmml4s.version}</version>
 </dependency>
 ```
 
