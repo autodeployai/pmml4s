@@ -49,13 +49,7 @@ class DerivedField(
   override def get(series: Series): Any = {
     val result = super.get(series)
     if (result == null) {
-      series match {
-        case cs: CombinedSeries => {
-          val last = cs.last
-          write(series, last.asInstanceOf[MutableSeries], index + (cs.length - last.length))
-        }
-        case _ => eval(series)
-      }
+      eval(series)
     } else {
       result
     }
