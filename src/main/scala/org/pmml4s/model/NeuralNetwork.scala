@@ -75,9 +75,14 @@ class NeuralNetwork(
       i += 1
     }
 
-    for (layer <- neuralLayers) {
+    i = 0
+    while (i < neuralLayers.length) {
+      val layer = neuralLayers(i)
       val af = layer.activationFunction.getOrElse(activationFunction)
-      for (neuron <- layer.neurons) {
+
+      var j = 0
+      while (j < layer.neurons.length) {
+        val neuron = layer.neurons(j)
         var z = 0.0
         if (af == ActivationFunction.radialBasis) {
           neuron.cons.foreach(x => {
@@ -94,8 +99,11 @@ class NeuralNetwork(
         }
         else {
           z = neuron.bias.getOrElse(0.0)
-          for (con <- neuron.cons) {
+          var k = 0
+          while (k < neuron.cons.length) {
+            val con = neuron.cons(k)
             z += transformedVals(con.from) * con.weight
+            k += 1
           }
 
           val activation = af match {
@@ -115,6 +123,8 @@ class NeuralNetwork(
           }
           transformedVals.put(neuron.id, activation)
         }
+
+        j += 1
       }
 
       import NNNormalizationMethod._
@@ -130,11 +140,16 @@ class NeuralNetwork(
         }
         case _           =>
       }
+
+      i += 1
     }
 
     // NeuralNetwork allows multiple targets in a single PMML.
     val outputs = new GenericMultiModelOutputs
-    for (neuralOutput <- neuralOutputs.neuralOutputs) {
+
+    i = 0
+    while (i < neuralOutputs.neuralOutputs.length) {
+      val neuralOutput = neuralOutputs.neuralOutputs(i)
       val normalizedVal = transformedVals(neuralOutput.outputNeuron)
       val f = neuralOutput.derivedField.getDataField
       if (f.isDefined) {
@@ -150,6 +165,8 @@ class NeuralNetwork(
           }
         }
       }
+
+      i += 1
     }
 
     outputs.toSeq.foreach(x => x._2 match {
