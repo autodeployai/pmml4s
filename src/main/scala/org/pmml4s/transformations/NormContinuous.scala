@@ -70,7 +70,25 @@ class NormContinuous(
 
   override def deeval(input: Any): Double = {
     val d = input.asInstanceOf[Double]
-    denormalize(d, findNorm(d))
+    if (Utils.isMissing(d)) {
+      Double.NaN
+    } else {
+      if (d < linearNorms.head.norm || d > linearNorms.last.norm) {
+        import OutlierTreatmentMethod._
+        outliers match {
+          case `asIs`            => {
+            val pair = if (d < linearNorms.head.norm) (slopes.head, intercepts.head) else (slopes.last, intercepts.last)
+            denormalize(d, pair)
+          }
+          case `asMissingValues` => Double.NaN
+          case `asExtremeValues` => {
+            if (d < linearNorms.head.norm) linearNorms.head.orig else linearNorms.last.orig
+          }
+        }
+      } else {
+        denormalize(d, findNorm(d))
+      }
+    }
   }
 
   private def findOrig(value: Double): (Double, Double) = {
