@@ -55,7 +55,9 @@ class RuleSetModel(override var parent: Model,
       return nullSeries
     }
 
-    val outputs = createOutputs
+    val outputs = createOutputs.
+      setPredictedValue(ruleSet.defaultScore.orNull).
+      setConfidence(ruleSet.defaultConfidence.getOrElse(Double.NaN))
 
     import Criterion._
     criterion match {
