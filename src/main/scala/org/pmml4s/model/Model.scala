@@ -323,6 +323,9 @@ abstract class Model extends HasParent
           }) ||
             (mf.invalidValueTreatment == InvalidValueTreatment.asMissing && field.isInvalidValue(value)) ||
             field.isMissingValue(value)
+          val invalid = if (!missing) {
+            field.isInvalidValue(value) || !field.isValidValue(value)
+          } else false
 
           newValues(idx) = if (missing) {
             if (mf.missingValueTreatment == Some(MissingValueTreatment.returnInvalid)) {
@@ -332,20 +335,15 @@ abstract class Model extends HasParent
             if (mf.missingValueReplacement.isDefined) {
               mf.missingValueReplacement.get
             } else {
-              mf.invalidValueTreatment match {
-                case InvalidValueTreatment.returnInvalid | InvalidValueTreatment.asValue => {
-                  if (field.isInvalidValue(value)) {
-                    if (mf.invalidValueTreatment == InvalidValueTreatment.returnInvalid) {
-                      return (series, true)
-                    } else {
-                      mf.invalidValueReplacement.get
-                    }
-                  } else {
-                    value
-                  }
-                }
-                case _                                                                   => value
-              }
+              null
+            }
+          } else if (invalid) {
+            mf.invalidValueTreatment match {
+              case InvalidValueTreatment.returnInvalid =>
+                return (series, true)
+              case InvalidValueTreatment.asValue =>
+                mf.invalidValueReplacement.get
+              case _ => value
             }
           } else {
             if (mf.outliers == OutlierTreatmentMethod.asExtremeValues) {
