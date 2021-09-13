@@ -132,6 +132,20 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
   override def toAttribute: Attribute = attribute.toAttribute
 
   override def isMutable: Boolean = attribute.isMutable
+
+  override def isNumeric: Boolean = dataType.isNumeric
+
+  override def isFloat: Boolean = dataType.isFloat
+
+  override def isDouble: Boolean = dataType.isDouble
+
+  override def isString: Boolean = dataType.isString
+
+  override def isDate: Boolean = dataType.isDate
+
+  override def isTime: Boolean = dataType.isTime
+
+  override def isTimestamp: Boolean = dataType.isTimestamp
 }
 
 trait HasField {

@@ -312,8 +312,10 @@ trait Builder[T <: Model] extends TransformationsBuilder {
             val f = field(attrs(AttrTags.FIELD))
             val operator = Operator.withName(attrs(AttrTags.OPERATOR))
             val value = if (operator != Operator.isMissing && operator != Operator.isNotMissing) {
-              if (f.isContinuous) {
-                // Does not validate the value
+              // Besides of the continuous values, the real numeric values of categorical fields are treated as
+              // normal values, not need to encode them
+              if (f.isContinuous || f.isReal) {
+                // Not validate the value
                 Utils.toDouble(f.toVal(attrs(AttrTags.VALUE)))
               } else {
                 f.encode(f.toVal(attrs(AttrTags.VALUE)))
