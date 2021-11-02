@@ -287,7 +287,7 @@ trait HasOutput {
     val ofs = candidateOutputFields
     var i = 0
     while (i < ofs.length) {
-      if (ofs(i).feature == feature && ofs(i).value == value) {
+      if (ofs(i).feature == feature && (feature != ResultFeature.probability || ofs(i).value == value)) {
         return i
       }
       i += 1
