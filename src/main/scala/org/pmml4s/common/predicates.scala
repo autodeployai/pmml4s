@@ -113,8 +113,8 @@ class SimplePredicate(
  * and, or, xor or surrogate.
  */
 class CompoundPredicate(
-                         booleanOperator: CompoundPredicate.BooleanOperator.Value,
-                         children: Array[Predicate]) extends Predicate {
+                         val booleanOperator: CompoundPredicate.BooleanOperator.Value,
+                         val children: Array[Predicate]) extends Predicate {
 
   import CompoundPredicate.BooleanOperator._
 
