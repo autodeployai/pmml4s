@@ -45,7 +45,7 @@ class TransformationModel(
 
   override def defaultOutputFields: Array[OutputField] = {
     transformationDictionary.get.map(x =>
-      new OutputField(x.name, x.displayName, x.dataType, x.opType, ResultFeature.transformedValue)).toArray
+      new OutputField(x.name, x.displayName, x.dataType, x.opType, ResultFeature.transformedValue, expr=Some(x.expr))).toArray
   }
 
   /** Creates an object of subclass of ModelOutputs that is for writing into an output series.  */
