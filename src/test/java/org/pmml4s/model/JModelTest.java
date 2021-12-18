@@ -31,9 +31,9 @@ import static org.junit.Assert.*;
 
 /**
  * Examples how to use PMML4S in Java
- *
+ * <p>
  * !!! NOTE: these test cases are only available against scala 2.12 and 2.13.
-*/
+ */
 public class JModelTest {
 
     @Test
@@ -126,5 +126,26 @@ public class JModelTest {
         }});
         System.out.println(r8.toString());
         assertEquals("Iris-versicolor", r8.get("predicted_class"));
+    }
+
+    @Test
+    public void testAccessCompoundPredicateFields() {
+        InputStream is = this.getClass().getResourceAsStream("/models/rule/dmg_rule_simple.xml");
+        Model model = Model.fromInputStream(is);
+
+        assertTrue(model instanceof RuleSetModel);
+
+        RuleSetModel ruleSetModel = (RuleSetModel) model;
+
+        final Rule[] rules = ruleSetModel.ruleSet().rules();
+        if (rules[0] instanceof SimpleRule) {
+            SimpleRule rule = (SimpleRule) rules[0];
+
+            if (rule.predicate() instanceof CompoundPredicate) {
+                CompoundPredicate predicate = (CompoundPredicate)  rule.predicate();
+                predicate.booleanOperator();
+                assertEquals(CompoundPredicate.BooleanOperator$.MODULE$.and(), predicate.booleanOperator());
+            }
+        }
     }
 }
