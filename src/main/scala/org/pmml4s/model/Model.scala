@@ -433,16 +433,17 @@ abstract class Model extends HasParent
       }
     }
 
-    val outputSeries = new GenericMutableSeriesWithSchema(candidateOutputFields.length, candidateOutputSchema)
+    val candidateFields = candidateOutputFields
+    val outputSeries = new GenericMutableSeriesWithSchema(candidateFields.length, candidateOutputSchema)
 
     import ResultFeature._
 
     val isMultiple = multiTargets && modelOutputs.isInstanceOf[MultiModelOutputs] 
     
     var i = 0
-    val len = candidateOutputFields.length
+    val len = candidateFields.length
     while (i < len) {
-      val of = candidateOutputFields(i)
+      val of = candidateFields(i)
 
       breakable {
         if (isMultiple && of.targetField.isEmpty)
@@ -598,10 +599,10 @@ abstract class Model extends HasParent
 
     // Check if there are intermediate results, which are only for the top level model.
     // For the child model in Mining Model should still output them that could be used by following models.
-    if (isSubModel || candidateOutputFields.length == outputFields.length) {
+    if (isSubModel || candidateFields.length == outputFields.length) {
       outputSeries.toSeries
     } else {
-      Series.fromSeq(outputSeries.toSeq.zip(candidateOutputFields).filter(_._2.isFinalResult).map(_._1), outputSchema)
+      Series.fromSeq(outputSeries.toSeq.zip(candidateFields).filter(_._2.isFinalResult).map(_._1), outputSchema)
     }
   }
 
