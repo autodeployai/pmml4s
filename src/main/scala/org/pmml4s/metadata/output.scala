@@ -317,7 +317,7 @@ trait HasOutput {
       var exist = false
       while (i < listA.length && !exist) {
         val y = listA(i)
-        if (x.feature == y.feature) {
+        if (x.feature == y.feature && y.isFinalResult) {
           exist = true
           x.feature match {
             case ResultFeature.predictedValue => {
