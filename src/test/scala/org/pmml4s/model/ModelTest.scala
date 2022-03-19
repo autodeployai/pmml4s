@@ -27,7 +27,7 @@ import scala.io.Source
 class ModelTest extends BaseModelTest {
 
   test("get model info") {
-    val model = Model(Source.fromURL(new java.net.URL("http://dmg.org/pmml/pmml_examples/KNIME_PMML_4.1_Examples/single_audit_dectree.xml")))
+    val model = Model.fromFile("src/test/resources/models/tree/single_audit_dectree.xml")
     assert(model.version === "4.1")
     assert(model.dVersion === 4.1)
     assert(model.header.copyright === Some("KNIME"))
@@ -97,7 +97,7 @@ class ModelTest extends BaseModelTest {
   }
 
   test("make prediction") {
-    val model = Model(Source.fromURL(new java.net.URL("http://dmg.org/pmml/pmml_examples/KNIME_PMML_4.1_Examples/single_iris_dectree.xml")))
+    val model = Model.fromFile("src/test/resources/models/tree/single_iris_dectree.xml")
     assert(model.version === "4.1")
     assert(model.dVersion === 4.1)
     assert(model.header.copyright === Some("KNIME"))
