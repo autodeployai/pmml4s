@@ -15,6 +15,7 @@
  */
 package org.pmml4s.transformations
 
+import org.pmml4s.util.Utils
 import org.scalactic.TolerantNumerics
 import org.scalatest.FunSuite
 
@@ -31,6 +32,34 @@ class FunctionsTest extends FunSuite {
     assert(Modulo.eval(-4, -9) === -4.0)
 
     val f = BuiltInFunctions.getFunction("x-sin")
-    f.get
+    assert(f.isDefined)
+  }
+
+  test("aggregation functions") {
+    assert(Min.eval(1.0, 3.0, 2.0) === 1.0)
+    assert(Min.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 1.0)
+    assert(Utils.isMissing(Min.eval(Double.NaN, Double.NaN)))
+
+    assert(Max.eval(1.0, 3.0, 2.0) === 3.0)
+    assert(Max.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 3.0)
+    assert(Utils.isMissing(Max.eval(Double.NaN, Double.NaN)))
+
+    assert(Sum.eval(1.0, 3.0, 2.0) === 6.0)
+    assert(Sum.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 6.0)
+    assert(Utils.isMissing(Sum.eval(Double.NaN, Double.NaN)))
+
+    assert(Avg.eval(1.0, 3.0, 2.0) === 2.0)
+    assert(Avg.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 2.0)
+    assert(Utils.isMissing(Avg.eval(Double.NaN, Double.NaN)))
+
+    assert(Median.eval(1.0, 3.0, 2.0) === 2.0)
+    assert(Median.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 2.0)
+    assert(Median.eval(1.0, 3.0, 2.0, 4.0) === 2.5)
+    assert(Median.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN, 4.0) === 2.5)
+    assert(Utils.isMissing(Median.eval(Double.NaN, Double.NaN)))
+
+    assert(Product.eval(1.0, 3.0, 2.0) === 6.0)
+    assert(Product.eval(1.0, Double.NaN, 3.0, 2.0, Double.NaN) === 6.0)
+    assert(Utils.isMissing(Product.eval(Double.NaN, Double.NaN)))
   }
 }

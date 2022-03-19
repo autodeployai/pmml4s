@@ -22,7 +22,7 @@ import org.apache.commons.math3.distribution.NormalDistribution
 import org.pmml4s.FunctionNotFoundException
 import org.pmml4s.common.PmmlElement
 import org.pmml4s.data.Datetime
-import org.pmml4s.util.Utils
+import org.pmml4s.util.{MathUtils, Utils}
 
 import scala.collection.mutable
 
@@ -211,37 +211,70 @@ object Divide extends BinaryArithmetic {
 }
 
 object Min extends MultipleArithmetic {
-  override def eval(parameters: Double*): Double = parameters.min
+  override def eval(parameters: Double*): Double = {
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      nonMissing.min
+    } else {
+      Double.NaN
+    }
+  }
 
   override def symbol: String = "min"
 }
 
 object Max extends MultipleArithmetic {
-  override def eval(parameters: Double*): Double = parameters.max
+  override def eval(parameters: Double*): Double = {
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      nonMissing.max
+    } else {
+      Double.NaN
+    }
+  }
 
   override def symbol: String = "max"
 }
 
 object Sum extends MultipleArithmetic {
-  override def eval(parameters: Double*): Double = parameters.sum
+  override def eval(parameters: Double*): Double = {
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      nonMissing.sum
+    } else {
+      Double.NaN
+    }
+  }
 
   override def symbol: String = "sum"
 }
 
 object Avg extends MultipleArithmetic {
-  override def eval(parameters: Double*): Double = parameters.sum / parameters.length
+  override def eval(parameters: Double*): Double = {
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      nonMissing.sum / nonMissing.length
+    } else {
+      Double.NaN
+    }
+  }
 
   override def symbol: String = "avg"
 }
 
 object Median extends MultipleArithmetic {
   override def eval(parameters: Double*): Double = {
-    val ordered = parameters.sorted
-    if (parameters.length % 2 == 0) {
-      val i = parameters.length / 2
-      (ordered(i - 1) + ordered(i)) / 2
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      val ordered = nonMissing.sorted
+      if (nonMissing.length % 2 == 0) {
+        val i = nonMissing.length / 2
+        (ordered(i - 1) + ordered(i)) / 2
+      } else {
+        ordered(nonMissing.length / 2)
+      }
     } else {
-      ordered(parameters.length / 2)
+      Double.NaN
     }
   }
 
@@ -250,7 +283,12 @@ object Median extends MultipleArithmetic {
 
 object Product extends MultipleArithmetic {
   override def eval(parameters: Double*): Double = {
-    parameters.fold(1.0)((x1, x2) => x1 * x2)
+    val nonMissing = MathUtils.filterMissing(parameters)
+    if (nonMissing.nonEmpty) {
+      nonMissing.fold(1.0)((x1, x2) => x1 * x2)
+    } else {
+      Double.NaN
+    }
   }
 
   override def symbol: String = "product"

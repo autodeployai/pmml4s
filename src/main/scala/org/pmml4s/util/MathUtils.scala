@@ -67,4 +67,8 @@ object MathUtils {
 
     sorted(k)._1
   }
+
+  def filterMissing(x: Seq[Double]): Seq[Double] = {
+    x.filter(x => x == x)
+  }
 }
