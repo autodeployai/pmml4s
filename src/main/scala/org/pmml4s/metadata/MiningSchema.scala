@@ -161,6 +161,8 @@ class MiningSchema(val miningFields: Array[MiningField]) extends HasTargetFields
 
   def get(name: String): Option[MiningField] = nameToField.get(name)
 
+  def contains(name: String): Boolean = nameToField.contains(name)
+
   def apply(name: String): MiningField = nameToField(name)
 
   def apply(i: Int): MiningField = miningFields(i)

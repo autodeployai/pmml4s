@@ -169,7 +169,10 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         val invalidValueTreatment = attrs.get(AttrTags.INVALID_VALUE_TREATMENT).map { x =>
           InvalidValueTreatment
             .withName(x)
-        } getOrElse InvalidValueTreatment.returnInvalid
+        } getOrElse {
+          if (parent != null && parent.miningSchema != null && parent.miningSchema.contains(name))
+            parent.miningSchema(name).invalidValueTreatment else InvalidValueTreatment.returnInvalid
+        }
         val invalidValueReplacement = attrs.get(AttrTags.INVALID_VALUE_REPLACEMENT).flatMap { x => f.toValOption(x) }
 
         new MiningField(name, usageType, opType, importance, outliers, lowValue, highValue, missingValueReplacement,
