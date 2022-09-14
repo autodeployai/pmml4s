@@ -156,7 +156,9 @@ class ContinuousAttribute(
 
   override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || !isIn(value)
 
-  def encode(value: Any): Double = if (isValidValue(value)) Utils.toDouble(value) else Double.NaN
+  // We don't need to test if the specified value is invalid, because the invalid value has been handled by the preprocess operation.
+  // In the predicting phase, there are only both types: missing and valid.
+  def encode(value: Any): Double = if (!isMissingValue(value)) Utils.toDouble(value) else Double.NaN
 
   def decode(index: Int): Any = throw new UnsupportedOperationException("decode is not supported by the continuous field")
 }
