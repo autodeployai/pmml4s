@@ -230,7 +230,7 @@ class MutableCategoricalAttribute(
 
   override def isMutable: Boolean = true
 
-  override def toAttribute: Attribute = new ImmutableCategoricalAttribute(values.toArray, invalidValues, missingValues, labels)
+  override def toAttribute: Attribute = this
 
   override def validValues: Array[Any] = values.toArray
 }
