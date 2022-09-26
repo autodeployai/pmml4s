@@ -86,7 +86,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.inputNames === Array("SEPALLEN", "SEPALWID", "PETALLEN", "PETALWID"))
     assert(model.targetNames === Array("SPECIES"))
     val r = model.predict(Series(2.0, 1.75, 30, 2.0))
-    assert(r(2) === 0.7999999999999999)
+    assert(r(2) === 0.5555556666666667)
     assert(r(3) === 3)
   }
 }

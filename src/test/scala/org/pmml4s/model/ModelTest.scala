@@ -187,7 +187,7 @@ class ModelTest extends BaseModelTest {
     val r2 = model.predict(Series(2.0, 1.75, 30, 2.0))
     assert(r2.length === 5)
     assert(r2(2) === 3)
-    assert(r2(3) === 0.7999999999999999)
+    assert(r2(3) === 0.5555556666666667)
 
     // Specify custom outputs with only the prediction
     val outputFields = model.outputFields
