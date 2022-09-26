@@ -154,7 +154,7 @@ class ContinuousAttribute(
 
   override def isValidValue(value: Any): Boolean = if (validValues.nonEmpty) set.contains(value) else super.isValidValue(value)
 
-  override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || !isIn(value)
+  override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || (!isMissingValue(value) && (if (validValues.nonEmpty) !set.contains(value) else !isIn(value)))
 
   // We don't need to test if the specified value is invalid, because the invalid value has been handled by the preprocess operation.
   // In the predicting phase, there are only both types: missing and valid.
@@ -165,7 +165,8 @@ class ContinuousAttribute(
 
 object ContinuousAttribute {
 
-  def apply(interval: Interval): ContinuousAttribute = new ContinuousAttribute(Array(interval))
+  def apply(interval: Interval, missingVals: Set[Any]=Set.empty): ContinuousAttribute =
+    new ContinuousAttribute(Array(interval), missingValues=missingVals)
 
   def apply(intervals: Array[Interval], values: Array[Any], invalidVals: Set[Any], missingVals: Set[Any], labels: Map[Any, String]) =
     new ContinuousAttribute(intervals, values, invalidVals, missingVals, labels)
@@ -198,7 +199,16 @@ class ImmutableCategoricalAttribute(
                                    ) extends CategoricalAttribute() {
   private val map: Map[Any, Double] = validValues.zipWithIndex.map(x => (x._1, x._2.toDouble)).toMap
 
-  override def isValidValue(value: Any): Boolean = if (map.nonEmpty) !encode(value).isNaN else super.isValidValue(value)
+  override def isValidValue(value: Any): Boolean = {
+    if (map.nonEmpty)
+      !encode(value).isNaN
+    else
+      super.isValidValue(value)
+  }
+
+  override def isInvalidValue(value: Any): Boolean = {
+    super.isInvalidValue(value) || (!isMissingValue(value) && (map.nonEmpty && !map.contains(value)))
+  }
 
   def encode(value: Any): Double = if (map.nonEmpty) map.get(value).getOrElse(Double.NaN) else {
     if (isValidValue(value)) Utils.toDouble(value) else Double.NaN
