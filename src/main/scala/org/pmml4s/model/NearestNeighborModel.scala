@@ -178,14 +178,14 @@ class NearestNeighborModel(
       }
     } else {
       val entities = topK.map(k => instanceIdVariable.map(x => trainingInstances.row(k._2)(x)).orNull)
-      createOutputs.setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
+      createOutputs().setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
     }
 
     result(series, outputs)
   }
 
   def createOutputsByTarget(topK: Array[(Double, Int)], target: Field): ModelOutputs = {
-    val outputs = createOutputs
+    val outputs = createOutputs()
 
     val col = trainingInstances.column(target.name)
     val predictions = topK.map(x => trainingInstances.row(x._2)(col))

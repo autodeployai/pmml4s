@@ -34,7 +34,7 @@ trait XmlBase {
 
   def nextLabel(reader: XMLEventReader): XMLEvent = {
     while (reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case start: EvElemStart => return start
         case end: EvElemEnd     => return end
         case _                  =>
@@ -55,7 +55,7 @@ trait XmlUtils extends XmlBase {
                     handleExtension: Boolean = false): Any = {
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if event.label == ElemTags.EXTENSION =>
           if (handleExtension) f(event) else skipLabel(reader)
         case event: EvElemStart                                      => f(event)
@@ -77,7 +77,7 @@ trait XmlUtils extends XmlBase {
 
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if event.label == child   => result = Some(builder.build(reader, XmlAttrs(event.attrs)))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
@@ -96,7 +96,7 @@ trait XmlUtils extends XmlBase {
 
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if event.label == child1  => res1 = Option(builder1.build(reader, XmlAttrs(event.attrs)))
         case event: EvElemStart if event.label == child2  => res2 = Option(builder2.build(reader, XmlAttrs(event.attrs)))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
@@ -119,7 +119,7 @@ trait XmlUtils extends XmlBase {
     sizeHint.foreach(res.sizeHint(_))
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if event.label == child   => res += builder.build(reader, XmlAttrs(event.attrs))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
@@ -137,7 +137,7 @@ trait XmlUtils extends XmlBase {
     val res2 = mutable.ArrayBuilder.make[B]
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if event.label == child1  => res1 += builder1.build(reader, XmlAttrs(event.attrs))
         case event: EvElemStart if event.label == child2  => res2 += builder2.build(reader, XmlAttrs(event.attrs))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
@@ -153,7 +153,7 @@ trait XmlUtils extends XmlBase {
     val res = mutable.ArrayBuilder.make[T]
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart if children.contains(event.label) => res += builder.build(reader, event)
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _)         => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                               => done = true
@@ -168,7 +168,7 @@ trait XmlUtils extends XmlBase {
     val res = new mutable.StringBuilder()
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case EvText(text)                                 => res ++= text
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true

@@ -268,7 +268,7 @@ class ClusteringAttributes(
                             override val isScorable: Boolean = true
                           ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable)
   with HasClusteringAttributes {
-  def this(attributes: ModelAttributes, modelClass: ModelClass, numberOfClusters: Int) {
+  def this(attributes: ModelAttributes, modelClass: ModelClass, numberOfClusters: Int) = {
     this(modelClass, numberOfClusters, attributes.functionName, attributes.modelName, attributes.algorithmName, attributes.isScorable)
   }
 }

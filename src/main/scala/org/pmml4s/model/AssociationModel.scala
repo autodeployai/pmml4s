@@ -110,7 +110,7 @@ class AssociationModel(
       }
       lastItemset
     } else {
-      lastItemset.clear
+      lastItemset.clear()
       for (elem <- activeFields) {
         elem.dataType match {
           case BooleanType => if (elem.get(series) == true) lastItemset += elem.name
@@ -405,7 +405,7 @@ class AssociationAttributes(
            numberOfRules: Int,
            maxNumberOfItemsPerTA: Option[Int],
            avgNumberOfItemsPerTA: Option[Double],
-           lengthLimit: Option[Int]) {
+           lengthLimit: Option[Int]) = {
     this(numberOfTransactions, minimumSupport, minimumConfidence, numberOfItems, numberOfItemsets, numberOfRules,
       maxNumberOfItemsPerTA, avgNumberOfItemsPerTA, lengthLimit, attributes.functionName, attributes.modelName,
       attributes.algorithmName, attributes.isScorable)

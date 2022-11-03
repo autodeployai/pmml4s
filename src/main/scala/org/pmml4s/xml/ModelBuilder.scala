@@ -46,7 +46,7 @@ class ModelBuilder extends TransformationsBuilder
 
   private def makeModel(reader: XMLEventReader): Model = {
     while (reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case EvElemStart(_, ElemTags.HEADER, attrs, _)                       => {
           header = makeHeader(reader, attrs)
         }
@@ -149,7 +149,7 @@ object ModelBuilder extends ExtensionHandler with XmlUtils {
   def fromXml(src: Source): Model = {
     val reader = new XMLEventReader(src)
     while (reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case event: EvElemStart => if (event.label == ElemTags.PMML) {
           return makeElem(reader, event, new ModelBuilder)
         } else throw new PmmlException("A PMML document is an XML document with a root element of type PMML")

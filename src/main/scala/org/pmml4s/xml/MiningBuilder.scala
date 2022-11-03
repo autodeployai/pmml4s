@@ -140,7 +140,7 @@ class MiningBuilder extends Builder[MiningModel] {
 }
 
 class MutableMiningModel extends MutableModel {
-  def this(parent: Model) {
+  def this(parent: Model) = {
     this()
     this.parent = parent
   }

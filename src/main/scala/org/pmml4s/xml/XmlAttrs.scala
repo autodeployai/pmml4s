@@ -34,7 +34,7 @@ case class XmlAttrs(attrs: Map[String, String]) {
 
   def int(name: String): Int = apply(name).toInt
 
-  def enum(name: String, e: Enumeration) = e.withName(apply(name))
+  def `enum`(name: String, e: Enumeration) = e.withName(apply(name))
 
   def getInt(name: String): Option[Int] = get(name).flatMap { x => StringUtils.toInt(x) }
 

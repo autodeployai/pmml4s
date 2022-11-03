@@ -107,7 +107,7 @@ class Target(
     val c = b * rescaleFactor + rescaleConstant
 
     castInteger.map(x => x match {
-      case `round`   => Math.round(c)
+      case `round`   => Math.round(c).toDouble
       case `ceiling` => Math.ceil(c)
       case `floor`   => Math.floor(c)
     }).getOrElse(c)

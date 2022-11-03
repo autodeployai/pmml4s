@@ -34,11 +34,11 @@ class DerivedField(
                     val expr: Expression) extends DataField(name, displayName, dataType, opType, values)
   with Expression {
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, expr: Expression) {
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, expr: Expression) = {
     this(name, displayName, dataType, opType, Array.empty, expr)
   }
 
-  def this(name: String, expr: Expression) {
+  def this(name: String, expr: Expression) = {
     this(name, None, UnresolvedDataType, OpType.typeless, expr)
   }
   

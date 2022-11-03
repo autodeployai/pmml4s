@@ -82,7 +82,7 @@ class AnomalyDetectionBuilder extends Builder[AnomalyDetectionModel] {
 }
 
 class MutableAnomalyDetectionModel extends MutableModel {
-  def this(parent: Model) {
+  def this(parent: Model) = {
     this()
     this.parent = parent
   }

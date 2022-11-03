@@ -349,7 +349,7 @@ object Ceil extends UnaryArithmetic {
 }
 
 object Round extends UnaryArithmetic {
-  override def eval(a: Double): Double = Math.round(a)
+  override def eval(a: Double): Double = Math.round(a).toDouble
 
   override def symbol: String = "round"
 }

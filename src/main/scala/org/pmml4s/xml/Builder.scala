@@ -80,7 +80,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
   def traverseModel(reader: XMLEventReader, parent: String, f: PartialFunction[XMLEvent, Any]): Any = {
     var done = false
     while (!done && reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _)          => extHandler(reader, attrs).foreach { x =>
           extensions += x
         }

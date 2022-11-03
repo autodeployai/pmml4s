@@ -31,19 +31,19 @@ class DataField(
                  val isCyclic: Boolean = true
                ) extends AbstractField with PmmlElement {
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, values: Array[Value]) {
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, values: Array[Value]) = {
     this(name, displayName, dataType, opType, Array.empty[Interval], values)
   }
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval) {
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval) = {
     this(name, displayName, dataType, opType, Array(interval), Array.empty[Value])
   }
 
-  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval, values: Array[Value]) {
+  def this(name: String, displayName: Option[String], dataType: DataType, opType: OpType, interval: Interval, values: Array[Value]) = {
     this(name, displayName, dataType, opType, Array(interval), values)
   }
 
-  def this(name: String) {
+  def this(name: String) = {
     this(name, None, UnresolvedDataType, OpType.typeless)
   }
   

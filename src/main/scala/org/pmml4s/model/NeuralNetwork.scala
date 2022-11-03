@@ -155,12 +155,12 @@ class NeuralNetwork(
       if (f.isDefined) {
         val t = f.get
         if (t.isContinuous) {
-          val regOutputs = outputs.getOrInsert[NeuralNetworkOutputs](t.name, createOutputs)
+          val regOutputs = outputs.getOrInsert[NeuralNetworkOutputs](t.name, createOutputs())
           regOutputs.setPredictedValue(neuralOutput.derivedField.deeval(normalizedVal))
         } else {
           val cls = getClass(neuralOutput.derivedField.expr)
           if (cls.isDefined) {
-            val clsOutputs = outputs.getOrInsert[NeuralNetworkOutputs](t.name, createOutputs)
+            val clsOutputs = outputs.getOrInsert[NeuralNetworkOutputs](t.name, createOutputs())
             clsOutputs.putProbability(cls.get, normalizedVal)
           }
         }
