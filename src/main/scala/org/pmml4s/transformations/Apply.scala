@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class Apply(
       i += 1
     }
 
-    val res = function(values: _*)
+    val res = function(values.toIndexedSeq: _*)
     if (Utils.isMissing(res)) {
       if (defaultValue.isDefined)
         defaultValue.get
@@ -72,3 +72,4 @@ class Apply(
     None
   }
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@ package org.pmml4s.transformations
 
 import org.pmml4s.data.Series
 import org.pmml4s.metadata.DataField
-import org.pmml4s.xml.XmlImplicits._
 import org.pmml4s.xml.{ElemTags, TransformationsBuilder}
-import org.scalatest.FunSuite
+import org.pmml4s.xml.{XMLEventReader, EvElemStart}
+
+import org.scalatest._
+import funsuite._
 
 import scala.io.Source
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Test cases come from DMG: http://dmg.org/pmml/v4-3/Transformations.html#xsdElement_TextIndex
  */
-class TextIndexTest extends FunSuite with TransformationsBuilder {
+class TextIndexTest extends AnyFunSuite with TransformationsBuilder {
 
   test("wordSeparatorCharacterRE=[\\s\\-]") {
     val textIndex = new TextIndex(new DataField("textField"), new Constant("user friendly"), wordSeparatorCharacterRE = "[\\s\\-]")
@@ -131,3 +132,4 @@ class TextIndexTest extends FunSuite with TransformationsBuilder {
     assert(value === 1)
   }
 }
+

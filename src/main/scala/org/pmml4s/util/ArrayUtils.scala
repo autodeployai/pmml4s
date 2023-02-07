@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.pmml4s.util
+
+import scala.reflect.ClassTag
 
 /**
  * Various utility methods operate all elements in array
@@ -53,7 +55,8 @@ object ArrayUtils {
     res
   }
 
-  def subArray(a: Array[_], indices: Array[Int]): Array[_] = {
+  def subArray[T: ClassTag](a: Array[T], indices: Array[Int]): Array[_] = {
     indices.map(a(_))
   }
 }
+

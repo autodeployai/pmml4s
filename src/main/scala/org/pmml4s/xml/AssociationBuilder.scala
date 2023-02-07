@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.pmml4s.xml
 import org.pmml4s.model._
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Association model
@@ -49,7 +47,7 @@ class AssociationBuilder extends Builder[AssociationModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  def makeItem(reader: XMLEventReader, attrs: MetaData): Item = makeElem(reader, attrs, new ElemBuilder[Item] {
+  def makeItem(reader: XMLEventReader, attrs: XmlAttrs): Item = makeElem(reader, attrs, new ElemBuilder[Item] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Item = {
       val id = attrs(AttrTags.ID)
       val fld = attrs.get(AttrTags.FIELD).map(field(_))
@@ -62,7 +60,7 @@ class AssociationBuilder extends Builder[AssociationModel] {
     }
   })
 
-  def makeItemset(reader: XMLEventReader, attrs: MetaData): Itemset = makeElem(reader, attrs, new ElemBuilder[Itemset] {
+  def makeItemset(reader: XMLEventReader, attrs: XmlAttrs): Itemset = makeElem(reader, attrs, new ElemBuilder[Itemset] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Itemset = {
       val id = attrs(AttrTags.ID)
       val support = attrs.getDouble(AttrTags.SUPPORT)
@@ -79,7 +77,7 @@ class AssociationBuilder extends Builder[AssociationModel] {
     }
   })
 
-  def makeAssociationRule(reader: XMLEventReader, attrs: MetaData): AssociationRule = makeElem(reader, attrs,
+  def makeAssociationRule(reader: XMLEventReader, attrs: XmlAttrs): AssociationRule = makeElem(reader, attrs,
     new ElemBuilder[AssociationRule] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): AssociationRule = {
         val antecedent = attrs(AttrTags.ANTECEDENT)
@@ -114,3 +112,4 @@ class AssociationBuilder extends Builder[AssociationModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.ASSOCIATION_MODEL
 }
+

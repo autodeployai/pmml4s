@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import scala.collection.{immutable, mutable}
  * - AssociationRules
  */
 class AssociationModel(
-                        override var parent: Model,
+                        var parent: Model,
                         override val attributes: AssociationAttributes,
                         override val miningSchema: MiningSchema,
                         val items: Array[Item],
@@ -422,3 +422,4 @@ class AssociationOutputs extends ModelOutputs with HasAssociationRules {
 
   override def getRules(criterion: (Algorithm, RankBasis, RankOrder)): Array[AssociationRule] = rules(criterion)
 }
+

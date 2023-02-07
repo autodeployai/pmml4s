@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import org.pmml4s.model._
 import org.pmml4s.transformations.Expression
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Scorecard model
@@ -44,7 +42,7 @@ class ScorecardBuilder extends Builder[Scorecard] {
   }
 
   /** Parses the Characteristics node */
-  private def makeCharacteristics(reader: XMLEventReader, attrs: MetaData): Characteristics = makeElem(reader, attrs, new ElemBuilder[Characteristics] {
+  private def makeCharacteristics(reader: XMLEventReader, attrs: XmlAttrs): Characteristics = makeElem(reader, attrs, new ElemBuilder[Characteristics] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Characteristics = {
       val characteristics = mutable.ArrayBuilder.make[Characteristic]
 
@@ -58,7 +56,7 @@ class ScorecardBuilder extends Builder[Scorecard] {
   })
 
   /** Parses the Characteristic node */
-  private def makeCharacteristic(reader: XMLEventReader, attrs: MetaData): Characteristic = makeElem(reader, attrs, new ElemBuilder[Characteristic] {
+  private def makeCharacteristic(reader: XMLEventReader, attrs: XmlAttrs): Characteristic = makeElem(reader, attrs, new ElemBuilder[Characteristic] {
     def build(reader: XMLEventReader, attrs: XmlAttrs): Characteristic = {
       val name: Option[String] = attrs.get(AttrTags.NAME)
       val reasonCode: Option[String] = attrs.get(AttrTags.REASON_CODE)
@@ -75,7 +73,7 @@ class ScorecardBuilder extends Builder[Scorecard] {
   })
 
   /** Parses the Attribute node */
-  private def makeAttribute(reader: XMLEventReader, attrs: MetaData): Attribute = makeElem(reader, attrs, new
+  private def makeAttribute(reader: XMLEventReader, attrs: XmlAttrs): Attribute = makeElem(reader, attrs, new
       ElemBuilder[Attribute] {
 
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Attribute = {
@@ -96,7 +94,7 @@ class ScorecardBuilder extends Builder[Scorecard] {
   })
 
   /** Parses the ComplexPartialScore node */
-  private def makeComplexPartialScore(reader: XMLEventReader, attrs: MetaData): ComplexPartialScore =
+  private def makeComplexPartialScore(reader: XMLEventReader, attrs: XmlAttrs): ComplexPartialScore =
     makeElem(reader, attrs, new ElemBuilder[ComplexPartialScore] {
 
       override def build(reader: XMLEventReader, attrs: XmlAttrs): ComplexPartialScore = {

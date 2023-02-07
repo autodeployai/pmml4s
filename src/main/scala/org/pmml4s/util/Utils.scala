@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,10 +151,11 @@ object Utils {
 
   def reduceByKey[K, V](collection: Iterable[(K, V)])(implicit num: Numeric[V]): Map[K, V] = {
     import num._
-    collection.groupBy(_._1).map { case (_: K, traversable) => traversable.reduce((a, b) => (a._1, a._2 + b._2)) }
+    collection.groupBy(_._1).map { case (_, traversable) => traversable.reduce((a, b) => (a._1, a._2 + b._2)) }
   }
 
   def plus[T](lhs: Seq[T], rhs: Seq[Double])(implicit num: Numeric[T]): Seq[Double] = {
     for (i <- 0 until Math.min(lhs.size, rhs.size)) yield num.toDouble(lhs(i)) + rhs(i)
   }
 }
+

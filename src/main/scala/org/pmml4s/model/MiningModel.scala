@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import scala.collection._
  * decision trees for data preprocessing before segmentation.
  */
 class MiningModel(
-                   override var parent: Model,
+                   var parent: Model,
                    override val attributes: ModelAttributes,
                    override val miningSchema: MiningSchema,
                    val embeddedModels: Array[EmbeddedModel],
@@ -112,7 +112,7 @@ class MiningModel(
         case `selectAll`   => {
           val all = seg.segments.map(x => if (Predication.fire(x.eval(series))) x.predict(series) else
             x.model.nullSeries)
-          Series.merge(all: _*)
+          Series.merge(all)
         }
         case `modelChain`  => {
           var last: Series = nullSeries
@@ -416,3 +416,4 @@ class Segment(val predicate: Predicate,
 }
 
 class MiningOutputs extends ClsOutputs with RegOutputs with CluOutputs with SegmentOutputs
+

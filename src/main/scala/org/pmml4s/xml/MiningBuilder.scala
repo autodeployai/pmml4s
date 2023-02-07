@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,9 @@ import org.pmml4s.common.{ModelAttributes, Predicate}
 import org.pmml4s.metadata.Field
 import org.pmml4s.model.MultipleModelMethod.MultipleModelMethod
 import org.pmml4s.model._
-import org.pmml4s.xml.XmlImplicits._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Mining Model
@@ -87,7 +84,7 @@ class MiningBuilder extends Builder[MiningModel] {
     }
   }
 
-  private def makeSegmentation(reader: XMLEventReader, attrs: MetaData): Segmentation = makeElem(reader, attrs, new ElemBuilder[Segmentation] {
+  private def makeSegmentation(reader: XMLEventReader, attrs: XmlAttrs): Segmentation = makeElem(reader, attrs, new ElemBuilder[Segmentation] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Segmentation = {
       val multipleModelMethod = MultipleModelMethod.withName(attrs(AttrTags.MULTIPLE_MODEL_METHOD))
       miningModel.multipleModelMethod = multipleModelMethod
@@ -167,3 +164,4 @@ class MutableMiningModel extends MutableModel {
     super.getField(name)
   }
 }
+

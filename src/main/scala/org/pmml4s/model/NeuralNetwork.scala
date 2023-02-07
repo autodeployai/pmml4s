@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import scala.collection.{immutable, mutable}
  * does not define a specific evaluation order for neurons within a layer.
  */
 class NeuralNetwork(
-                     override var parent: Model,
+                     var parent: Model,
                      override val attributes: NeuralNetworkAttributes,
                      override val miningSchema: MiningSchema,
                      val neuralInputs: NeuralInputs,
@@ -309,3 +309,4 @@ class Neuron(
 class Con(val from: String, val weight: Double) extends PmmlElement
 
 class NeuralNetworkOutputs extends MixedClsWithRegOutputs
+

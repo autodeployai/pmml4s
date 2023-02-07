@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import org.pmml4s.common.{ModelAttributes, Predicate, ScoreDistribution, ScoreDi
 import org.pmml4s.model._
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Rule Set model.
@@ -42,7 +40,7 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  def makeRuleSet(reader: XMLEventReader, attrs: MetaData): RuleSet = makeElem(reader, attrs, new ElemBuilder[RuleSet] {
+  def makeRuleSet(reader: XMLEventReader, attrs: XmlAttrs): RuleSet = makeElem(reader, attrs, new ElemBuilder[RuleSet] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): RuleSet = {
       val recordCount = attrs.getInt(AttrTags.RECORD_COUNT)
       val nbCorrect = attrs.getInt(AttrTags.NB_CORRECT)
@@ -100,7 +98,7 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
     }
   })
 
-  def makeRuleSelectionMethod(reader: XMLEventReader, attrs: MetaData): RuleSelectionMethod = makeElem(reader, attrs,
+  def makeRuleSelectionMethod(reader: XMLEventReader, attrs: XmlAttrs): RuleSelectionMethod = makeElem(reader, attrs,
     new ElemBuilder[RuleSelectionMethod] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): RuleSelectionMethod = {
         val criterion = Criterion.withName(attrs(AttrTags.CRITERION))
@@ -112,3 +110,4 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.RULE_SET_MODEL
 }
+

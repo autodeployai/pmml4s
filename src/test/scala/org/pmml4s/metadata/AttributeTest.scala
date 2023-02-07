@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 AutoDeploy AI
+ * Copyright (c) 2022-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package org.pmml4s.metadata
 
 import org.pmml4s.common.Interval
 import org.pmml4s.util.Utils
-import org.scalatest.FunSuite
 
-class AttributeTest extends FunSuite {
+import org.scalatest._
+import funsuite._
+
+class AttributeTest extends AnyFunSuite {
 
   test("Categorical attribute with predefined values") {
     val catAttr = CategoricalAttribute(
@@ -323,4 +325,5 @@ class AttributeTest extends FunSuite {
     assert(Utils.isMissing(contAttr.encode(999)))
   }
 }
+
 

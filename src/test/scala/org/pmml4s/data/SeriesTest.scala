@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package org.pmml4s.data
 
-import org.scalatest.FunSuite
+import org.scalatest._
+import funsuite._
 
-class SeriesTest extends FunSuite {
+class SeriesTest extends AnyFunSuite {
 
   test("filter") {
     val series = Series.fromMap(Map("f1" -> 1.0, "f2" -> 2.0, "f3" -> 3.0, "f4" -> 4.0))
@@ -34,4 +35,5 @@ class SeriesTest extends FunSuite {
     assert(result3.toArray  === Array(3.0, 4.0))
   }
 }
+
 

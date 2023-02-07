@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,11 @@ import org.pmml4s.common._
 import org.pmml4s.metadata.{DataDictionary, DataField, Field}
 import org.pmml4s.model.{DataModel, Model}
 import org.pmml4s.transformations.TransformationDictionary
-import org.pmml4s.xml.XmlImplicits._
 import org.pmml4s.{ElementNotFoundException, NotSupportedException, PmmlException, metadata}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemEnd, EvElemStart, XMLEventReader}
 
 /**
  * Base builder of PMML model
@@ -59,6 +56,9 @@ class ModelBuilder extends TransformationsBuilder
         case EvElemStart(_, ElemTags.TRANSFORMATION_DICTIONARY, _, _)        => {
           transDict = makeTransformationDictionary(reader)
         }
+        case EvElemStart(_, ElemTags.EXTENSION, attrs, _)                    => {
+          extHandler(reader, attrs).foreach(extensions += _)
+        }
         case EvElemStart(_, label, attrs, _) => {
           if (ModelBuilder.contains(label)) {
             validate()
@@ -75,9 +75,6 @@ class ModelBuilder extends TransformationsBuilder
             throw new PmmlException(s"${label} is not a standard of PMML")
           }
         }
-        case EvElemStart(_, ElemTags.EXTENSION, attrs, _)                    => {
-          extHandler(reader, attrs).foreach(extensions += _)
-        }
         case EvElemEnd(_, ElemTags.PMML)                                     => {
           validate()
           val parent = new DataModel(version, header, dataDict, Option(transDict))
@@ -90,7 +87,7 @@ class ModelBuilder extends TransformationsBuilder
     throw new PmmlException("Not a valid PMML")
   }
 
-  private def makeHeader(reader: XMLEventReader, attrs: MetaData): Header =
+  private def makeHeader(reader: XMLEventReader, attrs: XmlAttrs): Header =
     makeElem(reader, attrs, new ElemBuilder[Header] {
       def build(reader: XMLEventReader, attrs: XmlAttrs): Header = {
         val values = attrs.get(AttrTags.COPYRIGHT, AttrTags.DESCRIPTION, AttrTags.MODEL_VERSION)
@@ -103,7 +100,7 @@ class ModelBuilder extends TransformationsBuilder
       }
     })
 
-  private def makeDataDictionary(reader: XMLEventReader, attrs: MetaData): DataDictionary = {
+  private def makeDataDictionary(reader: XMLEventReader, attrs: XmlAttrs): DataDictionary = {
     val fields = makeElems(reader, ElemTags.DATA_DICTIONARY, ElemTags.DATA_FIELD, new ElemBuilder[DataField] {
       def build(reader: XMLEventReader, attrs: XmlAttrs): DataField = {
         val name = attrs(AttrTags.NAME)
@@ -197,3 +194,4 @@ object ModelBuilder extends ExtensionHandler with XmlUtils {
     PMML_SUPPORTED_MODELS.contains(s)
   }
 }
+

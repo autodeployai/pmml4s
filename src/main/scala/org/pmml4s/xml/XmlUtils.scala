@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package org.pmml4s.xml
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
-import scala.xml.MetaData
-import scala.xml.pull._
 
 trait XmlBase {
   def skipLabel(reader: XMLEventReader): Unit = {
@@ -68,7 +66,7 @@ trait XmlUtils extends XmlBase {
     }
   }
 
-  def makeElem[T](reader: XMLEventReader, attrs: MetaData, builder: ElemBuilder[T]): T = builder.build(reader, XmlAttrs(attrs))
+  def makeElem[T](reader: XMLEventReader, attrs: XmlAttrs, builder: ElemBuilder[T]): T = builder.build(reader, attrs)
 
   def makeElem[T](reader: XMLEventReader, event: EvElemStart, builder: ElemBuilder[T]): T = makeElem(reader, event.attrs, builder)
 
@@ -78,7 +76,7 @@ trait XmlUtils extends XmlBase {
     var done = false
     while (!done && reader.hasNext) {
       reader.next() match {
-        case event: EvElemStart if event.label == child   => result = Some(builder.build(reader, XmlAttrs(event.attrs)))
+        case event: EvElemStart if event.label == child   => result = Some(builder.build(reader, event.attrs))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
         case _                                            =>
@@ -97,8 +95,8 @@ trait XmlUtils extends XmlBase {
     var done = false
     while (!done && reader.hasNext) {
       reader.next() match {
-        case event: EvElemStart if event.label == child1  => res1 = Option(builder1.build(reader, XmlAttrs(event.attrs)))
-        case event: EvElemStart if event.label == child2  => res2 = Option(builder2.build(reader, XmlAttrs(event.attrs)))
+        case event: EvElemStart if event.label == child1  => res1 = Option(builder1.build(reader, event.attrs))
+        case event: EvElemStart if event.label == child2  => res2 = Option(builder2.build(reader, event.attrs))
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
         case _                                            =>
@@ -120,7 +118,7 @@ trait XmlUtils extends XmlBase {
     var done = false
     while (!done && reader.hasNext) {
       reader.next() match {
-        case event: EvElemStart if event.label == child   => res += builder.build(reader, XmlAttrs(event.attrs))
+        case event: EvElemStart if event.label == child   => res += builder.build(reader, event.attrs)
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
         case _                                            =>
@@ -138,8 +136,8 @@ trait XmlUtils extends XmlBase {
     var done = false
     while (!done && reader.hasNext) {
       reader.next() match {
-        case event: EvElemStart if event.label == child1  => res1 += builder1.build(reader, XmlAttrs(event.attrs))
-        case event: EvElemStart if event.label == child2  => res2 += builder2.build(reader, XmlAttrs(event.attrs))
+        case event: EvElemStart if event.label == child1  => res1 += builder1.build(reader, event.attrs)
+        case event: EvElemStart if event.label == child2  => res2 += builder2.build(reader, event.attrs)
         case EvElemStart(_, ElemTags.EXTENSION, attrs, _) => extHandler(reader, attrs)
         case EvElemEnd(_, `parent`)                       => done = true
         case _                                            =>
@@ -182,9 +180,10 @@ trait XmlUtils extends XmlBase {
 
 trait UnknownElemHandler extends XmlBase {
 
-  def handleElem(reader: XMLEventReader, label: String, attrs: MetaData = scala.xml.Null): Unit = {
+  def handleElem(reader: XMLEventReader, label: String, attrs: XmlAttrs=XmlAttrs()): Unit = {
     skipLabel(reader)
   }
 
   def handleElem(reader: XMLEventReader, event: EvElemStart): Unit = handleElem(reader, event.label, event.attrs)
 }
+

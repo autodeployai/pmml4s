@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,21 @@ package org.pmml4s.xml
 
 import org.pmml4s.common.Extension
 
-import scala.xml.MetaData
-import scala.xml.pull.XMLEventReader
 
 trait ExtensionHandler extends XmlUtils {
-  def extHandler: (XMLEventReader, MetaData) => Option[Extension] = {
+  def extHandler: (XMLEventReader, XmlAttrs) => Option[Extension] = {
     (x, _) => skipLabel(x); None
   }
 }
 
 trait SPSSExtensions extends ExtensionHandler {
-  override def extHandler: (XMLEventReader, MetaData) => Option[Extension] = {
+  override def extHandler: (XMLEventReader, XmlAttrs) => Option[Extension] = {
     ???
   }
 }
 
 trait SASExtensions extends ExtensionHandler {
-  override def extHandler: (XMLEventReader, MetaData) => Option[Extension] = {
+  override def extHandler: (XMLEventReader, XmlAttrs) => Option[Extension] = {
     ???
   }
 }

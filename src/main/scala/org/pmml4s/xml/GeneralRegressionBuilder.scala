@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@ package org.pmml4s.xml
 
 import org.pmml4s.common.{Interval, Matrix, Value}
 import org.pmml4s.model._
-import org.pmml4s.xml.XmlImplicits._
-
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of General Regression Model
@@ -65,7 +61,7 @@ class GeneralRegressionBuilder extends Builder[GeneralRegressionModel] {
     new BaselineCell(time, cumHazard)
   }
 
-  def makeBaseCumHazardTables(reader: XMLEventReader, attrs: MetaData): BaseCumHazardTables = makeElem(reader, attrs,
+  def makeBaseCumHazardTables(reader: XMLEventReader, attrs: XmlAttrs): BaseCumHazardTables = makeElem(reader, attrs,
     new ElemBuilder[BaseCumHazardTables] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): BaseCumHazardTables = {
         val (baselineStratums, baselineCells) = makeElems(reader, ElemTags.BASE_CUM_HAZARD_TABLES,
@@ -118,7 +114,7 @@ class GeneralRegressionBuilder extends Builder[GeneralRegressionModel] {
     new ParamMatrix(cells)
   }
 
-  def makePCovMatrix(reader: XMLEventReader, attrs: MetaData): PCovMatrix = makeElem(reader, attrs, new ElemBuilder[PCovMatrix] {
+  def makePCovMatrix(reader: XMLEventReader, attrs: XmlAttrs): PCovMatrix = makeElem(reader, attrs, new ElemBuilder[PCovMatrix] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): PCovMatrix = {
       val tpe = attrs.getEnum(AttrTags.TYPE, PCovMatrixType)
       val cells = makeElems(reader, ElemTags.P_COV_MATRIX, ElemTags.P_COV_CELL, new ElemBuilder[PCovCell] {
@@ -209,12 +205,12 @@ class GeneralRegressionBuilder extends Builder[GeneralRegressionModel] {
 
 
   /** Extracts these common attributes from a model */
-  override protected def makeAttributes(attrs: XmlAttrs) = {
+  override protected def makeAttributes(attrs: XmlAttrs): GeneralRegressionAttributes = {
     val attributes = super.makeAttributes(attrs)
 
     new GeneralRegressionAttributes(
       functionName = attributes.functionName,
-      modelType = attrs.enum(AttrTags.MODEL_TYPE, GeneralModelType),
+      modelType = attrs.`enum`(AttrTags.MODEL_TYPE, GeneralModelType),
       targetVariableName = attrs.get(AttrTags.TARGET_VARIABLE_NAME),
       targetReferenceCategory = attrs.get(AttrTags.TARGET_REFERENCE_CATEGORY),
       cumulativeLink = attrs.getEnum(AttrTags.CUMULATIVE_LINK, CumulativeLinkFunction),
@@ -240,3 +236,4 @@ class GeneralRegressionBuilder extends Builder[GeneralRegressionModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.GENERAL_REGRESSION_MODEL
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import scala.collection.immutable
  * - Input fields
  */
 class NearestNeighborModel(
-                            override var parent: Model,
+                            var parent: Model,
                             override val attributes: NearestNeighborAttributes,
                             override val miningSchema: MiningSchema,
                             val trainingInstances: TrainingInstances,
@@ -222,7 +222,7 @@ class NearestNeighborModel(
       val contPredictions = predictions.map(Utils.toDouble(_))
       outputs.predictedValue = continuousScoringMethod match {
         case `median`          => {
-          Median.eval(contPredictions: _*)
+          Median.eval(contPredictions.toIndexedSeq: _*)
         }
         case `average`         => {
           contPredictions.sum / contPredictions.length
@@ -434,3 +434,4 @@ class NearestNeighborAttributes(
   with HasNearestNeighborAttributes
 
 class NearestNeighborModelOutputs extends KNNOutputs
+

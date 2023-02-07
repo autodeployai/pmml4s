@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import org.pmml4s.common.{DenseVector, DoubleEvaluator, Vector}
 import org.pmml4s.model._
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Support Vector Machine model
@@ -48,7 +46,7 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  def makeSupportVectorMachine(reader: XMLEventReader, attrs: MetaData): SupportVectorMachine = makeElem(reader, attrs, new ElemBuilder[SupportVectorMachine] {
+  def makeSupportVectorMachine(reader: XMLEventReader, attrs: XmlAttrs): SupportVectorMachine = makeElem(reader, attrs, new ElemBuilder[SupportVectorMachine] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): SupportVectorMachine = {
       val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(target.toVal(_))
       val alternateTargetCategory = attrs.get(AttrTags.ALTERNATE_TARGET_CATEGORY).map(target.toVal(_))
@@ -97,7 +95,7 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
     }
   })
 
-  def makeVectorDictionary(reader: XMLEventReader, attrs: MetaData): VectorDictionary =
+  def makeVectorDictionary(reader: XMLEventReader, attrs: XmlAttrs): VectorDictionary =
     makeElem(reader, attrs, new ElemBuilder[VectorDictionary] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): VectorDictionary = {
         val numberOfVectors = attrs.getInt(AttrTags.NUMBER_OF_VECTORS)
@@ -207,3 +205,4 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.SUPPORT_VECTOR_MACHINE_MODEL
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  */
 package org.pmml4s.util
 
-import org.scalatest.FunSuite
+import org.scalatest._
+import funsuite._
 
 /**
  * Test cases of math utilities.
  */
-class MathUtilsTest extends FunSuite {
+class MathUtilsTest extends AnyFunSuite {
 
   test("weightedMedian") {
     val a = MathUtils.weightedMedian(Array(1), Array(0.15))
@@ -31,3 +32,4 @@ class MathUtilsTest extends FunSuite {
   }
 
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,8 @@ import org.pmml4s.common.ContinuousDistribution
 import org.pmml4s.metadata.Field
 import org.pmml4s.model._
 import org.pmml4s.transformations.DerivedField
-import org.pmml4s.xml.XmlImplicits._
 
 import scala.collection.mutable.ArrayBuffer
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Naive Bayes Model
@@ -98,7 +95,7 @@ class NaiveBayesBuilder extends Builder[NaiveBayesModel] {
     new BayesInputs(inputs)
   }
 
-  private def makeBayesOutput(reader: XMLEventReader, attrs: MetaData): BayesOutput = makeElem(reader, attrs,
+  private def makeBayesOutput(reader: XMLEventReader, attrs: XmlAttrs): BayesOutput = makeElem(reader, attrs,
     new ElemBuilder[BayesOutput] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): BayesOutput = {
         val fieldName = attrs(AttrTags.FIELD_NAME)
@@ -141,3 +138,4 @@ class NaiveBayesBuilder extends Builder[NaiveBayesModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.NAIVE_BAYES_MODEL
 }
+

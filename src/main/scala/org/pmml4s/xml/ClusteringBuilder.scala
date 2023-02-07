@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@ package org.pmml4s.xml
 
 import org.pmml4s.common.{CompareFunction, ComparisonMeasure, Matrix, Partition}
 import org.pmml4s.model._
-import org.pmml4s.xml.XmlImplicits._
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Clustering model
@@ -51,7 +48,7 @@ class ClusteringBuilder extends Builder[ClusteringModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  def makeCluster(reader: XMLEventReader, attrs: MetaData): Cluster = makeElem(reader, attrs, new ElemBuilder[Cluster] {
+  def makeCluster(reader: XMLEventReader, attrs: XmlAttrs): Cluster = makeElem(reader, attrs, new ElemBuilder[Cluster] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Cluster = {
       val id = attrs.get(AttrTags.ID)
       val name = attrs.get(AttrTags.NAME)
@@ -93,7 +90,7 @@ class ClusteringBuilder extends Builder[ClusteringModel] {
     new MissingValueWeights(array.get)
   }
 
-  def makeClusteringField(reader: XMLEventReader, attrs: MetaData): ClusteringField = makeElem(reader, attrs, new ElemBuilder[ClusteringField] {
+  def makeClusteringField(reader: XMLEventReader, attrs: XmlAttrs): ClusteringField = makeElem(reader, attrs, new ElemBuilder[ClusteringField] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): ClusteringField = {
       val f = field(attrs(AttrTags.FIELD))
       val isCenterField = attrs.getBoolean(AttrTags.IS_CENTER_FIELD, true)
@@ -125,3 +122,4 @@ class ClusteringBuilder extends Builder[ClusteringModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.CLUSTERING_MODEL
 }
+

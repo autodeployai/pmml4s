@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import scala.collection.{immutable, mutable}
  * This is due to the fact that multiple regression equations can be combined in order to predict categorical values.
  */
 class RegressionModel(
-                       override var parent: Model,
+                       var parent: Model,
                        override val attributes: RegressionAttributes,
                        override val miningSchema: MiningSchema,
                        val regressionTables: Array[RegressionTable],
@@ -257,3 +257,4 @@ class RegressionAttributes(
                           ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable) with HasRegressionAttributes
 
 class RegressionOutputs extends MixedClsWithRegOutputs
+

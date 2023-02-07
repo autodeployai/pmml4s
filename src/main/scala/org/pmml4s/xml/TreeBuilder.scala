@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import org.pmml4s.common.{Predicate, ScoreDistribution, ScoreDistributions}
 import org.pmml4s.model._
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Tree model
@@ -43,7 +41,7 @@ class TreeBuilder extends Builder[TreeModel] {
   }
 
   /** Parses the tree node */
-  private def makeNode(reader: XMLEventReader, attrs: MetaData): Node = makeElem(reader, attrs, new ElemBuilder[Node] {
+  private def makeNode(reader: XMLEventReader, attrs: XmlAttrs): Node = makeElem(reader, attrs, new ElemBuilder[Node] {
     def build(reader: XMLEventReader, attrs: XmlAttrs): Node = {
       val id: Option[String] = attrs.get(AttrTags.ID)
       val score: Option[Any] = attrs.get(AttrTags.SCORE).map(verifyScore(_))

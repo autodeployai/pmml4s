@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ package org.pmml4s
 
 package object data {
 
-  implicit def seriesMap(map: Map[String, Any]): Series = Series.fromMap(map)
+  implicit def map2Series(map: Map[String, Any]): Series = Series.fromMap(map)
 
-  implicit def seriesJavaMap(map: java.util.Map[String, Any]): Series = Series.fromMap(map)
+  implicit def javaMap2Series(map: java.util.Map[String, Any]): Series = Series.fromMap(map)
 }
+

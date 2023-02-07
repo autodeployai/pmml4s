@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import scala.collection.{SortedSet, immutable, mutable}
  * score. They basically answer the question: "Why is the score low, given its input conditions?"
  */
 class Scorecard(
-                 override var parent: Model,
+                 var parent: Model,
                  override val attributes: ScorecardAttributes,
                  override val miningSchema: MiningSchema,
                  val characteristics: Characteristics,
@@ -60,7 +60,7 @@ class Scorecard(
   val ch = characteristics.characteristics
 
   /** Collected all reason codes with order that appears in the PMML file, from top to bottom. */
-  val reasonCodes = SortedSet(ch.flatMap(x => (x.reasonCode +: x.attributes.map(_.reasonCode))).filter(_.isDefined): _*)
+  val reasonCodes = SortedSet(ch.flatMap(x => (x.reasonCode +: x.attributes.map(_.reasonCode))).filter(_.isDefined).toIndexedSeq: _*)
 
   /** The number of reason codes need to return. */
   lazy val reasonCodesWanted = outputFields.filter(_.feature == ResultFeature.reasonCode).size
@@ -307,3 +307,4 @@ trait HasWrappedScorecardAttributes extends HasWrappedModelAttributes with HasSc
 }
 
 class ScorecardOutput extends RegOutputs with MutableReasonCodes
+

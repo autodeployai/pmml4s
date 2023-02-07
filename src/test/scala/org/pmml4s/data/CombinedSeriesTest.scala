@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package org.pmml4s.data
 
-import org.scalatest.FunSuite
+import org.scalatest._
+import funsuite._
 
-class CombinedSeriesTest extends FunSuite {
+class CombinedSeriesTest extends AnyFunSuite {
 
   test("Basic") {
     val series1 = Series(0, 1, 2)
@@ -60,3 +61,4 @@ class CombinedSeriesTest extends FunSuite {
   }
 
 }
+

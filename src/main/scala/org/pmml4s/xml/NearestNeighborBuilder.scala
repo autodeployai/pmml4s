@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@ package org.pmml4s.xml
 
 import org.pmml4s.common.{CompareFunction, ComparisonMeasure, Table}
 import org.pmml4s.model._
-
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Nearest Neighbor model.
@@ -49,7 +46,7 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  def makeTrainingInstances(reader: XMLEventReader, attrs: MetaData): TrainingInstances = makeElem(reader, attrs,
+  def makeTrainingInstances(reader: XMLEventReader, attrs: XmlAttrs): TrainingInstances = makeElem(reader, attrs,
     new ElemBuilder[TrainingInstances] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): TrainingInstances = {
         val isTransformed = attrs.getBoolean(AttrTags.IS_TRANSFORMED, false)
@@ -81,7 +78,7 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
       }
     })
 
-  def makeKNNInputs(reader: XMLEventReader, attrs: MetaData): KNNInputs = makeElem(reader, attrs,
+  def makeKNNInputs(reader: XMLEventReader, attrs: XmlAttrs): KNNInputs = makeElem(reader, attrs,
     new ElemBuilder[KNNInputs] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): KNNInputs = {
         val knnInputs = makeElems(reader, ElemTags.KNN_INPUTS, ElemTags.KNN_INPUT, new ElemBuilder[KNNInput] {
@@ -120,3 +117,4 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
   /** Name of the builder. */
   override def name: String = ElemTags.NEAREST_NEIGHBOR_MODEL
 }
+

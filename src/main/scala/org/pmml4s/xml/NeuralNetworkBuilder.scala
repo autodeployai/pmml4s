@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import org.pmml4s.model._
 import org.pmml4s.transformations.DerivedField
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Neural Network model.
@@ -47,7 +45,7 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  private def makeNeuralInputs(reader: XMLEventReader, attrs: MetaData): NeuralInputs = makeElem(reader, attrs, new ElemBuilder[NeuralInputs] {
+  private def makeNeuralInputs(reader: XMLEventReader, attrs: XmlAttrs): NeuralInputs = makeElem(reader, attrs, new ElemBuilder[NeuralInputs] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): NeuralInputs = {
       val numberOfInputs = attrs.getInt(AttrTags.NUMBER_OF_INPUTS)
       val neuralInputs = makeElems(reader, ElemTags.NEURAL_INPUTS, ElemTags.NEURAL_INPUT, new ElemBuilder[NeuralInput] {
@@ -65,7 +63,7 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
     }
   })
 
-  private def makeNeuralLayer(reader: XMLEventReader, attrs: MetaData): NeuralLayer = makeElem(reader, attrs, new ElemBuilder[NeuralLayer] {
+  private def makeNeuralLayer(reader: XMLEventReader, attrs: XmlAttrs): NeuralLayer = makeElem(reader, attrs, new ElemBuilder[NeuralLayer] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): NeuralLayer = {
       val numberOfNeurons = attrs.getInt(AttrTags.NUMBER_OF_NEURONS)
       val activationFunction = attrs.get(AttrTags.ACTIVATION_FUNCTION).map(ActivationFunction.withName(_))
@@ -95,7 +93,7 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
     }
   })
 
-  private def makeNeuralOutputs(reader: XMLEventReader, attrs: MetaData): NeuralOutputs = makeElem(reader, attrs, new ElemBuilder[NeuralOutputs] {
+  private def makeNeuralOutputs(reader: XMLEventReader, attrs: XmlAttrs): NeuralOutputs = makeElem(reader, attrs, new ElemBuilder[NeuralOutputs] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): NeuralOutputs = {
       val numberOfOutputs = attrs.getInt(AttrTags.NUMBER_OF_OUTPUTS)
       val neuralOutputs = makeElems(reader, ElemTags.NEURAL_OUTPUTS, ElemTags.NEURAL_OUTPUT, new ElemBuilder[NeuralOutput] {
@@ -133,3 +131,4 @@ class NeuralNetworkBuilder extends Builder[NeuralNetwork] {
   /** Name of the builder. */
   override def name: String = ElemTags.NEURAL_NETWORK
 }
+

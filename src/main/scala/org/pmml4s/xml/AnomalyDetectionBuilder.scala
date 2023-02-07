@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@ package org.pmml4s.xml
 
 import org.pmml4s.NotSupportedException
 import org.pmml4s.model._
-import org.pmml4s.xml.XmlImplicits._
-
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
 
 /**
  * Builder of Anomaly Detection Model
@@ -54,7 +50,7 @@ class AnomalyDetectionBuilder extends Builder[AnomalyDetectionModel] {
     result
   }
 
-  def makeMeanClusterDistances(reader: XMLEventReader, attrs: MetaData): MeanClusterDistances = makeElem(reader, attrs,
+  def makeMeanClusterDistances(reader: XMLEventReader, attrs: XmlAttrs): MeanClusterDistances = makeElem(reader, attrs,
     new ElemBuilder[MeanClusterDistances] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): MeanClusterDistances = {
         var array: Array[Double] = null
@@ -87,3 +83,4 @@ class MutableAnomalyDetectionModel extends MutableModel {
     this.parent = parent
   }
 }
+

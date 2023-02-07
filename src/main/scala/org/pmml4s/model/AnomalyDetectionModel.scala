@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,16 @@ import scala.collection.immutable
  * - Clustering mean distance based anomaly detection model
  * - Other models can also be used if their scoring follows PMML standard rules.
  */
-class AnomalyDetectionModel(override var parent: Model,
-                            override val attributes: AnomalyDetectionAttributes,
-                            override val miningSchema: MiningSchema,
-                            val model: Model,
-                            val meanClusterDistances: Option[MeanClusterDistances] = None,
-                            override val output: Option[Output] = None,
-                            override val localTransformations: Option[LocalTransformations] = None,
-                            override val modelVerification: Option[ModelVerification] = None,
-                            override val extensions: immutable.Seq[Extension] = immutable.Seq.empty)
+class AnomalyDetectionModel(
+                             var parent: Model,
+                             override val attributes: AnomalyDetectionAttributes,
+                             override val miningSchema: MiningSchema,
+                             val model: Model,
+                             val meanClusterDistances: Option[MeanClusterDistances] = None,
+                             override val output: Option[Output] = None,
+                             override val localTransformations: Option[LocalTransformations] = None,
+                             override val modelVerification: Option[ModelVerification] = None,
+                             override val extensions: immutable.Seq[Extension] = immutable.Seq.empty)
   extends Model with HasWrappedAnomalyDetectionAttributes {
   require(algorithmType != AlgorithmType.iforest || sampleDataSize.isDefined,
     "sampleDataSize is a required parameter for isolation forest models.")

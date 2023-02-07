@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,9 @@ import org.pmml4s.common._
 import org.pmml4s.metadata._
 import org.pmml4s.transformations._
 import org.pmml4s.util.Utils
-import org.pmml4s.xml.XmlImplicits._
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-import scala.xml.MetaData
-import scala.xml.parsing.XhtmlEntities
-import scala.xml.pull._
+import org.apache.commons.text.StringEscapeUtils
 
 /**
  * Builder of transformations
@@ -302,7 +298,7 @@ trait TransformationsBuilder extends CommonBuilder
     }
   })
 
-  def makeFieldRef(reader: XMLEventReader, attrs: MetaData, scope: FieldScope): FieldRef = makeElem(reader, attrs, new ElemBuilder[FieldRef] {
+  def makeFieldRef(reader: XMLEventReader, attrs: XmlAttrs, scope: FieldScope): FieldRef = makeElem(reader, attrs, new ElemBuilder[FieldRef] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): FieldRef = {
       val fld = scope.field(attrs(AttrTags.FIELD))
       val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(fld.toVal(_))
@@ -311,7 +307,7 @@ trait TransformationsBuilder extends CommonBuilder
     }
   })
 
-  def makeCategoricalPredictor(reader: XMLEventReader, attrs: MetaData): CategoricalPredictor = makeElem(reader, attrs, new ElemBuilder[CategoricalPredictor] {
+  def makeCategoricalPredictor(reader: XMLEventReader, attrs: XmlAttrs): CategoricalPredictor = makeElem(reader, attrs, new ElemBuilder[CategoricalPredictor] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): CategoricalPredictor = {
       val name = attrs(AttrTags.NAME)
       val fld = field(name)
@@ -340,7 +336,7 @@ trait TransformationsBuilder extends CommonBuilder
               traverseElems(reader, ElemTags.ROW, {
                 case EvElemStart(pre, label, _, _) => {
                   // Handel some elements like <data:input>, <data:output>
-                  key = if (pre != null) s"${pre}:${label}" else label
+                  key = if (pre != null && !pre.isEmpty) s"${pre}:${label}" else label
                   value = ""
                 }
                 case EvElemEnd(_, _)               => if (key != null) {
@@ -351,7 +347,7 @@ trait TransformationsBuilder extends CommonBuilder
                   value = ""
                 }
                 case EvEntityRef(text)             => if (key != null) {
-                  value = value + XhtmlEntities.entMap.get(text).getOrElse("")
+                  value = value + StringEscapeUtils.unescapeXml(text)
                 }
                 case EvText(text)                  => if (key != null) value = value + text
               }, true, true, true)
@@ -367,3 +363,4 @@ trait TransformationsBuilder extends CommonBuilder
     }
   })
 }
+

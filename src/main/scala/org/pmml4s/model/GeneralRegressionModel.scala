@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import scala.collection.{immutable, mutable}
  * regression models.
  */
 class GeneralRegressionModel(
-                              override var parent: Model,
+                              var parent: Model,
                               override val attributes: GeneralRegressionAttributes,
                               override val miningSchema: MiningSchema,
                               val parameterList: ParameterList,
@@ -611,3 +611,4 @@ class GeneralRegressionAttributes(
   extends ModelAttributes(functionName, modelName, algorithmName, isScorable) with HasGeneralRegressionAttributes
 
 class GeneralRegressionOutputs extends MixedClsWithRegOutputs
+

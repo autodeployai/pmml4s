@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.pmml4s.metadata.Field
 import org.pmml4s.util.Utils
 import org.pmml4s.{InvalidValueException, PmmlException}
 
-import scala.xml.pull.XMLEventReader
 
 /**
  * Provides utilities to parse these common elements.
@@ -70,3 +69,4 @@ trait CommonBuilder extends ExtensionHandler with UnknownElemHandler {
    */
   def ?????? : Nothing = throw new PmmlException("Never happen exception")
 }
+

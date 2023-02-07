@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import scala.collection.{immutable, mutable}
  * predicate expression that defines the rule for choosing the Node or any of the branching Nodes.
  */
 class TreeModel(
-                 override var parent: Model,
+                 var parent: Model,
                  override val attributes: TreeAttributes,
                  override val miningSchema: MiningSchema,
                  val node: Node,
@@ -400,3 +400,4 @@ class Node(
 }
 
 class TreeOutputs extends MixedClsWithRegOutputs with MutableConfidence with MutableEntityId
+

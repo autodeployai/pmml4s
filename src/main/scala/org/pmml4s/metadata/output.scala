@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,9 +257,6 @@ trait HasOutput {
 
   def output: Option[Output]
 
-  /** Returns all candidates output fields of this model when there is no output specified explicitly. */
-  def defaultOutputFields: Array[OutputField]
-
   def candidateOutputFields: Array[OutputField] = {
     if (customOutputFields != null && customOutputFields.nonEmpty)
       customOutputFields
@@ -343,3 +340,4 @@ trait HasOutput {
     result.result()
   }
 }
+

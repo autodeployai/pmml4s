@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,5 +44,8 @@ class DataDictionary(override val fields: Array[DataField]) extends Dictionary[D
 
 object DataDictionary {
 
+  def apply(fields: Array[DataField]): DataDictionary = new DataDictionary(fields)
+
   def apply(fields: Seq[DataField]): DataDictionary = new DataDictionary(fields.toArray)
 }
+

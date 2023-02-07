@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.util.Utils
-import org.scalactic.TolerantNumerics
-import org.scalatest.FunSuite
+import org.scalactic.{Equality, TolerantNumerics}
+import org.scalatest._
+import funsuite._
 
 /**
  * Test cases of built-in functions.
  */
-class FunctionsTest extends FunSuite {
-  implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.000001)
+class FunctionsTest extends AnyFunSuite {
+  implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.000001)
 
   test("modulo") {
     assert(Modulo.eval(11, 3) === 2.0)
@@ -63,3 +64,4 @@ class FunctionsTest extends FunSuite {
     assert(Utils.isMissing(Product.eval(Double.NaN, Double.NaN)))
   }
 }
+

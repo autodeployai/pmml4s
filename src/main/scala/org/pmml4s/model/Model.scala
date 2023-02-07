@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,14 +59,14 @@ abstract class Model extends HasParent
 
   /** Referenced derived fields. */
   lazy val inputDerivedFields: Array[Field] = {
-    transformationDictionary.map(_.referencedFields).getOrElse(Array.empty) ++
-      localTransformations.map(_.referencedFields).getOrElse(Array.empty)
+    transformationDictionary.map(_.referencedFields).getOrElse(Array.empty[Field]) ++
+      localTransformations.map(_.referencedFields).getOrElse(Array.empty[Field])
   }
 
   /** Implicit referenced derived fields for the sub-model except ones defined in the mining schema.  */
   lazy val implicitInputDerivedFields: Array[Field] = if (isSubModel) {
     val dfs = parent.inputDerivedFields
-    (Set(dfs: _*) -- Set(inputFields: _*)).toArray
+    (Set(dfs.toIndexedSeq: _*) -- Set(inputFields.toIndexedSeq: _*)).toArray
   } else Array.empty
 
   /** All target names in an array. */
@@ -720,3 +720,4 @@ object Model {
     }
   }
 }
+

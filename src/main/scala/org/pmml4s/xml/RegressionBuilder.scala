@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import org.pmml4s.model._
 import org.pmml4s.transformations.FieldRef
 
 import scala.collection.mutable
-import scala.xml.MetaData
-import scala.xml.pull.{EvElemStart, XMLEventReader}
-
 
 /**
  * Builder of Regression model.
@@ -44,7 +41,7 @@ class RegressionBuilder extends Builder[RegressionModel] {
       output, targets, localTransformations, modelStats, modelExplanation, modelVerification, extensions.toIndexedSeq)
   }
 
-  private def makeRegressionTable(reader: XMLEventReader, attrs: MetaData): RegressionTable = makeElem(reader, attrs, new ElemBuilder[RegressionTable] {
+  private def makeRegressionTable(reader: XMLEventReader, attrs: XmlAttrs): RegressionTable = makeElem(reader, attrs, new ElemBuilder[RegressionTable] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): RegressionTable = {
       val intercept = attrs.double(AttrTags.INTERCEPT)
       val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(x => verifyValue(x, target))
@@ -103,3 +100,4 @@ class RegressionBuilder extends Builder[RegressionModel] {
   /** Name of the builder */
   override def name: String = ElemTags.REGRESSION_MODEL
 }
+

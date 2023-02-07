@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.pmml4s.xml
 import org.pmml4s.AttributeNotFoundException
 import org.pmml4s.util.StringUtils
 
-import scala.xml._
+import javax.xml.stream.events.Attribute
 
 case class XmlAttrs(attrs: Map[String, String]) {
 
@@ -62,8 +62,6 @@ case class XmlAttrs(attrs: Map[String, String]) {
 
   def +(name: String, value: String) = XmlAttrs(attrs + ((name, value)))
 
-  def toMetadata: MetaData = ((Null: MetaData) /: attrs) ((a, e) => a append new UnprefixedAttribute(e._1, e._2, Null))
-
   def get(n1: String, n2: String): (Option[String], Option[String]) = (get(n1), get(n2))
 
   def get(n1: String, n2: String, n3: String): (Option[String], Option[String], Option[String]) = (get(n1), get(n2), get(n3))
@@ -81,7 +79,7 @@ case class XmlAttrs(attrs: Map[String, String]) {
 }
 
 object XmlAttrs {
-  def apply(m: MetaData) = XmlImplicits.metaData2Attr(m)
+  def apply(m: java.util.Iterator[Attribute]) = XmlImplicits.attributes2XmlAttrs(m)
 
   def apply(name: String, value: String) = new XmlAttrs(Map(name -> value))
 
@@ -89,8 +87,12 @@ object XmlAttrs {
 }
 
 object XmlImplicits {
-  implicit def metaData2Attr(attrs: MetaData): XmlAttrs = XmlAttrs(attrs.asAttrMap)
+  implicit def attributes2XmlAttrs(attrs: java.util.Iterator[Attribute]): XmlAttrs = XmlAttrs(
+    new JIteratorWrapper(attrs).map(x => (x.getName.getLocalPart(), x.getValue)).toMap
+  )
+}
 
-  implicit def attrs2MetaData(attributes: XmlAttrs): MetaData =
-    ((Null: MetaData) /: attributes.attrs) ((acc, attr) => new UnprefixedAttribute(attr._1, attr._2, acc))
+class JIteratorWrapper[A](val underlying: java.util.Iterator[A]) extends scala.collection.Iterator[A] with Serializable {
+  def hasNext = underlying.hasNext
+  def next() = underlying.next
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import scala.collection.{immutable, mutable}
  * determine the best matching cluster for a given record. The center vectors then only approximate the clusters.
  */
 class ClusteringModel(
-                       override var parent: Model,
+                       var parent: Model,
                        override val attributes: ClusteringAttributes,
                        override val miningSchema: MiningSchema,
                        val comparisonMeasure: ComparisonMeasure,
@@ -274,3 +274,4 @@ class ClusteringAttributes(
 }
 
 class ClusteringOutputs extends CluOutputs
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import org.pmml4s.data.Series;
 import org.pmml4s.metadata.AttributeType;
 import org.pmml4s.metadata.DataField;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,8 +38,7 @@ public class JModelTest {
 
     @Test
     public void testModelInJava() throws IOException {
-        URL url = new URL("http://dmg.org/pmml/pmml_examples/KNIME_PMML_4.1_Examples/single_iris_dectree.xml");
-        InputStream is = url.openStream();
+        InputStream is = new FileInputStream("src/test/resources/models/tree/single_iris_dectree.xml");
         Model model = Model.fromInputStream(is);
         assertEquals("4.1", model.version());
         assertTrue(model.dVersion() == 4.1);
@@ -149,3 +148,4 @@ public class JModelTest {
         }
     }
 }
+

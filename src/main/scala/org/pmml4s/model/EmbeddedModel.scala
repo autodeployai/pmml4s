@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ abstract class EmbeddedModel extends Model {
   override def attributes: ModelAttributes = ???
 }
 
-class Regression(override var parent: Model) extends EmbeddedModel {
+class Regression(var parent: Model) extends EmbeddedModel {
 
   ???
 
@@ -53,7 +53,7 @@ class Regression(override var parent: Model) extends EmbeddedModel {
   override def predict(values: Series): Series = ???
 }
 
-class DecisionTree(override var parent: Model) extends EmbeddedModel {
+class DecisionTree(var parent: Model) extends EmbeddedModel {
   ???
 
   override def modelElement: ModelElement = ModelElement.DecisionTree

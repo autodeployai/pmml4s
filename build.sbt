@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "0.9.17"
+version := "1.0.1"
 
 organization := "org.pmml4s"
 
@@ -14,24 +14,35 @@ startYear := Some(2017)
 
 licenses := Seq("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
-scalacOptions := Seq("-feature", "-language:_", "-unchecked", "-deprecation", "-encoding", "utf8")
+scalacOptions := Seq(
+  "-feature",
+  "-language:_",
+  "-unchecked",
+  "-deprecation",
+  "-encoding",
+  "utf8",
+  "-language:implicitConversions",
+) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, scalaMajor)) if scalaMajor <= 11 => Seq.empty
+  case _ => Seq(
+    "-opt:l:inline",
+    "-opt-inline-from:**"
+  )
+})
 
 scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
 scalaVersion := "2.12.15"
 
-crossScalaVersions := Seq("2.12.15", "2.11.12", "2.13.8", "2.10.7")
+crossScalaVersions := Seq("2.12.15", "2.11.12", "2.13.8", "2.10.7", "3.1.3")
 
 libraryDependencies ++= {
-  (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, scalaMajor)) if scalaMajor <= 10 => None
-    case _ => Some("org.scala-lang.modules" %% "scala-xml" % "1.2.0")
-  }).toSeq ++ Seq(
+  Seq(
     "org.apache.commons" % "commons-math3" % "3.6.1",
-    "org.apache.commons" % "commons-text" % "1.6",
-    "io.spray" %% "spray-json" % "1.3.5",
-    "org.scalatest" %% "scalatest" % "3.0.8" % "test",
-    "junit" % "junit" % "4.12" % "test"
+    "org.apache.commons" % "commons-text" % "1.10.0",
+    "io.spray" %% "spray-json" % "1.3.6",
+    "org.scalatest" %% "scalatest" % "3.2.15" % "test",
+    "junit" % "junit" % "4.13.2" % "test"
   )
 }
 
@@ -77,3 +88,4 @@ pomExtra :=
         <name>Score Bot</name>
       </developer>
     </developers>
+

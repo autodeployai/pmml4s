@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,9 @@ import org.pmml4s.metadata._
 import org.pmml4s.model.Model
 import org.pmml4s.transformations.{BuiltInFunctions, Expression, LocalTransformations}
 import org.pmml4s.util.{ArrayUtils, Utils}
-import org.pmml4s.xml.XmlImplicits._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.xml.MetaData
-import scala.xml.pull._
 
 /**
  * Base class of model builder
@@ -293,7 +290,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     Some(new Targets(targets))
   }
 
-  protected def makeScoreDistribution(reader: XMLEventReader, attrs: MetaData): ScoreDistribution =
+  protected def makeScoreDistribution(reader: XMLEventReader, attrs: XmlAttrs): ScoreDistribution =
     makeElem(reader, attrs, new ElemBuilder[ScoreDistribution] {
       def build(reader: XMLEventReader, attrs: XmlAttrs): ScoreDistribution = {
         val value = verifyScore(attrs(AttrTags.VALUE))
@@ -554,7 +551,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     None
   }
 
-  protected def makeModelVerification(reader: XMLEventReader, attrs: MetaData): Option[ModelVerification] = {
+  protected def makeModelVerification(reader: XMLEventReader, attrs: XmlAttrs): Option[ModelVerification] = {
     skipLabel(reader)
     // TODO: ModelVerification
     None
@@ -618,7 +615,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     null
   }
 
-  def makeComparisonMeasure(reader: XMLEventReader, attrs: MetaData): ComparisonMeasure = makeElem(reader, attrs,
+  def makeComparisonMeasure(reader: XMLEventReader, attrs: XmlAttrs): ComparisonMeasure = makeElem(reader, attrs,
     new ElemBuilder[ComparisonMeasure] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): ComparisonMeasure = {
         val kind = ComparisonMeasureKind.withName(attrs(AttrTags.KIND))
@@ -678,7 +675,9 @@ object Builder {
     builders.remove(name)
   }
 
-  def get(name: String): Option[Builder[_ <: Model]] = builders.get(name).map { x => x.newInstance() }
+  def get(name: String): Option[Builder[_ <: Model]] = builders.get(name).map {
+    x => x.getDeclaredConstructor().newInstance().asInstanceOf[Builder[_ <: Model]]
+  }
 
   // register all candidate model builders
   register(ElemTags.TREE_MODEL, classOf[TreeBuilder])
@@ -703,3 +702,4 @@ trait ElemBuilder[T] {
 trait GroupElemBuilder[T] {
   def build(reader: XMLEventReader, event: EvElemStart): T
 }
+

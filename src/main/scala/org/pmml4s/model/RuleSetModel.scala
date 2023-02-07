@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import scala.collection.{immutable, mutable}
  * rule contains a predicate and a predicted class value, plus some information collected at training or testing time on
  * the performance of the rule.
  */
-class RuleSetModel(override var parent: Model,
+class RuleSetModel(var parent: Model,
                    override val attributes: ModelAttributes,
                    override val miningSchema: MiningSchema,
                    val ruleSet: RuleSet,
@@ -255,3 +255,4 @@ class CompoundRule(val predicate: Predicate, val rules: Array[Rule]) extends Rul
 }
 
 class RuleSetOutputs extends ModelOutputs with MutablePredictedValue with MutableConfidence
+

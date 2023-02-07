@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 package org.pmml4s.model
 
-import org.scalactic.TolerantNumerics
-import org.scalatest.FunSuite
+import org.scalactic.{Equality, TolerantNumerics}
+import org.scalatest._
+import funsuite._
 
-abstract class BaseModelTest extends FunSuite {
-  implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.000001)
+abstract class BaseModelTest extends AnyFunSuite {
+  implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.000001)
 }
+
