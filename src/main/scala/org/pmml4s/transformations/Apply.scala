@@ -35,10 +35,11 @@ class Apply(
 
   /** Returns the result of evaluating this expression on a given input Series */
   override def eval(series: Series): Any = {
-    val values = new Array[Any](children.size)
+    val values = new Array[Any](children.length)
     var hasMissing = false
     var i = 0
-    for (child <- children) {
+    while (i < values.length) {
+      val child = children(i)
       val res = child.eval(series)
       if (Utils.isMissing(res)) {
         if (mapMissingTo.isDefined)
@@ -49,7 +50,7 @@ class Apply(
       i += 1
     }
 
-    val res = function(values.toIndexedSeq: _*)
+    val res = function(values: _*)
     if (Utils.isMissing(res)) {
       if (defaultValue.isDefined)
         defaultValue.get

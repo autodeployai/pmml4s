@@ -350,6 +350,8 @@ class GenericSeries(val values: Array[Any]) extends Series {
 
   override def get(i: Int): Any = if (i < 0 || i >= values.length) null else values(i)
 
+  override def apply(i: Int): Any = values(i)
+
   override def toArray: Array[Any] = values.clone()
 
   override def copy(): GenericSeries = this

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,9 +152,9 @@ class ContinuousAttribute(
 
   def attrType: AttributeType = AttributeType.Continuous
 
-  override def isValidValue(value: Any): Boolean = if (validValues.nonEmpty) set.contains(value) else super.isValidValue(value)
+  override def isValidValue(value: Any): Boolean = if (validValues.length > 0) set.contains(value) else super.isValidValue(value)
 
-  override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || (!isMissingValue(value) && (if (validValues.nonEmpty) !set.contains(value) else !isIn(value)))
+  override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || (!isMissingValue(value) && (if (validValues.length > 0) !set.contains(value) else !isIn(value)))
 
   // We don't need to test if the specified value is invalid, because the invalid value has been handled by the preprocess operation.
   // In the predicting phase, there are only both types: missing and valid.
@@ -228,7 +228,7 @@ class MutableCategoricalAttribute(
 
   override def encode(value: Any): Double = if (valsMapBuffer.contains(value)) valsMapBuffer(value) else {
     if (isValidValue(value)) {
-      val index = validValues.size.toDouble
+      val index = validValues.length.toDouble
       values += value
       valsMapBuffer.put(value, index)
       index
@@ -263,3 +263,4 @@ object TypelessAttribute extends Attribute {
 
   def attrType: AttributeType = AttributeType.Typeless
 }
+

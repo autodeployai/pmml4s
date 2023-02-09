@@ -258,14 +258,14 @@ trait HasOutput {
   def output: Option[Output]
 
   def candidateOutputFields: Array[OutputField] = {
-    if (customOutputFields != null && customOutputFields.nonEmpty)
+    if (customOutputFields != null && customOutputFields.length > 0)
       customOutputFields
     else
       output.map(x => if (supplementOutput) unionCandidateOutputFields else x.outputFields).getOrElse(defaultOutputFields)
   }
 
   def outputFields: Array[OutputField] = {
-    if (customOutputFields != null && customOutputFields.nonEmpty)
+    if (customOutputFields != null && customOutputFields.length > 0)
       customOutputFields
     else
       output.map(x => if (supplementOutput) unionOutputFields else x.finalOutputFields).getOrElse(defaultOutputFields)

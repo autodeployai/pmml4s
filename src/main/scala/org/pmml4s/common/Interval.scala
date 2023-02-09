@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,5 +113,6 @@ object Interval {
 trait HasIntervals {
   def intervals: Array[Interval]
 
-  def isIn(value: Any): Boolean = if (intervals.isEmpty) true else intervals.exists(x => x.contains(Utils.toDouble(value)))
+  def isIn(value: Any): Boolean = if (intervals.length == 0) true else intervals.exists(x => x.contains(Utils.toDouble(value)))
 }
+

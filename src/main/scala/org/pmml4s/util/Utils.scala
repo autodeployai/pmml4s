@@ -17,6 +17,9 @@ package org.pmml4s.util
 
 import org.pmml4s.common._
 
+import scala.collection.mutable.{AnyRefMap, Iterable}
+import scala.collection.{mutable}
+
 /**
  * Various utility methods used by PMML4S.
  */
@@ -157,5 +160,34 @@ object Utils {
   def plus[T](lhs: Seq[T], rhs: Seq[Double])(implicit num: Numeric[T]): Seq[Double] = {
     for (i <- 0 until Math.min(lhs.size, rhs.size)) yield num.toDouble(lhs(i)) + rhs(i)
   }
+
+  def toMapWithIndex[K <: AnyRef](keys: Array[K]): mutable.Map[K, Int] = {
+    val sz = keys.length
+    val arm = new AnyRefMap[K, Int](sz)
+    var i = 0
+    while (i < sz) { arm(keys(i)) = i; i += 1 }
+    arm.repack()
+    arm
+  }
+
+  def toMap[K <: AnyRef, V](keys: Array[K], values: Array[V]): mutable.Map[K, V] = {
+    val sz = math.min(keys.length, values.length)
+    val arm = new AnyRefMap[K, V](sz)
+    var i = 0
+    while (i < sz) { arm(keys(i)) = values(i); i += 1 }
+    arm.repack()
+    arm
+  }
+
+  def toMap[K <: AnyRef, V](keys: Iterable[K], values: Iterable[V]): mutable.Map[K, V] = {
+    val sz = math.min(keys.size, values.size)
+    val arm = new AnyRefMap[K, V](sz)
+    val ki = keys.iterator
+    val vi = values.iterator
+    while (ki.hasNext && vi.hasNext) arm(ki.next) = vi.next
+    arm.repack()
+    arm
+  }
+
 }
 

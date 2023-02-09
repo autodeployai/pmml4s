@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ object ModelElement {
 trait ModelLocation {
   self: Model =>
 
-  def isTopLevelModel: Boolean = if (parent != null) parent.modelElement == ModelElement.DataModel else true
+  val isTopLevelModel: Boolean = if (parent != null) parent.modelElement == ModelElement.DataModel else true
 
-  def isSubModel: Boolean = !isTopLevelModel
+  val isSubModel: Boolean = !isTopLevelModel
 }

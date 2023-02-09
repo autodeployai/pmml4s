@@ -65,7 +65,36 @@ class TreeModel(
     var selected = node
     var done = false
     while (!done && selected.isSplit) {
-      var (child, r) = traverseNode(selected, series)
+      var child: Node = null
+      var r = FALSE
+      var hit = false
+      var unknown = false
+      var i = 0
+      while (i < selected.children.length && !hit) {
+        val c = selected.children(i)
+        c.eval(series) match {
+          case TRUE      => {
+            r = TRUE
+            child = c
+            hit = true
+          }
+          case SURROGATE => {
+            r = SURROGATE
+            child = c
+            hit = true
+          }
+          case UNKNOWN   => {
+            unknown = true
+          }
+          case _         =>
+        }
+        i += 1
+      }
+
+      if (!hit) {
+        r = if (unknown) UNKNOWN else FALSE
+      }
+
       if (r == SURROGATE) {
         numMissingCount += 1
       }
@@ -79,7 +108,7 @@ class TreeModel(
           case `nullPrediction`     =>
             done = true
           case `defaultChild`       => {
-            child = selected.defaultChildNode
+            child = selected.defaultChildNode.orNull
             numMissingCount += 1
           }
           case `weightedConfidence` => if (isClassification) {
@@ -133,7 +162,7 @@ class TreeModel(
       }
 
       // Handling the situation where scoring cannot continue
-      if (child.isEmpty && outputs.predictedValue == null) {
+      if (child == null && outputs.predictedValue == null) {
         noTrueChildStrategy match {
           case `returnNullPrediction` => done = true
           case `returnLastPrediction` => {
@@ -141,8 +170,8 @@ class TreeModel(
             done = true
           }
         }
-      } else if (child.isDefined) {
-        selected = child.get
+      } else if (child != null) {
+        selected = child
         if (selected.isLeaf) {
           finalNode = Some(selected)
         }
@@ -205,6 +234,7 @@ class TreeModel(
     n
   }
 
+  // The method is not used anymore, it's moved into predict directly for performance
   private def traverseNode(n: Node, series: Series): (Option[Node], Predication) = {
     var unknown = false
     

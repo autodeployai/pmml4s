@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package org.pmml4s.metadata
 
 import org.pmml4s.common.{OpType, PmmlElement}
 import org.pmml4s.model.Model
+import org.pmml4s.util.Utils
+
+import scala.collection.mutable
 
 /**
  * Usage type
@@ -149,15 +152,15 @@ class MiningField(
  * The main purpose of the MiningSchema is to list the fields that have to be provided in order to apply the model.
  */
 class MiningSchema(val miningFields: Array[MiningField]) extends HasTargetFields with PmmlElement {
-  private[this] lazy val nameToField: Map[String, MiningField] = names.zip(miningFields).toMap
+  private[this] val nameToField = Utils.toMap(names, miningFields)
 
   val inputMiningFields: Array[MiningField] = for (name <- inputNames) yield apply(name)
 
-  override def targetNames: Array[String] = miningFields.filter(_.isTarget).map(_.name).toArray
+  override def targetNames: Array[String] = miningFields.filter(_.isTarget).map(_.name)
 
-  def inputNames: Array[String] = miningFields.filter(_.isInput).map(_.name).toArray
+  def inputNames: Array[String] = miningFields.filter(_.isInput).map(_.name)
 
-  def names: Array[String] = miningFields.map(_.name).toArray
+  def names: Array[String] = miningFields.map(_.name)
 
   def get(name: String): Option[MiningField] = nameToField.get(name)
 
@@ -180,4 +183,5 @@ trait HasMiningSchema {
   self: Model =>
   def miningSchema: MiningSchema
 }
+
 

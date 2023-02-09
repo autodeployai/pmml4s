@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2023 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,9 +197,8 @@ case class StructType(fields: Array[StructField]) extends DataType with Seq[Stru
   /** Returns all field names in an array. */
   def fieldNames: Array[String] = fields.map(_.name)
 
-  private lazy val fieldNamesSet: Set[String] = fieldNames.toSet
-  private lazy val nameToField: Map[String, StructField] = fields.map(f => f.name -> f).toMap
-  private lazy val nameToIndex: Map[String, Int] = fieldNames.zipWithIndex.toMap
+  private lazy val nameToField = Utils.toMap(fields.map(_.name), fields)
+  private lazy val nameToIndex = Utils.toMapWithIndex(fieldNames)
 
   def add(field: StructField): StructType = {
     StructType(fields :+ field)
@@ -346,3 +345,4 @@ trait DataTypeLike extends Serializable {
 }
 
 trait HasDataType extends DataTypeLike
+

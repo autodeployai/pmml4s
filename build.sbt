@@ -1,6 +1,6 @@
 name := "pmml4s"
 
-version := "1.0.1"
+version := "1.0.2"
 
 organization := "org.pmml4s"
 
@@ -34,7 +34,7 @@ scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
 scalaVersion := "2.12.15"
 
-crossScalaVersions := Seq("2.12.15", "2.11.12", "2.13.8", "2.10.7", "3.1.3")
+crossScalaVersions := Seq("2.12.15", "2.11.12", "2.13.8", "3.1.3")
 
 libraryDependencies ++= {
   Seq(

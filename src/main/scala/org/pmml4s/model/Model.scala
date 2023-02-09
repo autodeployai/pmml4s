@@ -382,7 +382,7 @@ abstract class Model extends HasParent
       val len = implicitInputDerivedFields.length
       while (i < len) {
         val df = implicitInputDerivedFields(i)
-        if (df.indexDefined) {
+        if (df.index >= 0) {
           newValues(df.index) = series(df.index)
         }
         i += 1
@@ -442,156 +442,151 @@ abstract class Model extends HasParent
     
     var i = 0
     val len = candidateFields.length
-    while (i < len) {
+    while (i < len && (!isMultiple || candidateFields(i).targetField.nonEmpty)) {
       val of = candidateFields(i)
 
-      breakable {
-        if (isMultiple && of.targetField.isEmpty)
-          break
+      val outputs = if (isMultiple) {
+        modelOutputs.asInstanceOf[MultiModelOutputs](of.targetField.get)
+      } else modelOutputs
 
-        val outputs = if (isMultiple) {
-          modelOutputs.asInstanceOf[MultiModelOutputs](of.targetField.get)
-        } else modelOutputs
-
-        // NOT set the index of output fields because the input series could contain values of local derived fields,
-        // which are only available within the local scope, and not returned.
-        // of.index = series.size + i
-        of.feature match {
-          case `predictedValue`                                  => outputs match {
-            // The expected data type could be different from the storage type of value, so try to convert it
-            case x: HasPredictedValue   => outputSeries.update(i,
-              Utils.toVal(x.predictedValue, of.dataType))
-            case x: HasAssociationRules => outputSeries.update(i,
-              x.getRule(of.criterion, of.rank).map(_.predictedValue).orNull)
-            case _                      =>
-          }
-          case `predictedDisplayValue`                           => outputs match {
-            case x: HasPredictedDisplayValue => outputSeries.update(i, x.predictedDisplayValue)
-            case _                           =>
-          }
-          case `transformedValue`                                => {
-            if (of.segmentId.isDefined) {
-              if (of.expr.isDefined && of.expr.get.isInstanceOf[FieldRef]) {
-                outputs match {
-                  case x: HasSegment => {
-                    val ref = of.expr.get.asInstanceOf[FieldRef]
-                    outputSeries.update(i, x.segment(of.segmentId.get).getAs(ref.field.name))
-                  }
-                  case _             =>
-                }
-              }
-            } else if (of.expr.isDefined) {
-              val joinedSeries = new JoinedSeries(series, outputSeries)
-              of.expr.foreach(x => outputSeries.update(i, x.eval(joinedSeries)))
-            }
-          }
-          case `decision`                                        => {
-            if (of.expr.isDefined) {
-              val joinedSeries = new JoinedSeries(series, outputSeries)
-              of.expr.foreach(x => outputSeries.update(i, x.eval(joinedSeries)))
-            } else if (of.segmentId.isDefined) {
-              ???
-            }
-          }
-          case `probability`                                     => outputs match {
-            case x: HasPredictedValueWithProbabilities => outputSeries.setDouble(i,
-              x.probability(of.value.getOrElse(x.predictedValue)))
-            case x: HasAssociationRules                => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).map(_.confidence).getOrElse(Double.NaN))
-            case _                                     =>
-          }
-          case `affinity` | `entityAffinity` | `clusterAffinity` => outputs match {
-            case x: HasAffinities       => {
-              if (of.value.isDefined) {
-                outputSeries.setDouble(i, x.affinity(of.value.get.toString))
-              } else {
-                outputs match {
-                  case y: HasEntityId  => outputSeries.setDouble(i, x.affinity(y.entityId))
-                  case y: HasEntityIds => outputSeries.setDouble(i, x.affinity(y.entityId(of.rank)))
-                  case _               =>
-                }
-              }
-            }
-            case x: HasAssociationRules => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).flatMap(_.affinity).getOrElse(Double.NaN))
-            case _                      =>
-          }
-          case `residual`                                        =>
-            if (targetField != null && !targetField.isMissing(series)) {
-              if (isRegression) {
-                outputs match {
-                  case x: HasPredictedValue => outputSeries.setDouble(i,
-                    Utils.toDouble(x.predictedValue) - targetField.getDouble(series))
-                }
-              } else if (isClassification) {
-                outputs match {
-                  case x: HasPredictedValueWithProbabilities => {
-                    val category = of.value.getOrElse(x.predictedValue)
-                    outputSeries.setDouble(i,
-                      (if (targetField.get(series) == category) 1.0 else 0.0) - x.probability(category))
-                  }
-                }
-              }
-            }
-          case `standardError`                                   => outputs match {
-            case x: HasStandardError => outputSeries.setDouble(i, x.standardError)
-            case _                   =>
-          }
-          case `clusterId` | `entityId` | `ruleId`               => outputs match {
-            // The expected data type could be different from the storage type of value, so try to convert it
-            case x: HasEntityId         => outputSeries.update(i, Utils.toVal(x.entityId, of.dataType))
-            case x: HasEntityIds        => outputSeries.update(i, Utils.toVal(x.entityId(of.rank), of.dataType))
-            case x: HasAssociationRules => outputSeries.update(i,
-              x.getRule(of.criterion, of.rank).map(_.entityId).orNull)
-            case _                      =>
-          }
-          case `warning`                                         => outputs match {
-            case x: HasWarning => outputSeries.update(i, x.warning)
-            case _             =>
-          }
-          case `reasonCode`                                      => outputs match {
-            case x: HasReasonCode  => outputSeries.update(i, x.reasonCode)
-            case x: HasReasonCodes => outputSeries.update(i, x.reasonCode(of.rank))
-            case _                 =>
-          }
-          case `antecedent`                                      => outputs match {
-            case x: HasAssociationRules => outputSeries.update(i,
-              x.getRule(of.criterion, of.rank).map(_.antecedentRule).orNull)
-            case _                      =>
-          }
-          case `consequent`                                      => outputs match {
-            case x: HasAssociationRules => outputSeries.update(i,
-              x.getRule(of.criterion, of.rank).map(_.consequentRule).orNull)
-            case _                      =>
-          }
-          case `rule`                                            => outputs match {
-            case x: HasAssociationRules => outputSeries.update(i,
-              x.getRule(of.criterion, of.rank).map(_.rule).orNull)
-            case _                      =>
-          }
-          case `confidence`                                      => outputs match {
-            case x: HasConfidence       => outputSeries.setDouble(i, x.confidence)
-            case x: HasAssociationRules => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).map(_.confidence).getOrElse(Double.NaN))
-            case _                      =>
-          }
-          case `support`                                         => outputs match {
-            case x: HasAssociationRules => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).map(_.support).getOrElse(Double.NaN))
-            case _                      =>
-          }
-          case `lift`                                            => outputs match {
-            case x: HasAssociationRules => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).flatMap(_.lift).getOrElse(Double.NaN))
-            case _                      =>
-          }
-          case `leverage`                                        => outputs match {
-            case x: HasAssociationRules => outputSeries.setDouble(i,
-              x.getRule(of.criterion, of.rank).flatMap(_.leverage).getOrElse(Double.NaN))
-            case _                      =>
-          }
-          case _                                                 => ???
+      // NOT set the index of output fields because the input series could contain values of local derived fields,
+      // which are only available within the local scope, and not returned.
+      // of.index = series.size + i
+      of.feature match {
+        case `predictedValue`                                  => outputs match {
+          // The expected data type could be different from the storage type of value, so try to convert it
+          case x: HasPredictedValue   => outputSeries.update(i,
+            Utils.toVal(x.predictedValue, of.dataType))
+          case x: HasAssociationRules => outputSeries.update(i,
+            x.getRule(of.criterion, of.rank).map(_.predictedValue).orNull)
+          case _                      =>
         }
+        case `predictedDisplayValue`                           => outputs match {
+          case x: HasPredictedDisplayValue => outputSeries.update(i, x.predictedDisplayValue)
+          case _                           =>
+        }
+        case `transformedValue`                                => {
+          if (of.segmentId.isDefined) {
+            if (of.expr.isDefined && of.expr.get.isInstanceOf[FieldRef]) {
+              outputs match {
+                case x: HasSegment => {
+                  val ref = of.expr.get.asInstanceOf[FieldRef]
+                  outputSeries.update(i, x.segment(of.segmentId.get).getAs(ref.field.name))
+                }
+                case _             =>
+              }
+            }
+          } else if (of.expr.isDefined) {
+            val joinedSeries = new JoinedSeries(series, outputSeries)
+            of.expr.foreach(x => outputSeries.update(i, x.eval(joinedSeries)))
+          }
+        }
+        case `decision`                                        => {
+          if (of.expr.isDefined) {
+            val joinedSeries = new JoinedSeries(series, outputSeries)
+            of.expr.foreach(x => outputSeries.update(i, x.eval(joinedSeries)))
+          } else if (of.segmentId.isDefined) {
+            ???
+          }
+        }
+        case `probability`                                     => outputs match {
+          case x: HasPredictedValueWithProbabilities => outputSeries.setDouble(i,
+            x.probability(of.value.getOrElse(x.predictedValue)))
+          case x: HasAssociationRules                => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).map(_.confidence).getOrElse(Double.NaN))
+          case _                                     =>
+        }
+        case `affinity` | `entityAffinity` | `clusterAffinity` => outputs match {
+          case x: HasAffinities       => {
+            if (of.value.isDefined) {
+              outputSeries.setDouble(i, x.affinity(of.value.get.toString))
+            } else {
+              outputs match {
+                case y: HasEntityId  => outputSeries.setDouble(i, x.affinity(y.entityId))
+                case y: HasEntityIds => outputSeries.setDouble(i, x.affinity(y.entityId(of.rank)))
+                case _               =>
+              }
+            }
+          }
+          case x: HasAssociationRules => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).flatMap(_.affinity).getOrElse(Double.NaN))
+          case _                      =>
+        }
+        case `residual`                                        =>
+          if (targetField != null && !targetField.isMissing(series)) {
+            if (isRegression) {
+              outputs match {
+                case x: HasPredictedValue => outputSeries.setDouble(i,
+                  Utils.toDouble(x.predictedValue) - targetField.getDouble(series))
+              }
+            } else if (isClassification) {
+              outputs match {
+                case x: HasPredictedValueWithProbabilities => {
+                  val category = of.value.getOrElse(x.predictedValue)
+                  outputSeries.setDouble(i,
+                    (if (targetField.get(series) == category) 1.0 else 0.0) - x.probability(category))
+                }
+              }
+            }
+          }
+        case `standardError`                                   => outputs match {
+          case x: HasStandardError => outputSeries.setDouble(i, x.standardError)
+          case _                   =>
+        }
+        case `clusterId` | `entityId` | `ruleId`               => outputs match {
+          // The expected data type could be different from the storage type of value, so try to convert it
+          case x: HasEntityId         => outputSeries.update(i, Utils.toVal(x.entityId, of.dataType))
+          case x: HasEntityIds        => outputSeries.update(i, Utils.toVal(x.entityId(of.rank), of.dataType))
+          case x: HasAssociationRules => outputSeries.update(i,
+            x.getRule(of.criterion, of.rank).map(_.entityId).orNull)
+          case _                      =>
+        }
+        case `warning`                                         => outputs match {
+          case x: HasWarning => outputSeries.update(i, x.warning)
+          case _             =>
+        }
+        case `reasonCode`                                      => outputs match {
+          case x: HasReasonCode  => outputSeries.update(i, x.reasonCode)
+          case x: HasReasonCodes => outputSeries.update(i, x.reasonCode(of.rank))
+          case _                 =>
+        }
+        case `antecedent`                                      => outputs match {
+          case x: HasAssociationRules => outputSeries.update(i,
+            x.getRule(of.criterion, of.rank).map(_.antecedentRule).orNull)
+          case _                      =>
+        }
+        case `consequent`                                      => outputs match {
+          case x: HasAssociationRules => outputSeries.update(i,
+            x.getRule(of.criterion, of.rank).map(_.consequentRule).orNull)
+          case _                      =>
+        }
+        case `rule`                                            => outputs match {
+          case x: HasAssociationRules => outputSeries.update(i,
+            x.getRule(of.criterion, of.rank).map(_.rule).orNull)
+          case _                      =>
+        }
+        case `confidence`                                      => outputs match {
+          case x: HasConfidence       => outputSeries.setDouble(i, x.confidence)
+          case x: HasAssociationRules => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).map(_.confidence).getOrElse(Double.NaN))
+          case _                      =>
+        }
+        case `support`                                         => outputs match {
+          case x: HasAssociationRules => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).map(_.support).getOrElse(Double.NaN))
+          case _                      =>
+        }
+        case `lift`                                            => outputs match {
+          case x: HasAssociationRules => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).flatMap(_.lift).getOrElse(Double.NaN))
+          case _                      =>
+        }
+        case `leverage`                                        => outputs match {
+          case x: HasAssociationRules => outputSeries.setDouble(i,
+            x.getRule(of.criterion, of.rank).flatMap(_.leverage).getOrElse(Double.NaN))
+          case _                      =>
+        }
+        case _                                                 => ???
       }
       i += 1
     }
