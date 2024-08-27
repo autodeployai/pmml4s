@@ -119,7 +119,12 @@ class SourceWrapper(src: Source) extends java.io.Reader {
       cbuf(i) = src.next()
       i += 1
     }
-    i - off
+    val result = i - off
+    if (result == 0 && !src.hasNext) {
+      -1
+    } else {
+      result
+    }
   }
 
   override def close(): Unit = src.close()
