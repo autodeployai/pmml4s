@@ -16,7 +16,7 @@
 
 package org.pmml4s.xml
 
-import javax.xml.stream.events.{Characters, Comment, EndElement, EntityReference, ProcessingInstruction, StartElement}
+import javax.xml.stream.events.{Characters, Comment, EndElement, EntityReference, ProcessingInstruction, StartElement, EndDocument}
 import javax.xml.stream.{EventFilter, XMLInputFactory, XMLStreamConstants}
 import scala.io.Source
 import XmlImplicits._
@@ -75,6 +75,11 @@ case class EvComment(text: String) extends XMLEvent
 case class NamespaceBinding(prefix: String, uri: String, parent: NamespaceBinding)
 
 /**
+ * The end of document
+ */
+case object EvDocEnd extends XMLEvent
+
+/**
  * Main entry point into creating an event-based XML parser.  Treating this
  * as a [[scala.collection.Iterator]] will provide access to the generated events.
  * @param src A [[scala.io.Source]] for XML data to parse
@@ -108,6 +113,7 @@ class XMLEventReader(src: Source)
       EvProcInstr(ev.getTarget, ev.getData)
     case ev: Comment =>
       EvComment(ev.getText)
+    case ev: EndDocument => EvDocEnd
     }
 }
 
