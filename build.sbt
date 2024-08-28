@@ -1,7 +1,5 @@
 name := "pmml4s"
 
-version := "1.0.2"
-
 organization := "org.pmml4s"
 
 organizationHomepage := Some(new URL("https://pmml4s.org"))
@@ -54,38 +52,11 @@ Test / unmanagedSourceDirectories := {
   }
 }
 
-// publishing
-updateOptions := updateOptions.value.withGigahorse(false)
-
-publishMavenStyle := true
-
-useGpg := true
-
-// set overwrite to true for snapshot
-publishConfiguration := publishConfiguration.value.withOverwrite(isSnapshot.value)
-com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration := com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration.value.withOverwrite(isSnapshot.value)
-publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(isSnapshot.value)
-com.typesafe.sbt.pgp.PgpKeys.publishLocalSignedConfiguration := com.typesafe.sbt.pgp.PgpKeys.publishLocalSignedConfiguration.value.withOverwrite(isSnapshot.value)
-
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (version.value.trim.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
-}
-
-pomIncludeRepository := { _ => false }
-
-pomExtra :=
-  <scm>
-    <url>git://github.com/autodeployai/pmml4s.git</url>
-    <connection>scm:git:git@github.com:autodeployai/pmml4s.git</connection>
-  </scm>
-    <developers>
-      <developer>
-        <id>scorebot</id>
-        <name>Score Bot</name>
-      </developer>
-    </developers>
-
+ThisBuild / developers := List(
+    Developer(
+      "scorebot",
+      "Score Bot",
+      "scorebot@outlook.com",
+      url("https://github.com/scorebot")
+    )
+  )
