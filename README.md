@@ -309,7 +309,7 @@ See the [PyPMML](https://github.com/autodeployai/pypmml) project. _PyPMML_ is a 
 See the [AI-Serving](https://github.com/autodeployai/ai-serving) project. _AI-Serving_ is serving AI/ML models in the open standard formats PMML and ONNX with both HTTP (REST API) and gRPC endpoints.
 
 ## Deploy and Manage AI/ML models at scale
-See the [DaaS](https://www.autodeploy.ai/) system that deploys AI/ML models in production at scale on Kubernetes.
+See the [DaaS](https://www.autodeployai.com/) system that deploys AI/ML models in production at scale on Kubernetes.
 
 ## Attentions
 * Thread Safe. 
