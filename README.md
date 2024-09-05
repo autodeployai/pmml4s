@@ -1,4 +1,6 @@
 # PMML4S
+[![Build Status](https://github.com/autodeployai/pmml4s/workflows/Release/badge.svg)](https://github.com/autodeployai/pmml4s/actions)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12)
 
 _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala. It provides both Scala and Java Evaluator API for PMML.
 
@@ -63,9 +65,6 @@ Not yet supported transformations:
 * Lag
 
 ## Installation
-[_PMML4S_](https://mvnrepository.com/artifact/org.pmml4s/pmml4s) is available from the maven central.
-
-Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.pmml4s/pmml4s_2.12)
 
 ##### SBT users
 ```scala
