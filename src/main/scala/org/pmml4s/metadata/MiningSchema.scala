@@ -131,20 +131,27 @@ trait HasUsageType {
  * @param invalidValueTreatment   Specifies how invalid input values are handled.
  * @param invalidValueReplacement
  */
-class MiningField(
-                   val name: String,
-                   val usageType: UsageType,
-                   val opType: Option[OpType],
-                   val importance: Option[Double] = None,
-                   val outliers: OutlierTreatmentMethod = OutlierTreatmentMethod.asIs,
-                   val lowValue: Option[Double] = None,
-                   val highValue: Option[Double] = None,
-                   val missingValueReplacement: Option[Any] = None,
-                   val missingValueTreatment: Option[MissingValueTreatment] = None,
-                   val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid,
-                   val invalidValueReplacement: Option[Any] = None)
-  extends HasUsageType with PmmlElement
+case class MiningField(
+                        val name: String,
+                        val usageType: UsageType,
+                        val opType: Option[OpType],
+                        val importance: Option[Double] = None,
+                        val outliers: OutlierTreatmentMethod = OutlierTreatmentMethod.asIs,
+                        val lowValue: Option[Double] = None,
+                        val highValue: Option[Double] = None,
+                        val missingValueReplacement: Option[Any] = None,
+                        val missingValueTreatment: Option[MissingValueTreatment] = None,
+                        val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid,
+                        val invalidValueReplacement: Option[Any] = None)
+  extends HasUsageType with PmmlElement {
 
+  /* Checks if the mining field has any value preprocess operations defined. */
+  def isDefault: Boolean = (outliers == OutlierTreatmentMethod.asIs &&
+    missingValueReplacement.isEmpty &&
+    !missingValueTreatment.contains(MissingValueTreatment.returnInvalid) &&
+    invalidValueTreatment == InvalidValueTreatment.returnInvalid &&
+    invalidValueReplacement.isEmpty)
+}
 /**
  * The MiningSchema is the Gate Keeper for its model element. All data entering a model must pass through the MiningSchema.
  * Each model element contains one MiningSchema which lists fields as used in that model. While the MiningSchema contains information

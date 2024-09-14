@@ -46,16 +46,31 @@ class TreeModel(
   /** Model element type. */
   override def modelElement: ModelElement = ModelElement.TreeModel
 
+  // Optimize the ensemble tree model, ignore the data prepare if it's identical to the parent model
+  private val ignoreDataPrepare = if (isSubModel && localTransformations.isEmpty) {
+    var ignore = true
+    var i = 0
+    val miningSchemaParent = parent.miningSchema
+    val len = miningSchema.inputMiningFields.length
+    while (i < len && ignore) {
+      val mf = miningSchema.inputMiningFields(i)
+      if (!mf.isDefault) {
+        val mfParent = miningSchemaParent.get(mf.name)
+        if (mfParent.isDefined && mf != mfParent.get) {
+          ignore = false
+        }
+      }
+      i += 1
+    }
+    ignore
+  } else false
+
   /** Predicts values for a given data series using the model loaded. */
   override def predict(values: Series): Series = {
-    val (series, returnInvalid) = prepare(values)
+    val (series, returnInvalid) = if (ignoreDataPrepare) (values, false) else prepare(values)
     if (returnInvalid) {
       return nullSeries
     }
-
-    import MissingValueStrategy._
-    import NoTrueChildStrategy._
-    import Predication._
 
     val outputs = createOutputs()
 
@@ -66,24 +81,24 @@ class TreeModel(
     var done = false
     while (!done && selected.isSplit) {
       var child: Node = null
-      var r = FALSE
+      var r = Predication.FALSE
       var hit = false
       var unknown = false
       var i = 0
       while (i < selected.children.length && !hit) {
         val c = selected.children(i)
         c.eval(series) match {
-          case TRUE      => {
-            r = TRUE
+          case Predication.TRUE      => {
+            r = Predication.TRUE
             child = c
             hit = true
           }
-          case SURROGATE => {
-            r = SURROGATE
+          case Predication.SURROGATE => {
+            r = Predication.SURROGATE
             child = c
             hit = true
           }
-          case UNKNOWN   => {
+          case Predication.UNKNOWN   => {
             unknown = true
           }
           case _         =>
@@ -92,26 +107,26 @@ class TreeModel(
       }
 
       if (!hit) {
-        r = if (unknown) UNKNOWN else FALSE
+        r = if (unknown) Predication.UNKNOWN else Predication.FALSE
       }
 
-      if (r == SURROGATE) {
+      if (r == Predication.SURROGATE) {
         numMissingCount += 1
       }
 
-      if (r == UNKNOWN) {
+      if (r == Predication.UNKNOWN) {
         missingValueStrategy match {
-          case `lastPrediction`     => {
+          case MissingValueStrategy.`lastPrediction`     => {
             finalNode = Some(selected)
             done = true
           }
-          case `nullPrediction`     =>
+          case MissingValueStrategy.`nullPrediction`     =>
             done = true
-          case `defaultChild`       => {
+          case MissingValueStrategy.`defaultChild`       => {
             child = selected.defaultChildNode.orNull
             numMissingCount += 1
           }
-          case `weightedConfidence` => if (isClassification) {
+          case MissingValueStrategy.`weightedConfidence` => if (isClassification) {
             val total = selected.recordCount.getOrElse(Double.NaN)
             val candidates = selected.children.filter { x => x.eval(series) == UNKNOWN }
             var max = 0.0
@@ -130,7 +145,7 @@ class TreeModel(
 
             done = true
           }
-          case `aggregateNodes`     => if (isClassification) {
+          case MissingValueStrategy.`aggregateNodes`     => if (isClassification) {
             val leaves = mutable.HashSet.empty[Node]
             traverseLeaves(selected, series, leaves)
             if (leaves.nonEmpty) {
@@ -157,15 +172,15 @@ class TreeModel(
 
             done = true
           }
-          case `none`               =>
+          case MissingValueStrategy.`none`               =>
         }
       }
 
       // Handling the situation where scoring cannot continue
       if (child == null && outputs.predictedValue == null) {
         noTrueChildStrategy match {
-          case `returnNullPrediction` => done = true
-          case `returnLastPrediction` => {
+          case NoTrueChildStrategy.`returnNullPrediction` => done = true
+          case NoTrueChildStrategy.`returnLastPrediction` => {
             finalNode = Some(selected)
             done = true
           }

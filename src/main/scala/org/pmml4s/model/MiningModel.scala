@@ -103,14 +103,15 @@ class MiningModel(
     // Segmentation
     if (isSegmentation) {
       val seg = segmentation.get
+      val segments = seg.segments
       import MissingPredictionTreatment._
       seg.multipleModelMethod match {
         case `selectFirst` => {
-          val first = seg.segments.find(x => Predication.fire(x.eval(series)))
+          val first = segments.find(x => Predication.fire(x.eval(series)))
           if (first.isDefined) first.get.predict(series) else nullSeries
         }
         case `selectAll`   => {
-          val all = seg.segments.map(x => if (Predication.fire(x.eval(series))) x.predict(series) else
+          val all = segments.map(x => if (Predication.fire(x.eval(series))) x.predict(series) else
             x.model.nullSeries)
           Series.merge(all)
         }
@@ -118,7 +119,9 @@ class MiningModel(
           var last: Series = nullSeries
           var lastOutputFields: Array[OutputField] = Array.empty
           var in = series
-          for (segment <- seg.segments) {
+          var i = 0
+          while (i < segments.length) {
+            val segment = segments(i)
             val out = if (Predication.fire(segment.eval(in))) {
               last = segment.predict(in)
               lastOutputFields = segment.model.outputFields
@@ -128,6 +131,7 @@ class MiningModel(
             }
             segment.id.foreach(x => if (segmentOutputs.contains(x)) outputs.putSegment(x, out))
             in = Series.merge(in, out)
+            i += 1
           }
 
           if (output.isDefined) {
@@ -151,7 +155,7 @@ class MiningModel(
           } else last
         }
         case method        => {
-          val selections = seg.segments.filter(x => Predication.fire(x.eval(series)))
+          val selections = segments.filter(x => Predication.fire(x.eval(series)))
           if (selections.isEmpty) return nullSeries
 
           if (isRegression || ((isClassification || isClustering) && (method == majorityVote || method == weightedMajorityVote))) {
@@ -181,7 +185,7 @@ class MiningModel(
               val realPredictions = predictions.map(_.asInstanceOf[Double])
               outputs.predictedValue = method match {
                 case `average`         => {
-                  realPredictions.sum / realPredictions.size.toDouble
+                  realPredictions.sum / realPredictions.length.toDouble
                 }
                 case `weightedAverage` => {
                   MathUtils.product(realPredictions, weights) / weights.sum
@@ -202,7 +206,7 @@ class MiningModel(
               // in some cases, the probabilities could all become 0 if both data types not match.
               val dataTypeWanted = if (classes.nonEmpty) Utils.inferDataType(classes(0)) else UnresolvedDataType
               val probabilities = Utils.reduceByKey(predictions.zip(weights)).map(x =>
-                (Utils.toVal(x._1, dataTypeWanted), x._2 / predictions.size)).withDefaultValue(0.0)
+                (Utils.toVal(x._1, dataTypeWanted), x._2 / predictions.length)).withDefaultValue(0.0)
               outputs.setProbabilities(classes.map(x => (x, probabilities(x))).toMap).evalPredictedValueByProbabilities()
             }
           } else if (isClassification) {
@@ -235,7 +239,7 @@ class MiningModel(
             val matrix = probabilities.transpose
             outputs.probabilities = method match {
               case `average`         => {
-                classes.zip(matrix.map(_.sum / selections.size)).toMap
+                classes.zip(matrix.map(_.sum / selections.length)).toMap
               }
               case `weightedAverage` => {
                 val sum = weights.sum
@@ -245,7 +249,7 @@ class MiningModel(
                 evalPredictedValue = false
                 outputs.predictedValue = classes.zip(matrix.map(_.max)).maxBy(_._2)
                 val contributions = probabilities.filter(x => classes.zip(x).maxBy(_._2)._1 == outputs.predictedValue)
-                classes.zip(contributions.transpose.map(_.sum / contributions.size)).toMap
+                classes.zip(contributions.transpose.map(_.sum / contributions.length)).toMap
               }
               case `median`          => {
                 classes.zip(matrix.map(x => MathUtils.median(x))).toMap
@@ -269,12 +273,16 @@ class MiningModel(
     }
   }
 
+
   /** Returns the field of a given name, None if a field with the given name does not exist. */
   override def getField(name: String): Option[Field] = {
     if (isSegmentation && segmentation.get.multipleModelMethod == MultipleModelMethod.modelChain) {
-      for (segment <- segmentation.get.segments) {
+      var i = 0
+      while (i < segmentation.get.segments.length) {
+        val segment = segmentation.get.segments(i)
         val f = segment.model.output.flatMap(_.getField(name))
         if (f.isDefined) return f
+        i += 1
       }
     }
 

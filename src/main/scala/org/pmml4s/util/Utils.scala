@@ -146,7 +146,7 @@ object Utils {
 
   def nonMissing(value: Any): Boolean = !isMissing(value)
 
-  def isMissing(value: Double): Boolean = value != value
+  @inline def isMissing(value: Double): Boolean = value != value
 
   def nonMissing(value: Double): Boolean = value == value
 

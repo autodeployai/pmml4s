@@ -328,7 +328,7 @@ abstract class Model extends HasParent
           } else false
 
           newValues(idx) = if (missing) {
-            if (mf.missingValueTreatment == Some(MissingValueTreatment.returnInvalid)) {
+            if (mf.missingValueTreatment.contains(MissingValueTreatment.returnInvalid)) {
               return (series, true)
             }
 

@@ -23,6 +23,9 @@ scalacOptions := Seq(
 ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((2, scalaMajor)) if scalaMajor <= 11 => Seq.empty
   case _ => Seq(
+    "-optimize",
+    "-opt:box-unbox",
+    "-opt:l:method",
     "-opt:l:inline",
     "-opt-inline-from:**"
   )
@@ -30,9 +33,9 @@ scalacOptions := Seq(
 
 scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
-scalaVersion := "2.12.15"
+scalaVersion := "2.12.18"
 
-crossScalaVersions := Seq("2.12.15", "2.11.12", "2.13.8", "3.1.3")
+crossScalaVersions := Seq("2.12.18", "2.11.12", "2.13.14", "3.1.3")
 
 libraryDependencies ++= {
   Seq(
