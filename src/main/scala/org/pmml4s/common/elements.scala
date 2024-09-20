@@ -17,6 +17,7 @@ package org.pmml4s.common
 
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.model.Model
+import org.pmml4s.util.StringUtils
 
 import scala.collection.immutable
 
@@ -27,7 +28,7 @@ trait HasVersion {
   def version: String = parent.version
 
   /** Returns PMML version as a double value */
-  def dVersion: Double = version.toDouble
+  def dVersion: Double = StringUtils.asDouble(version)
 }
 
 case class Extension(extender: Option[String], name: Option[String], value: Option[Any], content: Option[Any])
@@ -57,7 +58,7 @@ trait PmmlElement extends HasExtensions with Serializable
 class Application(
                    val name: String,
                    val version: Option[String]) extends PmmlElement {
-  override def toString = if (version.isDefined) (name + " " + version.get) else name
+  override def toString: String = if (version.isDefined) (name + " " + version.get) else name
 }
 
 /**

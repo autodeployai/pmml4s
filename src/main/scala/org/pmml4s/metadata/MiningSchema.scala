@@ -16,6 +16,7 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.common.{OpType, PmmlElement}
+import org.pmml4s.data.DataVal
 import org.pmml4s.model.Model
 import org.pmml4s.util.Utils
 
@@ -139,14 +140,14 @@ case class MiningField(
                         val outliers: OutlierTreatmentMethod = OutlierTreatmentMethod.asIs,
                         val lowValue: Option[Double] = None,
                         val highValue: Option[Double] = None,
-                        val missingValueReplacement: Option[Any] = None,
+                        val missingValueReplacement: Option[DataVal] = None,
                         val missingValueTreatment: Option[MissingValueTreatment] = None,
                         val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid,
-                        val invalidValueReplacement: Option[Any] = None)
+                        val invalidValueReplacement: Option[DataVal] = None)
   extends HasUsageType with PmmlElement {
 
   /* Checks if the mining field has any value preprocess operations defined. */
-  def isDefault: Boolean = (outliers == OutlierTreatmentMethod.asIs &&
+  val isDefault: Boolean = (outliers == OutlierTreatmentMethod.asIs &&
     missingValueReplacement.isEmpty &&
     !missingValueTreatment.contains(MissingValueTreatment.returnInvalid) &&
     invalidValueTreatment == InvalidValueTreatment.returnInvalid &&

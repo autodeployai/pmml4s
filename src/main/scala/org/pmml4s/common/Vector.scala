@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2024 AutoDeploy AI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ trait Vector[@specialized(Int, Long, Float, Double) V] extends java.io.Serializa
 
   def length: Int = size
 
-  def toArray(implicit cm: ClassTag[V]) = {
+  def toArray(implicit cm: ClassTag[V]): Array[V] = {
     val result = new Array[V](length)
     var i = 0
     while (i < length) {

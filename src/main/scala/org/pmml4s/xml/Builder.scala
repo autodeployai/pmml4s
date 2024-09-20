@@ -17,10 +17,11 @@ package org.pmml4s.xml
 
 import org.pmml4s._
 import org.pmml4s.common._
+import org.pmml4s.data.DataVal
 import org.pmml4s.metadata._
 import org.pmml4s.model.Model
 import org.pmml4s.transformations.{BuiltInFunctions, Expression, LocalTransformations}
-import org.pmml4s.util.{ArrayUtils, Utils}
+import org.pmml4s.util.{ArrayUtils, StringUtils, Utils}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -112,13 +113,14 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     if (name != null) getField(name) else None
   }
 
-  def verifyScore(s: String): Any = {
+  def verifyScore(s: String): DataVal = {
+    val input = DataVal.from(s)
     if (attributes.isClassification) {
       // Check its parent target that may be different from anonymous target of the child model.
       val t = getTarget
       t.map(x => verifyValue(s, x)).getOrElse({
         // Check the parent target carefully
-        var result: Any = s
+        var result: DataVal = input
         if (parent != null && parent.targetField != null && parent.targetField.isCategorical) {
           val transformedValue = parent.targetField.toVal(s)
           if (parent.targetField.isValidValue(transformedValue)) {
@@ -129,8 +131,8 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         result
       })
     } else if (attributes.isRegression) {
-      toVal(s, RealType)
-    } else s
+      toDataVal(s, RealType)
+    } else input
   }
 
   override def getFunction(name: String): Option[transformations.Function] = {
@@ -211,12 +213,12 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         val targetField = attrs.get(AttrTags.TARGET_FIELD)
         val isFinalResult = attrs.getBoolean(AttrTags.IS_FINAL_RESULT, true)
         val value = attrs.get(AttrTags.VALUE).map(x => if (feature == ResultFeature.probability) {
-          var t = targetField.flatMap(getField(_)).getOrElse(target)
+          var t = targetField.flatMap(getField).getOrElse(target)
           if (t == null && parent != null && parent.targetField != null && parent.targetField.isCategorical) {
             t = parent.targetField
           }
-          if (t != null) t.toVal(x) else x
-        } else x)
+          if (t != null) t.toVal(x) else DataVal.from(x)
+        } else DataVal.from(x))
         val ruleFeature = attrs.get(AttrTags.RULE_FEATURE) map { x => RuleFeature.withName(x) } getOrElse RuleFeature
           .consequent
         val algorithm = attrs.get(AttrTags.ALGORITHM) map { x => Algorithm.withName(x) } getOrElse Algorithm
@@ -277,7 +279,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
 
         val targetValues = makeElems(reader, ElemTags.TARGET, ElemTags.TARGET_VALUE, new ElemBuilder[TargetValue] {
           def build(reader: XMLEventReader, attrs: XmlAttrs): TargetValue = {
-            val value = attrs.get(AttrTags.VALUE)
+            val value = attrs.get(AttrTags.VALUE).map(DataVal.from)
             val displayValue = attrs.get(AttrTags.DISPLAY_VALUE)
             val priorProbability = attrs.getDouble(AttrTags.PRIOR_PROBABILITY)
             val defaultValue = attrs.getDouble(AttrTags.DEFAULT_VALUE)
@@ -319,7 +321,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
               // normal values, not need to encode them
               if (f.isContinuous || f.isReal) {
                 // Not validate the value
-                Utils.toDouble(f.toVal(attrs(AttrTags.VALUE)))
+                Utils.toDouble(attrs(AttrTags.VALUE))
               } else {
                 f.encode(f.toVal(attrs(AttrTags.VALUE)))
               }
@@ -350,7 +352,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
                 override def build(reader: XMLEventReader, attrs: XmlAttrs): Array[_] =
                   makeArray(reader, attrs)
               })
-            val values = array.get.map(x => f.encode(x)).toSet
+            val values = array.get.map(x => f.encode(Utils.toDataVal(x, f.dataType))).toSet
 
             new SimpleSetPredicate(f, booleanOperator, values)
           }
@@ -418,7 +420,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
       case `real`   => {
         val result = new Array[Double](a.size)
         for (i <- 0 until a.size) {
-          result(i) = a(i).toDouble
+          result(i) = StringUtils.asDouble(a(i))
         }
         result
       }

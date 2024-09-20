@@ -17,18 +17,18 @@ package org.pmml4s.metadata
 
 import org.pmml4s.common.Interval
 import org.pmml4s.util.Utils
-
 import org.scalatest._
 import funsuite._
+import org.pmml4s.data.DataVal
 
 class AttributeTest extends AnyFunSuite {
 
   test("Categorical attribute with predefined values") {
     val catAttr = CategoricalAttribute(
-      values=Array("VALID1", "VALID2"),
-      invalidVals=Set("INVALID1", "INVALID2"),
-      missingVals=Set("MISSING1", "MISSING2"),
-      labels=Map("VALID1" -> "LABEL1", "VALID2" -> "LABEL2")
+      values=DataVal.from(Array("VALID1", "VALID2")),
+      invalidVals=DataVal.from(Set("INVALID1", "INVALID2")),
+      missingVals=DataVal.from(Set("MISSING1", "MISSING2")),
+      labels=Map(DataVal.from("VALID1") -> "LABEL1", DataVal.from("VALID2") -> "LABEL2")
     )
 
     // valid values
@@ -79,8 +79,8 @@ class AttributeTest extends AnyFunSuite {
   test("Categorical attribute without predefined values") {
     val catAttr = CategoricalAttribute(
       values=Array.empty,
-      invalidVals=Set("INVALID1", "INVALID2"),
-      missingVals=Set("MISSING1", "MISSING2"),
+      invalidVals=Set("INVALID1", "INVALID2").map(DataVal.from),
+      missingVals=Set("MISSING1", "MISSING2").map(DataVal.from),
       labels=Map.empty
     )
 
@@ -125,9 +125,9 @@ class AttributeTest extends AnyFunSuite {
   test("Immutable categorical attribute without predefined values") {
     val catAttr = new ImmutableCategoricalAttribute(
       validValues=Array.empty,
-      invalidValues=Set("INVALID1", "INVALID2"),
-      missingValues=Set("MISSING1", "MISSING2"),
-      labels=Map("VALID1" -> "LABEL1", "VALID2" -> "LABEL2")
+      invalidValues=Set("INVALID1", "INVALID2").map(DataVal.from),
+      missingValues=Set("MISSING1", "MISSING2").map(DataVal.from),
+      labels=Map(DataVal.from("VALID1") -> "LABEL1", DataVal.from("VALID2") -> "LABEL2")
     )
 
     // valid values
@@ -170,7 +170,7 @@ class AttributeTest extends AnyFunSuite {
   }
 
   test("Continuous attribute with an interval and discrete missing values") {
-    val contAttr = ContinuousAttribute(Interval.closed(0, 100), Set(-999, 999))
+    val contAttr = ContinuousAttribute(Interval.closed(0, 100), Set(-999, 999).map(DataVal.from))
 
     // valid values
     assert(!contAttr.isValidValue(null))
@@ -220,9 +220,9 @@ class AttributeTest extends AnyFunSuite {
   test("Continuous attribute with discrete valid values") {
     val contAttr = ContinuousAttribute(
       intervals = Array.empty,
-      values = Array(1, 2, 3),
+      values = Array(1, 2, 3).map(DataVal.from),
       invalidVals = Set.empty,
-      missingVals = Set(-999, 999),
+      missingVals = Set(-999, 999).map(DataVal.from),
       labels= Map.empty
     )
 
@@ -275,8 +275,8 @@ class AttributeTest extends AnyFunSuite {
     val contAttr = ContinuousAttribute(
       intervals = Array.empty,
       values = Array.empty,
-      invalidVals = Set(-100, 100),
-      missingVals = Set(-999, 999),
+      invalidVals = Set(-100, 100).map(DataVal.from),
+      missingVals = Set(-999, 999).map(DataVal.from),
       labels= Map.empty
     )
 

@@ -32,8 +32,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #1 - Cracker, Coke
     {
-      val r_1 = model.predict(Series("1", "Cracker"))
-      val r = model.predict(Series("1", "Coke"))
+      val r_1 = model.predict(Array("1", "Cracker"))
+      val r = model.predict(Array("1", "Coke"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -44,8 +44,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #2 - Cracker, Water
     {
-      val r_1 = model.predict(Series("2", "Cracker"))
-      val r = model.predict(Series("2", "Water"))
+      val r_1 = model.predict(Array("2", "Cracker"))
+      val r = model.predict(Array("2", "Water"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -59,8 +59,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #3 - Water, Coke
     {
-      val r_1 = model.predict(Series("3", "Water"))
-      val r = model.predict(Series("3", "Coke"))
+      val r_1 = model.predict(Array("3", "Water"))
+      val r = model.predict(Array("3", "Coke"))
       assert(r(0) === "Water -> Cracker")
       assert(r(1) === "Cracker")
       assert(r(2) === "2")
@@ -71,9 +71,9 @@ class AssociationModelTest extends BaseModelTest {
 
     // #4 - Cracker, Water, Coke
     {
-      val r_1 = model.predict(Series("4", "Cracker"))
-      val r_2 = model.predict(Series("4", "Water"))
-      val r = model.predict(Series("4", "Coke"))
+      val r_1 = model.predict(Array("4", "Cracker"))
+      val r_2 = model.predict(Array("4", "Water"))
+      val r = model.predict(Array("4", "Coke"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -87,10 +87,10 @@ class AssociationModelTest extends BaseModelTest {
 
     // #5 - Cracker, Water, Banana, Apple
     {
-      val r_1 = model.predict(Series("5", "Cracker"))
-      val r_2 = model.predict(Series("5", "Water"))
-      val r_3 = model.predict(Series("5", "Banana"))
-      val r = model.predict(Series("5", "Apple"))
+      val r_1 = model.predict(Array("5", "Cracker"))
+      val r_2 = model.predict(Array("5", "Water"))
+      val r_3 = model.predict(Array("5", "Banana"))
+      val r = model.predict(Array("5", "Apple"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -113,8 +113,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #1 - Cracker, Coke
     {
-      val r_1 = model.predict(Series("1", "Cracker"))
-      val r = model.predict(Series("1", "Coke"))
+      val r_1 = model.predict(Array("1", "Cracker"))
+      val r = model.predict(Array("1", "Coke"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -122,8 +122,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #2 - Cracker, Water
     {
-      val r_1 = model.predict(Series("2", "Cracker"))
-      val r = model.predict(Series("2", "Water"))
+      val r_1 = model.predict(Array("2", "Cracker"))
+      val r = model.predict(Array("2", "Water"))
       assert(r(0) === "Cracker -> Coke")
       assert(r(1) === "Coke")
       assert(r(2) === "3")
@@ -137,8 +137,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #3 - Water, Coke
     {
-      val r_1 = model.predict(Series("3", "Water"))
-      val r = model.predict(Series("3", "Coke"))
+      val r_1 = model.predict(Array("3", "Water"))
+      val r = model.predict(Array("3", "Coke"))
       assert(r(0) === "Water -> Cracker")
       assert(r(1) === "Cracker")
       assert(r(2) === "2")
@@ -149,9 +149,9 @@ class AssociationModelTest extends BaseModelTest {
 
     // #4 - Cracker, Water, Coke
     {
-      val r_1 = model.predict(Series("4", "Cracker"))
-      val r_2 = model.predict(Series("4", "Water"))
-      val r = model.predict(Series("4", "Coke"))
+      val r_1 = model.predict(Array("4", "Cracker"))
+      val r_2 = model.predict(Array("4", "Water"))
+      val r = model.predict(Array("4", "Coke"))
       assert(r(0) === "{Cracker , Water} -> Nachos")
       assert(r(1) === "Nachos")
       assert(r(2) === "4")
@@ -162,10 +162,10 @@ class AssociationModelTest extends BaseModelTest {
 
     // #5 - Cracker, Water, Banana, Apple
     {
-      val r_1 = model.predict(Series("5", "Cracker"))
-      val r_2 = model.predict(Series("5", "Water"))
-      val r_3 = model.predict(Series("5", "Banana"))
-      val r = model.predict(Series("5", "Apple"))
+      val r_1 = model.predict(Array("5", "Cracker"))
+      val r_2 = model.predict(Array("5", "Water"))
+      val r_3 = model.predict(Array("5", "Banana"))
+      val r = model.predict(Array("5", "Apple"))
       assert(r(0) === "Cracker -> Coke")
       assert(r(1) === "Coke")
       assert(r(2) === "3")
@@ -188,8 +188,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #1 - Cracker, Coke
     {
-      val r_1 = model.predict(Series("1", "Cracker"))
-      val r = model.predict(Series("1", "Coke"))
+      val r_1 = model.predict(Array("1", "Cracker"))
+      val r = model.predict(Array("1", "Coke"))
       assert(r(0) === "Cracker -> Coke")
       assert(r(1) === "Coke")
       assert(r(2) === "3")
@@ -197,8 +197,8 @@ class AssociationModelTest extends BaseModelTest {
 
     // #2 - Cracker, Water
     {
-      val r_1 = model.predict(Series("2", "Cracker"))
-      val r = model.predict(Series("2", "Water"))
+      val r_1 = model.predict(Array("2", "Cracker"))
+      val r = model.predict(Array("2", "Water"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -209,16 +209,16 @@ class AssociationModelTest extends BaseModelTest {
 
     // #3 - Water, Coke
     {
-      val r_1 = model.predict(Series("3", "Water"))
-      val r = model.predict(Series("3", "Coke"))
+      val r_1 = model.predict(Array("3", "Water"))
+      val r = model.predict(Array("3", "Coke"))
       assert(r(0) === null)
     }
 
     // #4 - Cracker, Water, Coke
     {
-      val r_1 = model.predict(Series("4", "Cracker"))
-      val r_2 = model.predict(Series("4", "Water"))
-      val r = model.predict(Series("4", "Coke"))
+      val r_1 = model.predict(Array("4", "Cracker"))
+      val r_2 = model.predict(Array("4", "Water"))
+      val r = model.predict(Array("4", "Coke"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")
@@ -232,10 +232,10 @@ class AssociationModelTest extends BaseModelTest {
 
     // #5 - Cracker, Water, Banana, Apple
     {
-      val r_1 = model.predict(Series("5", "Cracker"))
-      val r_2 = model.predict(Series("5", "Water"))
-      val r_3 = model.predict(Series("5", "Banana"))
-      val r = model.predict(Series("5", "Apple"))
+      val r_1 = model.predict(Array("5", "Cracker"))
+      val r_2 = model.predict(Array("5", "Water"))
+      val r_3 = model.predict(Array("5", "Banana"))
+      val r = model.predict(Array("5", "Apple"))
       assert(r(0) === "Cracker -> Water")
       assert(r(1) === "Water")
       assert(r(2) === "1")

@@ -15,6 +15,7 @@
  */
 package org.pmml4s.common
 
+import org.pmml4s.data.DataVal
 import org.pmml4s.util.Utils
 import org.pmml4s.xml.ValTags
 
@@ -24,7 +25,7 @@ import org.pmml4s.xml.ValTags
 sealed abstract class DataType extends DataTypeLike {
   def dataType: DataType = this
 
-  def toVal(s: String): Any = Utils.toVal(s, this)
+  def toVal(s: String): DataVal = Utils.toDataVal(s, this)
 }
 
 /**
@@ -140,7 +141,7 @@ case object DateTimeType extends DateTimeType
  * since midnight. The time 00:00 is represented by the number 0. No negative values are allowed.
  */
 class TimeSecondsType private() extends TimeType {
-  override def toString = ValTags.TIMESECONDS
+  override def toString: String = ValTags.TIMESECONDS
 }
 
 case object TimeSecondsType extends TimeSecondsType
@@ -156,10 +157,10 @@ case class DateDaySinceYearType(aYear: Int) extends DateType {
 }
 
 case object DateDaySinceYearType {
-  val DateDaySinceYear0Type = DateDaySinceYearType(0)
-  val DateDaySinceYear1960Type = DateDaySinceYearType(1960)
-  val DateDaySinceYear1970Type = DateDaySinceYearType(1970)
-  val DateDaySinceYear1980Type = DateDaySinceYearType(1980)
+  val DateDaySinceYear0Type: DateDaySinceYearType = DateDaySinceYearType(0)
+  val DateDaySinceYear1960Type: DateDaySinceYearType = DateDaySinceYearType(1960)
+  val DateDaySinceYear1970Type: DateDaySinceYearType = DateDaySinceYearType(1970)
+  val DateDaySinceYear1980Type: DateDaySinceYearType = DateDaySinceYearType(1980)
 }
 
 /**
@@ -174,10 +175,10 @@ case class DateTimeSecondSinceYearType(aYear: Int) extends DateTimeType {
 }
 
 case object DateTimeSecondSinceYearType {
-  val DateTimeSecondSinceYear0Type = DateTimeSecondSinceYearType(0)
-  val DateTimeSecondSinceYear1960Type = DateTimeSecondSinceYearType(1960)
-  val DateTimeSecondSinceYear1970Type = DateTimeSecondSinceYearType(1970)
-  val DateTimeSecondSinceYear1980Type = DateTimeSecondSinceYearType(1980)
+  val DateTimeSecondSinceYear0Type: DateTimeSecondSinceYearType = DateTimeSecondSinceYearType(0)
+  val DateTimeSecondSinceYear1960Type: DateTimeSecondSinceYearType = DateTimeSecondSinceYearType(1960)
+  val DateTimeSecondSinceYear1970Type: DateTimeSecondSinceYearType = DateTimeSecondSinceYearType(1970)
+  val DateTimeSecondSinceYear1980Type: DateTimeSecondSinceYearType = DateTimeSecondSinceYearType(1980)
 }
 
 /**

@@ -17,32 +17,38 @@ package org.pmml4s.data
 
 import org.pmml4s.common.{Clearable, StructType}
 
+import scala.reflect.ClassTag
+
 /**
  * A basic trait allows the values for each column to be updated.
  */
 trait MutableSeries extends Series with Clearable with java.io.Serializable {
   def setNullAt(i: Int): Unit
 
-  def update(i: Int, value: Any): Unit
+  def update(i: Int, value: DataVal): Unit
+
+  def update(i: Int, value: String): Unit = {
+    update(i, DataVal.from(value))
+  }
 
   def setBoolean(i: Int, value: Boolean): Unit = {
-    update(i, value)
+    update(i, DataVal.from(value))
   }
 
   def setInt(i: Int, value: Int): Unit = {
-    update(i, value)
+    update(i, DataVal.from(value))
   }
 
   def setLong(i: Int, value: Long): Unit = {
-    update(i, value)
+    update(i, DataVal.from(value))
   }
 
   def setFloat(i: Int, value: Float): Unit = {
-    update(i, value)
+    update(i, DataVal.from(value))
   }
 
   def setDouble(i: Int, value: Double): Unit = {
-    update(i, value)
+    update(i, DataVal.from(value))
   }
 
   def toSeries: Series
@@ -56,37 +62,41 @@ trait MutableSeries extends Series with Clearable with java.io.Serializable {
   }
 }
 
-class GenericMutableSeries(values: Array[Any]) extends MutableSeries {
+class GenericMutableSeries(values: Array[DataVal]) extends MutableSeries {
   /** No-arg constructor for serialization. */
   protected def this() = this(null)
 
-  def this(size: Int) = this(new Array[Any](size))
+  def this(size: Int) = this(new Array[DataVal](size))
 
   override def setNullAt(i: Int): Unit = {
-    values(i) = null
+    values(i) = DataVal.NULL
   }
 
-  override def update(i: Int, value: Any): Unit = {
+  override def update(i: Int, value: DataVal): Unit = {
     values(i) = value
   }
 
-  override def length: Int = values.length
+  override val length: Int = values.length
 
-  override def get(i: Int): Any = values(i)
+  override def get(i: Int): DataVal = values(i)
 
-  override def toSeq: Seq[Any] = values.toSeq
+  override def toArray: Array[DataVal] = values.clone()
 
   override def copy(): GenericSeries = new GenericSeries(values.clone())
 
   override def toSeries: Series = new GenericSeries(values)
+
+  override def clear(): Unit = {
+    java.util.Arrays.fill(values.asInstanceOf[Array[java.lang.Object]], DataVal.NULL)
+  }
 }
 
-class GenericMutableSeriesWithSchema(values: Array[Any], override val schema: StructType) extends GenericMutableSeries(values) {
+class GenericMutableSeriesWithSchema(values: Array[DataVal], override val schema: StructType) extends GenericMutableSeries(values) {
 
   /** No-arg constructor for serialization. */
   protected def this() = this(null, null)
 
-  def this(size: Int, schema: StructType) = this(new Array[Any](size), schema)
+  def this(size: Int, schema: StructType) = this(new Array[DataVal](size), schema)
 
   override def fieldIndex(name: String): Int = schema.fieldIndex(name)
 

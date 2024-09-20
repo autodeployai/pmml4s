@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.{Evaluator, PmmlElement}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, DoubleVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.util.ArrayUtils
 import org.pmml4s.xml.ElemTags._
@@ -27,17 +27,19 @@ import org.pmml4s.xml.ElemTags._
 trait Expression extends Evaluator with PmmlElement {
 
   /** Returns the result of evaluating this expression on a given input Series */
-  override def eval(series: Series): Any
+  override def eval(series: Series): DataVal
 
-  def eval(value: Any): Any = new UnsupportedOperationException("Can not support to evaluate of a single value.")
+  def eval(value: DataVal): DataVal =
+    throw new UnsupportedOperationException("Can not support to evaluate of a single value.")
 
-  def deeval(value: Any): Any = new UnsupportedOperationException("Can not support de-normalized operation.")
+  def deeval(value: DataVal): DataVal =
+    throw new UnsupportedOperationException("Can not support de-normalized operation.")
 
   def children: Array[Expression]
 
   def getDataField: Option[Field]
 
-  def categories: Array[Any] = ArrayUtils.emptyAnyArray
+  def categories: Array[DataVal] = ArrayUtils.emptyDataValArray
 }
 
 trait LeafExpression extends Expression {
@@ -54,7 +56,7 @@ trait FieldExpression extends UnaryExpression {
 
   def field: Field
 
-  override def eval(series: Series): Any = {
+  override def eval(series: Series): DataVal = {
     field.get(series)
   }
 
@@ -66,13 +68,13 @@ trait FieldExpression extends UnaryExpression {
 }
 
 trait NumericFieldExpression extends FieldExpression {
-  override def eval(series: Series): Double = {
-    field.getDouble(series)
+  override def eval(series: Series): DoubleVal = {
+    field.getDoubleVal(series)
   }
 }
 
 object Expression {
-  val values = Set(CONSTANT, FIELD_REF, NORM_CONTINUOUS, NORM_DISCRETE, DISCRETIZE, MAP_VALUES, TEXT_INDEX, APPLY, AGGREGATE, LAG)
+  val values: Set[String] = Set(CONSTANT, FIELD_REF, NORM_CONTINUOUS, NORM_DISCRETE, DISCRETIZE, MAP_VALUES, TEXT_INDEX, APPLY, AGGREGATE, LAG)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }

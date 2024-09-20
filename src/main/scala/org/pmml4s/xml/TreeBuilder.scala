@@ -16,6 +16,7 @@
 package org.pmml4s.xml
 
 import org.pmml4s.common.{Predicate, ScoreDistribution, ScoreDistributions}
+import org.pmml4s.data.DataVal
 import org.pmml4s.model._
 
 import scala.collection.mutable
@@ -44,7 +45,7 @@ class TreeBuilder extends Builder[TreeModel] {
   private def makeNode(reader: XMLEventReader, attrs: XmlAttrs): Node = makeElem(reader, attrs, new ElemBuilder[Node] {
     def build(reader: XMLEventReader, attrs: XmlAttrs): Node = {
       val id: Option[String] = attrs.get(AttrTags.ID)
-      val score: Option[Any] = attrs.get(AttrTags.SCORE).map(verifyScore(_))
+      val score: Option[DataVal] = attrs.get(AttrTags.SCORE).map(verifyScore)
       val recordCount: Option[Double] = attrs.getDouble(AttrTags.RECORD_COUNT)
       val defaultChild: Option[String] = attrs.get(AttrTags.DEFAULT_CHILD)
 

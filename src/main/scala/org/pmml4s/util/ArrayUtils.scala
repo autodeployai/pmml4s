@@ -15,6 +15,8 @@
  */
 package org.pmml4s.util
 
+import org.pmml4s.data.DataVal
+
 import scala.reflect.ClassTag
 
 /**
@@ -24,12 +26,13 @@ object ArrayUtils {
   val emptyAnyRefArray = new Array[AnyRef](0)
   val emptyAnyArray = new Array[Any](0)
   val emptyStringArray: Array[String] = new Array[String](0)
+  val emptyDataValArray: Array[DataVal] = new Array[DataVal](0)
 
   def toDouble(a: Array[String]): Array[Double] = {
     val res = new Array[Double](a.length)
     var i = 0
     while (i < a.length) {
-      res(i) = a(i).toDouble
+      res(i) = StringUtils.asDouble(a(i))
       i += 1
     }
     res

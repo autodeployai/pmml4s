@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.pmml4s.model
 import org.pmml4s.common.CompareFunction.CompareFunction
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata._
 import org.pmml4s.model.ModelClass.ModelClass
 import org.pmml4s.transformations.LocalTransformations
@@ -101,14 +101,14 @@ class ClusteringModel(
     val (id, name, affinities) = comparisonMeasure.kind match {
       case ComparisonMeasureKind.distance   => {
         var min = Double.PositiveInfinity
-        var selected: String = null
+        var selected: DataVal = null
         var name: Option[String] = None
-        val distances = mutable.Map.empty[String, Double]
+        val distances = mutable.Map.empty[DataVal, Double]
         var i = 0
         while (i < clusters.length) {
           val distance = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
             adjustM, similarityScales)
-          val id = clusters(i).id.getOrElse("" + (i + 1))
+          val id = clusters(i).id.getOrElse(DataVal.from("" + (i + 1)))
           if (distance < min) {
             min = distance
             selected = id
@@ -121,14 +121,14 @@ class ClusteringModel(
       }
       case ComparisonMeasureKind.similarity => {
         var max = Double.NegativeInfinity
-        var selected: String = null
+        var selected: DataVal = null
         var name: Option[String] = None
-        val similarities = mutable.Map.empty[String, Double]
+        val similarities = mutable.Map.empty[DataVal, Double]
         var i = 0
         while (i < clusters.length) {
           val similarity = dis.distance(nonMissingIdx, compareFunctions, xs, clusters(i).array.get, weights,
             adjustM, similarityScales)
-          val id = clusters(i).id.getOrElse("" + (i + 1))
+          val id = clusters(i).id.getOrElse(DataVal.from("" + (i + 1)))
           if (similarity > max) {
             max = similarity
             selected = id
@@ -206,7 +206,7 @@ class Comparisons(val matrix: Matrix) extends PmmlElement
  * contain a center vector as well as statistics. The attribute modelClass in the ClusteringModel defines which one is
  * used to actually define the cluster.
  */
-class Cluster(val id: Option[String] = None,
+class Cluster(val id: Option[DataVal] = None,
               val name: Option[String] = None,
               val size: Option[Int] = None,
               val kohonenMap: Option[KohonenMap] = None,
@@ -273,5 +273,7 @@ class ClusteringAttributes(
   }
 }
 
-class ClusteringOutputs extends CluOutputs
+class ClusteringOutputs extends CluOutputs {
+  override def modelElement: ModelElement = ModelElement.ClusteringModel
+}
 

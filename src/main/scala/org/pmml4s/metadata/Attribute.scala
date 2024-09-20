@@ -16,6 +16,7 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.common._
+import org.pmml4s.data.DataVal
 import org.pmml4s.metadata.AttributeType.{Categorical, Continuous, Typeless}
 import org.pmml4s.util.Utils
 
@@ -23,30 +24,36 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait HasLabels {
-  def labels: Map[Any, String]
+  def labels: Map[DataVal, String]
 
-  def getLabel(value: Any): Option[String] = labels.get(value)
+  def getLabel(value: DataVal): Option[String] = labels.get(value)
 }
 
 trait HasMissingValues {
-  def missingValues: Set[Any]
+  def missingValues: Set[DataVal]
 
-  def isMissingValue(value: Any): Boolean = isSysMissing(value) || missingValues.contains(value)
+  @inline
+  def isMissingValue(value: DataVal): Boolean =
+    value == null || value.isMissing || missingValues.contains(value)
 
-  def isSysMissing(value: Any): Boolean = Utils.isMissing(value)
+  def isMissingValue(value: Any): Boolean = isMissingValue(DataVal.from(value))
 }
 
 trait HasInvalidValues {
-  def invalidValues: Set[Any]
+  def invalidValues: Set[DataVal]
 
-  def isInvalidValue(value: Any): Boolean = invalidValues.contains(value)
+  def isInvalidValue(value: DataVal): Boolean = invalidValues.contains(value)
+
+  def isInvalidValue(value: Any): Boolean = isInvalidValue(DataVal.from(value))
 }
 
 trait HasValidValues {
   self: Attribute =>
-  def validValues: Array[Any]
+  def validValues: Array[DataVal]
 
-  def isValidValue(value: Any): Boolean = !isMissingValue(value) && !isInvalidValue(value)
+  def isValidValue(value: DataVal): Boolean = !isMissingValue(value) && !isInvalidValue(value)
+
+  def isValidValue(value: Any): Boolean = isValidValue(DataVal.from(value))
 
   def numCategories: Int = validValues.length
 
@@ -58,9 +65,11 @@ trait HasValidValues {
 }
 
 trait ValueIndexer {
-  def encode(value: Any): Double
+  def encode(value: DataVal): Double
 
-  def decode(index: Int): Any
+  def encode(value: Any): Double = encode(DataVal.from(value))
+
+  def decode(index: Int): DataVal
 }
 
 trait MutableValueIndexer extends ValueIndexer
@@ -72,9 +81,9 @@ object AttributeType {
    * Defines const variables could be used in Java.
    * Use Object.XXX() instead of Object.xxx$.MODULE$
    */
-  val CONTINUOUS = Continuous
-  val CATEGORICAL = Categorical
-  val TYPELESS = Typeless
+  val CONTINUOUS: Continuous.type = Continuous
+  val CATEGORICAL: Categorical.type = Categorical
+  val TYPELESS: Typeless.type = Typeless
 
   case object Continuous extends AttributeType
 
@@ -104,6 +113,13 @@ trait Attribute extends HasLabels
     case Categorical => validValues.map(_.toString).mkString(if (isBinary) "/" else ",")
     case Typeless    => ""
   }
+
+  // A single numeric field without any extra attributes defined.
+  def isPlain: Boolean = attrType == AttributeType.Continuous &&
+    missingValues.isEmpty &&
+    invalidValues.isEmpty &&
+    validValues.length == 0 &&
+    intervals.length == 0
 }
 
 object Attribute {
@@ -117,10 +133,10 @@ object Attribute {
 
   def apply(opType: OpType,
             intervals: Array[Interval],
-            validVals: Array[Any],
-            invalidVals: Set[Any],
-            missingVals: Set[Any],
-            labels: Map[Any, String]): Attribute = opType match {
+            validVals: Array[DataVal],
+            invalidVals: Set[DataVal],
+            missingVals: Set[DataVal],
+            labels: Map[DataVal, String]): Attribute = opType match {
     case `nominal`    => CategoricalAttribute(validVals, invalidVals, missingVals, labels)
     case `ordinal`    => CategoricalAttribute(validVals, invalidVals, missingVals, labels)
     case `continuous` => ContinuousAttribute(intervals, validVals, invalidVals, missingVals, labels)
@@ -143,39 +159,39 @@ trait MutableAttribute extends Attribute with MutableValueIndexer {
 
 class ContinuousAttribute(
                            override val intervals: Array[Interval] = Array.empty,
-                           override val validValues: Array[Any] = Array.empty,
-                           override val invalidValues: Set[Any] = Set.empty,
-                           override val missingValues: Set[Any] = Set.empty,
-                           override val labels: Map[Any, String] = Map.empty) extends Attribute with HasIntervals {
+                           override val validValues: Array[DataVal] = Array.empty,
+                           override val invalidValues: Set[DataVal] = Set.empty,
+                           override val missingValues: Set[DataVal] = Set.empty,
+                           override val labels: Map[DataVal, String] = Map.empty) extends Attribute with HasIntervals {
 
-  private val set: Set[Any] = validValues.toSet
+  private val set: Set[DataVal] = validValues.toSet
 
   def attrType: AttributeType = AttributeType.Continuous
 
-  override def isValidValue(value: Any): Boolean = if (validValues.length > 0) set.contains(value) else super.isValidValue(value)
+  override def isValidValue(value: DataVal): Boolean = if (validValues.length > 0) set.contains(value) else super.isValidValue(value)
 
-  override def isInvalidValue(value: Any): Boolean = super.isInvalidValue(value) || (!isMissingValue(value) && (if (validValues.length > 0) !set.contains(value) else !isIn(value)))
+  override def isInvalidValue(value: DataVal): Boolean = super.isInvalidValue(value) || (!isMissingValue(value) && (if (validValues.length > 0) !set.contains(value) else !isIn(value)))
 
   // We don't need to test if the specified value is invalid, because the invalid value has been handled by the preprocess operation.
   // In the predicting phase, there are only both types: missing and valid.
-  def encode(value: Any): Double = if (!isMissingValue(value)) Utils.toDouble(value) else Double.NaN
+  def encode(value: DataVal): Double = if (!isMissingValue(value)) value.toDouble else Double.NaN
 
-  def decode(index: Int): Any = throw new UnsupportedOperationException("decode is not supported by the continuous field")
+  def decode(index: Int): DataVal = throw new UnsupportedOperationException("decode is not supported by the continuous field")
 }
 
 object ContinuousAttribute {
 
-  def apply(interval: Interval, missingVals: Set[Any]=Set.empty): ContinuousAttribute =
+  def apply(interval: Interval, missingVals: Set[DataVal]=Set.empty): ContinuousAttribute =
     new ContinuousAttribute(Array(interval), missingValues=missingVals)
 
-  def apply(intervals: Array[Interval], values: Array[Any], invalidVals: Set[Any], missingVals: Set[Any], labels: Map[Any, String]) =
+  def apply(intervals: Array[Interval], values: Array[DataVal], invalidVals: Set[DataVal], missingVals: Set[DataVal], labels: Map[DataVal, String]) =
     new ContinuousAttribute(intervals, values, invalidVals, missingVals, labels)
 }
 
 abstract class CategoricalAttribute(
-                                     override val invalidValues: Set[Any] = Set.empty,
-                                     override val missingValues: Set[Any] = Set.empty,
-                                     override val labels: Map[Any, String] = Map.empty) extends Attribute {
+                                     override val invalidValues: Set[DataVal] = Set.empty,
+                                     override val missingValues: Set[DataVal] = Set.empty,
+                                     override val labels: Map[DataVal, String] = Map.empty) extends Attribute {
   def attrType: AttributeType = AttributeType.Categorical
 
   override def isBinary: Boolean = numCategories == 2
@@ -184,7 +200,7 @@ abstract class CategoricalAttribute(
 }
 
 object CategoricalAttribute {
-  def apply(values: Array[Any], invalidVals: Set[Any], missingVals: Set[Any], labels: Map[Any, String]): CategoricalAttribute =
+  def apply(values: Array[DataVal], invalidVals: Set[DataVal], missingVals: Set[DataVal], labels: Map[DataVal, String]): CategoricalAttribute =
     if (values.length == 0)
       new MutableCategoricalAttribute(invalidVals, missingVals, labels)
     else
@@ -192,41 +208,43 @@ object CategoricalAttribute {
 }
 
 class ImmutableCategoricalAttribute(
-                                     override val validValues: Array[Any],
-                                     override val invalidValues: Set[Any] = Set.empty,
-                                     override val missingValues: Set[Any] = Set.empty,
-                                     override val labels: Map[Any, String] = Map.empty
+                                     override val validValues: Array[DataVal],
+                                     override val invalidValues: Set[DataVal] = Set.empty,
+                                     override val missingValues: Set[DataVal] = Set.empty,
+                                     override val labels: Map[DataVal, String] = Map.empty
                                    ) extends CategoricalAttribute() {
-  private val map: Map[Any, Double] = validValues.zipWithIndex.map(x => (x._1, x._2.toDouble)).toMap
+  private val map: Map[DataVal, Double] = validValues.zipWithIndex.map(x => (x._1, x._2.toDouble)).toMap
 
-  override def isValidValue(value: Any): Boolean = {
+  override def isValidValue(value: DataVal): Boolean = {
     if (map.nonEmpty)
       !encode(value).isNaN
     else
       super.isValidValue(value)
   }
 
-  override def isInvalidValue(value: Any): Boolean = {
+  override def isInvalidValue(value: DataVal): Boolean = {
     super.isInvalidValue(value) || (!isMissingValue(value) && (map.nonEmpty && !map.contains(value)))
   }
 
-  def encode(value: Any): Double = if (map.nonEmpty) map.get(value).getOrElse(Double.NaN) else {
+  def encode(value: DataVal): Double = if (map.nonEmpty) {
+    map.getOrElse(value, Double.NaN)
+  } else {
     if (isValidValue(value)) Utils.toDouble(value) else Double.NaN
   }
 
-  def decode(index: Int): Any = if (map.nonEmpty) validValues(index) else
+  def decode(index: Int): DataVal = if (map.nonEmpty) validValues(index) else
     throw new UnsupportedOperationException("decode is not supported by the categorical field without values specified")
 }
 
 class MutableCategoricalAttribute(
-                                   override val invalidValues: Set[Any] = Set.empty,
-                                   override val missingValues: Set[Any] = Set.empty,
-                                   override val labels: Map[Any, String] = Map.empty) extends CategoricalAttribute(invalidValues, missingValues, labels) {
+                                   override val invalidValues: Set[DataVal] = Set.empty,
+                                   override val missingValues: Set[DataVal] = Set.empty,
+                                   override val labels: Map[DataVal, String] = Map.empty) extends CategoricalAttribute(invalidValues, missingValues, labels) {
 
-  private val valsMapBuffer: mutable.Map[Any, Double] = new mutable.HashMap[Any, Double]
-  private val values: ArrayBuffer[Any] = new ArrayBuffer[Any]
+  private val valsMapBuffer: mutable.Map[DataVal, Double] = new mutable.HashMap[DataVal, Double]
+  private val values: ArrayBuffer[DataVal] = new ArrayBuffer[DataVal]
 
-  override def encode(value: Any): Double = if (valsMapBuffer.contains(value)) valsMapBuffer(value) else {
+  override def encode(value: DataVal): Double = if (valsMapBuffer.contains(value)) valsMapBuffer(value) else {
     if (isValidValue(value)) {
       val index = validValues.length.toDouble
       values += value
@@ -235,31 +253,31 @@ class MutableCategoricalAttribute(
     } else Double.NaN
   }
 
-  def decode(index: Int): Any = if (values.nonEmpty) values(index) else
+  def decode(index: Int): DataVal = if (values.nonEmpty) values(index) else
     throw new UnsupportedOperationException("decode is not supported by the categorical field without values specified")
 
   override def isMutable: Boolean = true
 
   override def toAttribute: Attribute = this
 
-  override def validValues: Array[Any] = values.toArray
+  override def validValues: Array[DataVal] = values.toArray
 }
 
 object TypelessAttribute extends Attribute {
 
-  override def validValues: Array[Any] = Array.empty[Any]
+  override def validValues: Array[DataVal] = Array.empty[DataVal]
 
-  override def invalidValues: Set[Any] = Set.empty
+  override def invalidValues: Set[DataVal] = Set.empty
 
-  override def missingValues: Set[Any] = Set.empty
+  override def missingValues: Set[DataVal] = Set.empty
 
   override def intervals: Array[Interval] = Array.empty
 
-  override def labels: Map[Any, String] = Map.empty
+  override def labels: Map[DataVal, String] = Map.empty
 
-  def encode(value: Any): Double = Double.NaN
+  def encode(value: DataVal): Double = Double.NaN
 
-  def decode(index: Int): Any = throw new UnsupportedOperationException("decode is not supported by the typeless field")
+  def decode(index: Int): DataVal = throw new UnsupportedOperationException("decode is not supported by the typeless field")
 
   def attrType: AttributeType = AttributeType.Typeless
 }

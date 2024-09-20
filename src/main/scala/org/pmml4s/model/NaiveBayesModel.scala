@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{Field, MiningSchema, Output, Targets}
 import org.pmml4s.transformations.{DerivedField, LocalTransformations}
 import org.pmml4s.util.Utils
@@ -172,7 +172,7 @@ class TargetValueStats(val targetValueStats: Array[TargetValueStat]) extends Pmm
  * PairCounts lists, for a field Ii's discrete value Iij, the TargetValueCounts that pair the value Iij with each value
  * of the target field.
  */
-class PairCounts(val value: Any, val targetValueCounts: TargetValueCounts) extends PmmlElement
+class PairCounts(val value: DataVal, val targetValueCounts: TargetValueCounts) extends PmmlElement
 
 /**
  * Used for a continuous input field Ii to define statistical measures associated with each value of the target field.
@@ -198,16 +198,16 @@ class BayesOutput(val fieldName: Field, val targetValueCounts: TargetValueCounts
 class TargetValueCounts(val targetValueCounts: Array[TargetValueCount]) extends PmmlElement {
   private val map = targetValueCounts.map(x => (x.value, x.count)).toMap
 
-  def countOf(value: Any): Double = map.get(value).getOrElse(0.0)
+  def countOf(value: DataVal): Double = map.getOrElse(value, 0.0)
 }
 
-class TargetValueCount(val value: Any, val count: Double) extends PmmlElement
+class TargetValueCount(val value: DataVal, val count: Double) extends PmmlElement
 
 trait HasNaiveBayesAttributes extends HasModelAttributes {
 
   /**
    * Specifies a default (usually very small) probability to use in lieu of P(Ij* | Tk) when count[Ij*Ti] is zero.
-   * Similarly, since the probabilily of a continuous distribution can reach the value of 0 as the lower limit, the
+   * Similarly, since the probability of a continuous distribution can reach the value of 0 as the lower limit, the
    * same threshold parameter is used as the probability of the continuous variable when the calculated probability of
    * the distribution falls below that value.
    */
@@ -230,5 +230,7 @@ class NaiveBayesAttributes(
                           ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable)
   with HasNaiveBayesAttributes
 
-class NaiveBayesOutputs extends ClsOutputs
+class NaiveBayesOutputs extends ClsOutputs {
+  override def modelElement: ModelElement = ModelElement.NaiveBayesModel
+}
 

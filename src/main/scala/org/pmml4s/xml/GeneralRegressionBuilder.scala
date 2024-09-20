@@ -141,7 +141,7 @@ class GeneralRegressionBuilder extends Builder[GeneralRegressionModel] {
         val f = field(predictorName)
         val value = f.toVal(attrs(AttrTags.VALUE))
         val parameterName = attrs(AttrTags.PARAMETER_NAME)
-        val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(target.toVal(_))
+        val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(target.toVal)
 
         new PPCell(value, f, parameterName, targetCategory)
       }

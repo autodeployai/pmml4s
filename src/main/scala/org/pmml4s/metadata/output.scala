@@ -16,6 +16,7 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.PmmlDeprecated
+import org.pmml4s.data.DataVal
 
 import scala.collection.mutable
 
@@ -84,7 +85,7 @@ class OutputField(override val name: String,
                   override val opType: OpType,
                   val feature: ResultFeature = ResultFeature.predictedValue,
                   val targetField: Option[String] = None,
-                  val value: Option[Any] = None,
+                  val value: Option[DataVal] = None,
                   val ruleFeature: RuleFeature = RuleFeature.consequent,
                   val algorithm: Algorithm = Algorithm.exclusiveRecommendation,
                   val rank: Int = 1,
@@ -140,7 +141,7 @@ object OutputField {
       ResultFeature.predictedDisplayValue)
   }
 
-  def probability(value: Any = null) = {
+  def probability(value: DataVal = null): OutputField = {
     if (value == null) {
       new OutputField("probability",
         Some("Probability of predicted value"),

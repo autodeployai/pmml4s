@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.pmml4s.model
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common.Predication._
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, OutputField, Targets}
 import org.pmml4s.transformations.LocalTransformations
+import org.pmml4s.util.Utils
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{immutable, mutable}
@@ -47,7 +48,7 @@ class TreeModel(
   override def modelElement: ModelElement = ModelElement.TreeModel
 
   // Optimize the ensemble tree model, ignore the data prepare if it's identical to the parent model
-  private val ignoreDataPrepare = if (isSubModel && localTransformations.isEmpty) {
+  private val ignoreDataPrepare: Boolean = if (isSubModel && localTransformations.isEmpty) {
     var ignore = true
     var i = 0
     val miningSchemaParent = parent.miningSchema
@@ -74,7 +75,7 @@ class TreeModel(
 
     val outputs = createOutputs()
 
-    // The root node could be leaf
+    // The root node could be a leaf
     var finalNode: Option[Node] = if (node.isLeaf) Some(node) else None
     var numMissingCount = 0
     var selected = node
@@ -85,8 +86,10 @@ class TreeModel(
       var hit = false
       var unknown = false
       var i = 0
-      while (i < selected.children.length && !hit) {
-        val c = selected.children(i)
+      val children = selected.children
+      val len = children.length
+      while (i < len && !hit) {
+        val c = children(i)
         c.eval(series) match {
           case Predication.TRUE      => {
             r = Predication.TRUE
@@ -177,7 +180,7 @@ class TreeModel(
       }
 
       // Handling the situation where scoring cannot continue
-      if (child == null && outputs.predictedValue == null) {
+      if (child == null && outputs.predictedValue.isMissing) {
         noTrueChildStrategy match {
           case NoTrueChildStrategy.`returnNullPrediction` => done = true
           case NoTrueChildStrategy.`returnLastPrediction` => {
@@ -195,16 +198,15 @@ class TreeModel(
 
     if (finalNode.isDefined) {
       selected = finalNode.get
-      outputs.entityId = selected.id.orNull
-      outputs.predictedValue = selected.score.orNull
+      outputs.setEntityId(selected.id.orNull)
+      outputs.setPredictedValue(selected.score.orNull)
 
       if (isClassification) {
         outputs.confidence = selected.getConfidence(outputs.predictedValue)
         if (numMissingCount > 0 && missingValuePenalty != 1.0) {
           outputs.confidence *= Math.pow(missingValuePenalty, numMissingCount)
         }
-
-        classes.foreach(x => outputs.putProbability(x, selected.getProbability(x)))
+        outputs.setProbabilities(selected.probabilities)
       }
     }
 
@@ -212,7 +214,7 @@ class TreeModel(
   }
 
   /** The sub-classes can override this method to provide classes of target inside model. */
-  override def inferClasses: Array[Any] = {
+  override def inferClasses: Array[DataVal] = {
     firstLeaf.scoreDistributions.classes
   }
 
@@ -416,7 +418,7 @@ class Node(
             val predicate: Predicate,
             val children: Array[Node],
             val id: Option[String] = None,
-            val score: Option[Any] = None,
+            val score: Option[DataVal] = None,
             val recordCount: Option[Double] = None,
             val defaultChild: Option[String] = None,
             val scoreDistributions: ScoreDistributions = new ScoreDistributions,
@@ -444,5 +446,15 @@ class Node(
   }
 }
 
-class TreeOutputs extends MixedClsWithRegOutputs with MutableConfidence with MutableEntityId
+class TreeOutputs extends MixedClsWithRegOutputs with MutableConfidence with MutableEntityId {
+  override def modelElement: ModelElement = ModelElement.TreeModel
 
+  override def clear(): this.type = {
+    predictedValue = DataVal.NULL
+    predictedDisplayValue = null
+    probabilities = Map.empty
+    confidence = Double.NaN
+    entityId = DataVal.NULL
+    this
+  }
+}

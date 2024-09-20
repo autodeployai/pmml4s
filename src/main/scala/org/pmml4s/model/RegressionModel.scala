@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction._
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, OutputField, Targets}
 import org.pmml4s.model.RegressionModelType.RegressionModelType
 import org.pmml4s.model.RegressionNormalizationMethod.RegressionNormalizationMethod
@@ -72,11 +72,12 @@ class RegressionModel(
           case `cauchit` => 0.5 + (1 / Math.PI) * Math.atan(y)
           case _         => Double.NaN
         }
-      outputs.predictedValue = if (Utils.isMissing(prediction)) null else prediction
+
+      outputs.setPredictedValue(prediction)
     } else {
       val y = regressionTables.map(x => (x.targetCategory.get, x.eval(series))).toSeq
-      val probabilities: Map[Any, Double] = if (!y.exists(x => Utils.isMissing(x._2))) {
-        val pairs: Seq[(Any, Double)] = normalizationMethod match {
+      val probabilities: Map[DataVal, Double] = if (!y.exists(x => Utils.isMissing(x._2))) {
+        val pairs: Seq[(DataVal, Double)] = normalizationMethod match {
           case `softmax`   => {
             val yTransformed = y.map(x => (x._1, Math.exp(x._2)))
             val sum = yTransformed.map(_._2).sum
@@ -177,14 +178,14 @@ class RegressionModel(
         targets.map(_.priorProbabilities).getOrElse(Map.empty)
       }
 
-      outputs.probabilities = probabilities
-      outputs.evalPredictedValueByProbabilities()
+      outputs.setProbabilities(probabilities)
+        .evalPredictedValueByProbabilities()
     }
 
     result(series, outputs)
   }
 
-  override def inferClasses: Array[Any] = if (isClassification) {
+  override def inferClasses: Array[DataVal] = if (isClassification) {
     regressionTables.map(x => x.targetCategory.get)
   } else {
     super.inferClasses
@@ -256,5 +257,7 @@ class RegressionAttributes(
                             val normalizationMethod: RegressionNormalizationMethod = RegressionNormalizationMethod.none
                           ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable) with HasRegressionAttributes
 
-class RegressionOutputs extends MixedClsWithRegOutputs
+class RegressionOutputs extends MixedClsWithRegOutputs {
+  override def modelElement: ModelElement = ModelElement.RegressionModel
+}
 

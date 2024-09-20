@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, Targets}
 import org.pmml4s.model.SVMClassificationMethod.SVMClassificationMethod
 import org.pmml4s.model.SVMRepresentation.SVMRepresentation
@@ -59,14 +59,14 @@ class SupportVectorMachineModel(
 
   // The attribute alternateTargetCategory could be absent in case of binary classification models with only one
   // SupportVectorMachine element in some model examples, then we can infer it based on the targetCategory attribute.
-  val isBinaryWithOnlyOneSupportVectorMachine = (isBinary && supportVectorMachines.length == 1)
-  val alternateTargetCategoryInferred: Option[Any] = if (isBinaryWithOnlyOneSupportVectorMachine &&
+  private val isBinaryWithOnlyOneSupportVectorMachine = (isBinary && supportVectorMachines.length == 1)
+  private val alternateTargetCategoryInferred: Option[DataVal] = if (isBinaryWithOnlyOneSupportVectorMachine &&
     supportVectorMachines(0).targetCategory.isDefined &&
     supportVectorMachines(0).alternateTargetCategory.isEmpty) {
     Option(if (classes(0) == supportVectorMachines(0).targetCategory.get) classes(1) else classes(0))
   } else None
 
-  val alternateTargetCategoryRequired = if (isClassification) {
+  private val alternateTargetCategoryRequired = if (isClassification) {
     (isBinaryWithOnlyOneSupportVectorMachine && alternateTargetCategoryInferred.isEmpty) ||
       (!isBinary && classificationMethod == SVMClassificationMethod.OneAgainstOne)
   } else false
@@ -98,7 +98,7 @@ class SupportVectorMachineModel(
             val values = supportVectorMachines.map(_.predict(xs, kernelType, maxWins, threshold, alternateTargetCategoryInferred))
             val votes = Utils.reduceByKey(values.map(x => (x, 1)))
             // compute probabilities
-            outputs.probabilities = classes.map(x => (x, votes.getOrElse(x, 0) / values.length.toDouble)).toMap
+            outputs.setProbabilities(classes.map(x => (x, votes.getOrElse(x, 0) / values.length.toDouble)))
 
             votes.maxBy(_._2)._1
           } else {
@@ -106,7 +106,7 @@ class SupportVectorMachineModel(
             if (maxWins) values.maxBy(_._1)._2 else values.minBy(_._1)._2
           }
         } else {
-          supportVectorMachines.head.eval(xs, kernelType)
+          DataVal.from(supportVectorMachines.head.eval(xs, kernelType))
         }
 
         result(series, outputs)
@@ -132,9 +132,9 @@ object KernelType {
 
   import ElemTags._
 
-  val values = Set(LINEAR_KERNEL_TYPE, POLYNOMIAL_KERNEL_TYPE, RADIAL_BASIS_KERNEL_TYPE, SIGMOID_KERNEL_TYPE)
+  val values: Set[String] = Set(LINEAR_KERNEL_TYPE, POLYNOMIAL_KERNEL_TYPE, RADIAL_BASIS_KERNEL_TYPE, SIGMOID_KERNEL_TYPE)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }
 
 /**
@@ -252,8 +252,8 @@ class VectorInstance(val id: String, val array: Vector[Double]) extends PmmlElem
  */
 class SupportVectorMachine(val supportVectors: Option[SupportVectors],
                            val coefficients: Coefficients,
-                           val targetCategory: Option[Any],
-                           val alternateTargetCategory: Option[Any],
+                           val targetCategory: Option[DataVal],
+                           val alternateTargetCategory: Option[DataVal],
                            val threshold: Option[Double]) extends PmmlElement {
   private val coeffs: Array[Double] = coefficients.coefficients.map(_.value)
   private var vectors: Array[Vector[Double]] = _
@@ -276,7 +276,7 @@ class SupportVectorMachine(val supportVectors: Option[SupportVectors],
               kernelType: KernelType,
               maxWins: Boolean,
               threshold: Double,
-              alternateTargetCategoryInferred: Option[Any]): Any = {
+              alternateTargetCategoryInferred: Option[DataVal]): DataVal = {
     val a = eval(xs, kernelType)
     val t = this.threshold.getOrElse(threshold)
     if ((maxWins && a > t) || (!maxWins && a < t)) targetCategory.get else
@@ -385,5 +385,7 @@ class SupportVectorMachineAttributes(
                                     ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable)
   with HasSupportVectorMachineAttributes
 
-class SVMOutputs extends MixedClsWithRegOutputs
+class SVMOutputs extends MixedClsWithRegOutputs {
+  override def modelElement: ModelElement = ModelElement.SupportVectorMachineModel
+}
 

@@ -22,17 +22,17 @@ class SeriesTest extends AnyFunSuite {
 
   test("filter") {
     val series = Series.fromMap(Map("f1" -> 1.0, "f2" -> 2.0, "f3" -> 3.0, "f4" -> 4.0))
-    assert(series.filter(null).toArray  === Array(1.0, 2.0, 3.0, 4.0))
-    assert(series.filter(Seq()).toArray  === Array(1.0, 2.0, 3.0, 4.0))
+    assert(series.filter(null).asArray  === Array(1.0, 2.0, 3.0, 4.0))
+    assert(series.filter(Seq()).asArray === Array(1.0, 2.0, 3.0, 4.0))
 
     val result1 = series.filter(Seq("f1", "f3"))
-    assert(result1.toArray  === Array(1.0, 3.0))
+    assert(result1.asArray  === Array(1.0, 3.0))
 
     val result2 = series.filter(Seq("f4", "f2"))
-    assert(result2.toArray  === Array(4.0, 2.0))
+    assert(result2.asArray  === Array(4.0, 2.0))
 
     val result3 = series.filter(Seq("f3", "f4", "f5"))
-    assert(result3.toArray  === Array(3.0, 4.0))
+    assert(result3.asArray  === Array(3.0, 4.0))
   }
 }
 

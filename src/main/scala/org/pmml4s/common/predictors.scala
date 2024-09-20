@@ -15,7 +15,7 @@
  */
 package org.pmml4s.common
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.transformations.FieldRef
 import org.pmml4s.util.Utils
@@ -27,9 +27,9 @@ sealed trait RegressionPredictor extends RegressionEvaluator {
 
 object RegressionPredictor {
 
-  val values = Set(NUMERIC_PREDICTOR, CATEGORICAL_PREDICTOR, PREDICTOR_TERM)
+  val values: Set[String] = Set(NUMERIC_PREDICTOR, CATEGORICAL_PREDICTOR, PREDICTOR_TERM)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }
 
 /**
@@ -49,7 +49,7 @@ class NumericPredictor(val field: Field, val coefficient: Double, val exponent: 
  * Defines a categorical independent variable. The list of attributes comprises the name of the variable,
  * the value attribute, and the coefficient by which the values of this variable must be multiplied.
  */
-class CategoricalPredictor(val field: Field, val coefficient: Double, val value: Any) extends RegressionPredictor {
+class CategoricalPredictor(val field: Field, val coefficient: Double, val value: DataVal) extends RegressionPredictor {
   override def eval(series: Series): Double = if (field.isMissing(series) || field.get(series) != value) 0.0 else coefficient
 }
 
@@ -77,7 +77,7 @@ class PredictorTerm(val name: Option[String], val coefficient: Double, val field
  * then there is only one RegressionTable and the attribute targetCategory may be missing. If the model is used to predict a categorical field,
  * then there are two or more RegressionTables and each one must have the attribute targetCategory defined with a unique value.
  */
-class RegressionTable(val predictors: Array[RegressionPredictor], val intercept: Double, val targetCategory: Option[Any] = None) extends
+class RegressionTable(val predictors: Array[RegressionPredictor], val intercept: Double, val targetCategory: Option[DataVal] = None) extends
   RegressionPredictor {
   override def eval(series: Series): Double = {
     var result = intercept
@@ -94,9 +94,9 @@ class RegressionTable(val predictors: Array[RegressionPredictor], val intercept:
 }
 
 
-class FactorPredictor(override val field: Field, override val value: Any) extends CategoricalPredictor(field, 1.0, value)
+class FactorPredictor(override val field: Field, override val value: DataVal) extends CategoricalPredictor(field, 1.0, value)
 
-class ContrastMatrixFactorPredictor(override val field: Field, override val value: Any, val categories: Map[Any, Int], val matrix: Matrix)
+class ContrastMatrixFactorPredictor(override val field: Field, override val value: DataVal, val categories: Map[DataVal, Int], val matrix: Matrix)
   extends FactorPredictor(field, value) {
   private val colIdx: Int = categories(value)
 

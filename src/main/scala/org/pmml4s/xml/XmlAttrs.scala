@@ -30,11 +30,11 @@ case class XmlAttrs(attrs: Map[String, String]) {
 
   def apply(n1: String, n2: String, n3: String): (String, String, String) = (apply(n1), apply(n2), apply(n3))
 
-  def double(name: String): Double = apply(name).toDouble
+  def double(name: String): Double = StringUtils.toDouble(apply(name)).get
 
   def int(name: String): Int = apply(name).toInt
 
-  def `enum`(name: String, e: Enumeration) = e.withName(apply(name))
+  def `enum`(name: String, e: Enumeration): e.Value = e.withName(apply(name))
 
   def getInt(name: String): Option[Int] = get(name).flatMap { x => StringUtils.toInt(x) }
 
@@ -54,13 +54,13 @@ case class XmlAttrs(attrs: Map[String, String]) {
 
   def getString(name: String, d: String): String = get(name).getOrElse(d)
 
-  def getEnum(name: String, e: Enumeration) = get(name).map(e.withName(_))
+  def getEnum(name: String, e: Enumeration): Option[e.Value] = get(name).map(x => e.withName(x))
 
   def get(name: String): Option[String] = attrs.get(name)
 
-  def -(name: String) = XmlAttrs(attrs - name)
+  def -(name: String): XmlAttrs = XmlAttrs(attrs - name)
 
-  def +(name: String, value: String) = XmlAttrs(attrs + ((name, value)))
+  def +(name: String, value: String): XmlAttrs = XmlAttrs(attrs + ((name, value)))
 
   def get(n1: String, n2: String): (Option[String], Option[String]) = (get(n1), get(n2))
 
@@ -79,7 +79,7 @@ case class XmlAttrs(attrs: Map[String, String]) {
 }
 
 object XmlAttrs {
-  def apply(m: java.util.Iterator[Attribute]) = XmlImplicits.attributes2XmlAttrs(m)
+  def apply(m: java.util.Iterator[Attribute]): XmlAttrs = XmlImplicits.attributes2XmlAttrs(m)
 
   def apply(name: String, value: String) = new XmlAttrs(Map(name -> value))
 
@@ -88,11 +88,11 @@ object XmlAttrs {
 
 object XmlImplicits {
   implicit def attributes2XmlAttrs(attrs: java.util.Iterator[Attribute]): XmlAttrs = XmlAttrs(
-    new JIteratorWrapper(attrs).map(x => (x.getName.getLocalPart(), x.getValue)).toMap
+    new JIteratorWrapper(attrs).map(x => (x.getName.getLocalPart, x.getValue)).toMap
   )
 }
 
 class JIteratorWrapper[A](val underlying: java.util.Iterator[A]) extends scala.collection.Iterator[A] with Serializable {
-  def hasNext = underlying.hasNext
-  def next() = underlying.next
+  def hasNext: Boolean = underlying.hasNext
+  def next(): A = underlying.next
 }

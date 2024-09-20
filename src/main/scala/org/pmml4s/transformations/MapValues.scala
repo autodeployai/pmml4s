@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.{DataType, PmmlElement, Table}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 
 /**
@@ -28,15 +28,17 @@ class MapValues(
                  val fieldColumnPairs: Array[FieldColumnPair],
                  val table: Table,
                  val outputColumn: String,
-                 val mapMissingTo: Option[Any],
-                 val defaultValue: Option[Any],
+                 val mapMissingTo: Option[DataVal],
+                 val defaultValue: Option[DataVal],
                  val dataType: Option[DataType]) extends Expression {
-  override def eval(series: Series): Any = {
+  private val replacement: DataVal = mapMissingTo.getOrElse(DataVal.NULL)
+
+  override def eval(series: Series): DataVal = {
     if (fieldColumnPairs.exists(x => x.field.isMissing(series))) {
-      mapMissingTo.getOrElse(null)
+      replacement
     } else {
       val r = table.find(fieldColumnPairs.map(x => (x.column, x.field.get(series))).toMap, outputColumn)
-      r.getOrElse(defaultValue.getOrElse(null))
+      r.getOrElse(replacement)
     }
   }
 

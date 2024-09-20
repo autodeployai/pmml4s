@@ -15,30 +15,44 @@
  */
 package org.pmml4s.common
 
-import org.pmml4s.data.{NullSeries, Series}
+import org.pmml4s.data.{DataVal, NullSeries, Series}
 import org.pmml4s.metadata.Algorithm.Algorithm
 import org.pmml4s.metadata.RankBasis.RankBasis
 import org.pmml4s.metadata.RankOrder.RankOrder
-import org.pmml4s.model.AssociationRule
+import org.pmml4s.model.{AssociationRule, ModelElement}
 
 import scala.collection.mutable
 
 trait HasPredictedValue {
-  def predictedValue: Any
+  def predictedValue: DataVal
 }
 
 trait MutablePredictedValue extends HasPredictedValue {
-  var predictedValue: Any = _
+  var predictedValue: DataVal = DataVal.NULL
 
-  def setPredictedValue(predictedValue: Any): this.type = {
-    this.predictedValue = predictedValue
+  def setPredictedValue(predictedValue: DataVal): this.type = {
+    if (predictedValue == null) {
+      this.predictedValue = DataVal.NULL
+    } else {
+      this.predictedValue = predictedValue
+    }
     this
   }
 
-  def evalPredictedValueByProbabilities(probabilities: Map[Any, Double]): this.type = {
+  def setPredictedValue(predictedValue: Double): this.type = {
+    this.predictedValue = DataVal.from(predictedValue)
+    this
+  }
+
+  def evalPredictedValueByProbabilities(probabilities: Map[DataVal, Double]): this.type = {
     if (probabilities.nonEmpty) {
       setPredictedValue(probabilities.maxBy(_._2)._1)
     }
+    this
+  }
+
+  def clear(): this.type = {
+    this.predictedValue = DataVal.NULL
     this
   }
 }
@@ -50,17 +64,17 @@ trait HasSegment extends HasTransformedValue {
 }
 
 trait MutableSegment extends HasSegment {
-  var segments: Map[String, Series] = Map.empty
+  val segments: mutable.Map[String, Series] = mutable.HashMap.empty
 
   override def segment(id: String): Series = segments.getOrElse(id, NullSeries)
 
   def putSegment(id: String, segment: Series): this.type = {
-    segments = segments + (id -> segment)
+    segments +=  (id -> segment)
     this
   }
 
-  def putSegments(segments: Map[String, Series]): this.type = {
-    this.segments = segments
+  def clear(): this.type = {
+    this.segments.clear()
     this
   }
 }
@@ -78,26 +92,41 @@ trait MutablePredictedDisplayValue extends HasPredictedDisplayValue {
     this.predictedDisplayValue = predictedDisplayValue
     this
   }
+
+  def clear(): this.type = {
+    this.predictedDisplayValue = null
+    this
+  }
 }
 
 trait HasProbabilities {
-  def probability(value: Any): Double
+  def probability(value: DataVal): Double
 
-  def probabilities: Map[Any, Double]
+  def probabilities: Map[DataVal, Double]
 }
 
 trait MutableProbabilities extends HasProbabilities {
-  var probabilities: Map[Any, Double] = Map.empty
+  var probabilities: Map[DataVal, Double] = Map.empty
 
-  override def probability(value: Any): Double = probabilities.getOrElse(value, Double.NaN)
+  override def probability(value: DataVal): Double = probabilities.getOrElse(value, Double.NaN)
 
-  def putProbability(value: Any, probability: Double): this.type = {
+  def putProbability(value: DataVal, probability: Double): this.type = {
     probabilities = probabilities + (value -> probability)
     this
   }
 
-  def setProbabilities(probabilities: Map[Any, Double]): this.type = {
+  def setProbabilities(probabilities: Map[DataVal, Double]): this.type = {
     this.probabilities = probabilities
+    this
+  }
+
+  def setProbabilities(probabilities: Array[(DataVal, Double)]): this.type = {
+    this.probabilities = probabilities.toMap
+    this
+  }
+
+  def clear(): this.type = {
+    this.probabilities = Map.empty
     this
   }
 }
@@ -111,61 +140,72 @@ trait HasStandardError {
 }
 
 trait HasEntityId {
-  def entityId: Any
+  def entityId: DataVal
 }
 
 trait MutableEntityId extends HasEntityId {
-  var entityId: Any = _
+  var entityId: DataVal = DataVal.NULL
 
-  def setEntityId(entityId: Any): this.type = {
+  def setEntityId(entityId: DataVal): this.type = {
     this.entityId = entityId
+    this
+  }
+
+  def setEntityId(entityId: String): this.type = {
+    this.entityId = DataVal.from(entityId)
+    this
+  }
+
+  def setEntityId(entityId: Int): this.type = {
+    this.entityId = DataVal.from(entityId)
+    this
+  }
+
+  def clear(): this.type = {
+    this.entityId = DataVal.NULL
     this
   }
 }
 
 trait HasEntityIds {
-  def entityId(rank: Int): Any
+  def entityId(rank: Int): DataVal
 }
 
 trait MutableEntityIds extends HasEntityIds {
-  var entityIds: Array[Any] = Array.empty
+  var entityIds: Array[DataVal] = Array.empty
 
-  def entityId(rank: Int): Any = if (rank >= 1 && rank <= entityIds.length) entityIds(rank - 1) else null
+  def entityId(rank: Int): DataVal =
+    if (rank >= 1 && rank <= entityIds.length) entityIds(rank - 1) else DataVal.NULL
 
-  def setEntitiesId(entityIds: Array[Any]): this.type = {
+  def setEntitiesId(entityIds: Array[DataVal]): this.type = {
     this.entityIds = entityIds
-    this
-  }
-
-  def putEntityId(rank: Int, entityId: Any): this.type = {
-    this.entityIds(rank - 1) = entityId
     this
   }
 
   def size: Int = entityIds.length
 
-  def resize(len: Int): this.type = {
-    entityIds = Array.ofDim(len)
+  def clear(): this.type = {
+    entityIds = Array.empty
     this
   }
 }
 
 trait HasAffinities {
-  def affinity(id: Any): Double
+  def affinity(id: DataVal): Double
 }
 
 trait MutableAffinities extends HasAffinities {
-  var affinities: Map[Any, Double] = Map.empty
+  var affinities: Map[DataVal, Double] = Map.empty
 
-  override def affinity(id: Any): Double = affinities.getOrElse(id, Double.NaN)
+  override def affinity(id: DataVal): Double = affinities.getOrElse(id, Double.NaN)
 
-  def putAffinity(id: Any, affinity: Double): this.type = {
-    affinities = affinities + (id -> affinity)
+  def setAffinities(affinities: Map[DataVal, Double]): this.type = {
+    this.affinities = affinities
     this
   }
 
-  def setAffinities(affinities: Map[Any, Double]): this.type = {
-    this.affinities = affinities
+  def clear(): this.type = {
+    affinities = Map.empty
     this
   }
 }
@@ -191,6 +231,11 @@ trait MutableReasonCodes extends HasReasonCodes {
     reasonCodes = reasonCodes :+ reasonCode
     this
   }
+
+  def clear(): this.type = {
+    reasonCodes = Array.empty
+    this
+  }
 }
 
 trait HasConfidence {
@@ -202,6 +247,11 @@ trait MutableConfidence extends HasConfidence {
 
   def setConfidence(confidence: Double): this.type = {
     this.confidence = confidence
+    this
+  }
+
+  def clear(): this.type = {
+    confidence = Double.NaN
     this
   }
 }
@@ -216,7 +266,11 @@ trait HasAssociationRules {
   }
 }
 
-trait ModelOutputs
+trait ModelOutputs {
+  def modelElement: ModelElement
+
+  def clear(): this.type
+}
 
 trait MultiModelOutputs extends ModelOutputs {
   def get(target: String): Option[ModelOutputs]
@@ -238,28 +292,47 @@ trait MutablePredictedValueWithProbabilities extends HasPredictedValueWithProbab
     this
   }
 
-  def evalPredictedValueByProbabilities(classes: Array[Any]): this.type = {
+  def evalPredictedValueByProbabilities(classes: Array[DataVal]): this.type = {
     if (probabilities.nonEmpty && probabilities.size == classes.length - 1) {
-      putProbability(getMissingClass(classes, probabilities), 1.0 - probabilities.values.sum)
+      probabilities = probabilities + (getMissingClass(classes, probabilities) -> (1.0 - probabilities.values.sum))
     }
     evalPredictedValueByProbabilities()
   }
 
-  private def getMissingClass(classes: Array[Any], probabilities: Map[Any, Double]): Any = {
+  private def getMissingClass(classes: Array[DataVal], probabilities: Map[DataVal, Double]): DataVal = {
     for (cls <- classes) {
       if (!probabilities.contains(cls))
         return cls
     }
     null
   }
+
+  override def clear(): this.type = {
+    super[MutablePredictedValue].clear()
+    super[MutableProbabilities].clear()
+    this
+  }
 }
 
 trait ClsOutputs extends ModelOutputs
   with MutablePredictedValueWithProbabilities
-  with MutablePredictedDisplayValue
+  with MutablePredictedDisplayValue {
+
+  override def clear(): this.type = {
+    super[MutablePredictedValueWithProbabilities].clear()
+    super[MutablePredictedDisplayValue].clear()
+    this
+  }
+}
 
 trait RegOutputs extends ModelOutputs
-  with MutablePredictedValue
+  with MutablePredictedValue {
+
+  override def clear(): this.type = {
+    super[MutablePredictedValue].clear()
+    this
+  }
+}
 
 trait CluOutputs extends ModelOutputs
   with MutablePredictedValue
@@ -267,9 +340,17 @@ trait CluOutputs extends ModelOutputs
   with MutableEntityId
   with MutableAffinities {
 
-  override def setPredictedValue(predictedValue: Any): this.type = {
+  override def setPredictedValue(predictedValue: DataVal): this.type = {
     super.setPredictedValue(predictedValue)
     setEntityId(predictedValue)
+  }
+
+  override def clear(): this.type = {
+    super[MutablePredictedValue].clear()
+    super[MutablePredictedDisplayValue].clear()
+    super[MutableEntityId].clear()
+    super[MutableAffinities].clear()
+    this
   }
 }
 
@@ -277,15 +358,36 @@ trait KNNOutputs extends ModelOutputs
   with MutablePredictedValue
   with MutablePredictedDisplayValue
   with MutableEntityIds
-  with MutableAffinities
+  with MutableAffinities {
+
+  override def clear(): this.type = {
+    super[MutablePredictedValue].clear()
+    super[MutablePredictedDisplayValue].clear()
+    super[MutableEntityIds].clear()
+    super[MutableAffinities].clear()
+    this
+  }
+}
 
 trait SegmentOutputs extends ModelOutputs
-  with MutableSegment
+  with MutableSegment {
 
-trait MixedClsWithRegOutputs extends ClsOutputs with RegOutputs
+  override def clear(): this.type = {
+    super[MutableSegment].clear()
+    this
+  }
+}
+
+trait MixedClsWithRegOutputs extends ClsOutputs with RegOutputs {
+  override def clear(): this.type = {
+    super[ClsOutputs].clear()
+    super[RegOutputs].clear()
+    this
+  }
+}
 
 class GenericMultiModelOutputs extends MultiModelOutputs {
-  private val map = new mutable.HashMap[String, ModelOutputs]()
+  private val map: mutable.Map[String, ModelOutputs] = mutable.HashMap.empty
 
   override def get(target: String): Option[ModelOutputs] = map.get(target)
 
@@ -302,5 +404,12 @@ class GenericMultiModelOutputs extends MultiModelOutputs {
 
   def getOrInsert[T <: ModelOutputs](target: String, defaultValue: => T): T = {
     map.getOrElseUpdate(target, defaultValue).asInstanceOf[T]
+  }
+
+  override def modelElement: ModelElement = ???
+
+  override def clear(): this.type = {
+    map.clear()
+    this
   }
 }

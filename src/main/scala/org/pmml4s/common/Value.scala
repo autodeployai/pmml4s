@@ -16,6 +16,7 @@
 package org.pmml4s.common
 
 import org.pmml4s.common.Property.Property
+import org.pmml4s.data.DataVal
 import org.pmml4s.util.Utils
 
 import scala.collection.mutable
@@ -26,15 +27,15 @@ class Value(
              val property: Property = Property.valid) extends PmmlElement
 
 object Value {
-  def distinguish(values: Array[Value], dataType: DataType): (Array[Any], Set[Any], Set[Any], Map[Any, String]) = {
-    val valid = mutable.ArrayBuilder.make[Any]
+  def distinguish(values: Array[Value], dataType: DataType): (Array[DataVal], Set[DataVal], Set[DataVal], Map[DataVal, String]) = {
+    val valid = mutable.ArrayBuilder.make[DataVal]
     valid.sizeHint(values)
-    val invalid = new mutable.HashSet[Any]()
-    val missing = new mutable.HashSet[Any]()
-    val labels = new mutable.HashMap[Any, String]()
+    val invalid = new mutable.HashSet[DataVal]()
+    val missing = new mutable.HashSet[DataVal]()
+    val labels = new mutable.HashMap[DataVal, String]()
 
     for (v <- values) {
-      val a = Utils.toVal(v.value, dataType)
+      val a = Utils.toDataVal(v.value, dataType)
       v.property match {
         case Property.valid   => valid += a
         case Property.invalid => invalid += a
@@ -67,6 +68,6 @@ object Value {
  * explicitly define values which are interpreted as missing values.
  */
 object Property extends Enumeration {
-  type Property = Value
-  val valid, invalid, missing = Value
+  type Property = this.Value
+  val valid, invalid, missing = this.Value
 }

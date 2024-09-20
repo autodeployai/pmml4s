@@ -49,7 +49,7 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
   def makeTrainingInstances(reader: XMLEventReader, attrs: XmlAttrs): TrainingInstances = makeElem(reader, attrs,
     new ElemBuilder[TrainingInstances] {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): TrainingInstances = {
-        val isTransformed = attrs.getBoolean(AttrTags.IS_TRANSFORMED, false)
+        val isTransformed = attrs.getBoolean(AttrTags.IS_TRANSFORMED, d = false)
         val recordCount = attrs.getInt(AttrTags.RECORD_COUNT)
         val fieldCount = attrs.getInt(AttrTags.FIELD_COUNT)
         var instanceFields: InstanceFields = null
@@ -71,7 +71,9 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
                 new InstanceFields(instanceFields)
               }
             })
-          case event: EvElemStart if Table.contains(event.label)  => table = makeTable(reader, event)
+          case event: EvElemStart if Table.contains(event.label)  => {
+            table = makeTable(reader, event)
+          }
         })
 
         new TrainingInstances(instanceFields, table, isTransformed, recordCount, fieldCount)
@@ -85,7 +87,7 @@ class NearestNeighborBuilder extends Builder[NearestNeighborModel] {
           override def build(reader: XMLEventReader, attrs: XmlAttrs): KNNInput = {
             val f = field(attrs(AttrTags.FIELD))
             val fieldWeight = attrs.getDouble(AttrTags.FIELD_WEIGHT, 1.0)
-            val compareFunction = attrs.get(AttrTags.COMPARE_FUNCTION).map(CompareFunction.withName(_))
+            val compareFunction = attrs.get(AttrTags.COMPARE_FUNCTION).map(CompareFunction.withName)
 
             new KNNInput(f, compareFunction, fieldWeight)
           }

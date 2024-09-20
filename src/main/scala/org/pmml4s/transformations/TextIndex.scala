@@ -16,10 +16,9 @@
 package org.pmml4s.transformations
 
 import java.util.regex.{Matcher, Pattern}
-
 import org.apache.commons.text.similarity.LevenshteinDistance
 import org.pmml4s.common.{PmmlElement, Table}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, DoubleVal, Series, StringVal}
 import org.pmml4s.metadata.Field
 import org.pmml4s.transformations.CountHits.CountHits
 import org.pmml4s.transformations.LocalTermWeights.LocalTermWeights
@@ -43,11 +42,11 @@ class TextIndex(
                  val wordSeparatorCharacterRE: String = "\\s+",
                  val tokenize: Boolean = true
                ) extends NumericFieldExpression {
-  override def eval(series: Series): Double = {
+  override def eval(series: Series): DoubleVal = {
     val text = field.get(series)
     val term = expression.eval(series)
     if (Utils.isMissing(text) || Utils.isMissing(term)) {
-      Double.NaN
+      DataVal.NaN
     } else {
       var textValue = text.toString
       textIndexNormalizations.foreach(x => {
@@ -60,7 +59,7 @@ class TextIndex(
         Array(textValue), Array(termValue)
       )
 
-      if (textTokens.isEmpty || termTokens.isEmpty) {
+      val res: Double = if (textTokens.isEmpty || termTokens.isEmpty) {
         0.0
       } else {
 
@@ -112,6 +111,8 @@ class TextIndex(
           case LocalTermWeights.augmentedNormalizedTermFrequency => ???
         }
       }
+
+      DataVal.from(res)
     }
   }
 }
@@ -178,7 +179,7 @@ class TextIndexNormalization(
             val in = row(inField).toString
             val out = row(outField).toString
             result = row.get(regexField) match {
-              case Some("true") => {
+              case Some(StringVal("true")) => {
                 previous.replaceAll(in, out)
               }
               case _            => {
@@ -202,7 +203,7 @@ class TextIndexNormalization(
         val in = row(inField).toString
         val out = row(outField).toString
         result = row.get(regexField) match {
-          case Some("true") => {
+          case Some(StringVal("true")) => {
             result.replaceAll(in, out)
           }
           case _            => {
@@ -222,5 +223,5 @@ object TextIndex {
 
   import java.util.regex.Pattern
 
-  val PUNCTUATION_PATTERN = Pattern.compile("\\p{Punct}")
+  val PUNCTUATION_PATTERN: Pattern = Pattern.compile("\\p{Punct}")
 }

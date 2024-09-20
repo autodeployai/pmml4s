@@ -15,7 +15,7 @@
  */
 package org.pmml4s.model
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 
 /**
  * Neural network model cases come from DMG examples: http://dmg.org/pmml/v4-3/NeuralNetwork.html
@@ -28,7 +28,7 @@ class NeuralNetworkTest extends BaseModelTest {
     assert(model.inputNames === Array("gender", "no of claims", "domicile", "age of car"))
     assert(model.targetName === "amount of claims")
     val r = model.predict(Series("  female", "       0", "suburban", 5))
-    assert(r(0) === 3067.3031886618014)
+    assert(r(0) === DataVal(3067.3031886618014))
   }
 
 }

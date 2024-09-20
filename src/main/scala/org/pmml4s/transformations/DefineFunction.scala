@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{AbstractField, Field, FieldScope, FieldType}
 
 /**
@@ -33,7 +33,7 @@ class DefineFunction(
                       val dataType: DataType) extends Function with HasOpType with HasDataType with PmmlElement {
   parameterFields.zipWithIndex.foreach(x => x._1.index = x._2)
 
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     val series = Series.fromSeq(parameters)
     expr.eval(series)
   }
@@ -54,5 +54,5 @@ class ParameterField(val name: String, val opType: OpType, val dataType: DataTyp
   override def fieldType: FieldType = FieldType.ParameterField
 
   /** Retrieve its value from the specified series, return null if missing */
-  override def get(series: Series): Any = if (index >= 0) series.get(index) else null
+  override def get(series: Series): DataVal = if (index >= 0) series.get(index) else null
 }

@@ -17,18 +17,20 @@ package org.pmml4s.data
 
 import org.pmml4s.util.Utils
 
-trait DSeries extends Series {
+trait DSeries {
 
-  override def apply(i: Int): Double = get(i)
+  def apply(i: Int): Double = get(i)
 
-  override def get(i: Int): Double
+  def get(i: Int): Double
+
+  def length: Int
 
   /** Checks whether the value at position i is null. */
-  override def isNullAt(i: Int): Boolean = java.lang.Double.isNaN(get(i))
+  def isNullAt(i: Int): Boolean = java.lang.Double.isNaN(get(i))
 
-  override def isMissingAt(i: Int): Boolean = i < 0 || java.lang.Double.isNaN(get(i))
+  def isMissingAt(i: Int): Boolean = i < 0 || java.lang.Double.isNaN(get(i))
 
-  override def toSeq: Seq[Double] = {
+  def toArray: Array[Double] = {
     val n = length
     val values = new Array[Double](n)
     var i = 0
@@ -36,13 +38,15 @@ trait DSeries extends Series {
       values.update(i, get(i))
       i += 1
     }
-    values.toSeq
+    values
   }
+
+  def toSeq: Seq[Double] = toArray.toSeq
 
   /**
    * Make a copy of the current [[DSeries]] object.
    */
-  override def copy(): DSeries
+  def copy(): DSeries
 
 }
 
@@ -75,7 +79,7 @@ object DSeries {
   }
 
   /** Returns an empty row. */
-  val empty = apply()
+  val empty: DSeries = apply()
 }
 
 class GenericDSeries(val values: Array[Double]) extends DSeries {
@@ -88,8 +92,7 @@ class GenericDSeries(val values: Array[Double]) extends DSeries {
 
   override def get(i: Int): Double = values(i)
 
-  override def toSeq: Seq[Double] = values.toSeq
+  override def toArray: Array[Double] = values.clone()
 
   override def copy(): GenericDSeries = this
-
 }

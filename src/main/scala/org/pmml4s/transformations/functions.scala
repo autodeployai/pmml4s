@@ -17,11 +17,10 @@ package org.pmml4s.transformations
 
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, GregorianCalendar, TimeZone}
-
 import org.apache.commons.math3.distribution.NormalDistribution
 import org.pmml4s.FunctionNotFoundException
 import org.pmml4s.common.PmmlElement
-import org.pmml4s.data.Datetime
+import org.pmml4s.data.{DataVal, DateVal, Datetime}
 import org.pmml4s.util.{MathUtils, Utils}
 
 import scala.collection.mutable
@@ -74,7 +73,7 @@ trait HasFunctionProvider {
  */
 trait Function extends PmmlElement {
 
-  def apply(parameters: Any*): Any
+  def apply(parameters: DataVal*): DataVal
 
   def symbol: String
 
@@ -85,101 +84,113 @@ trait Function extends PmmlElement {
 
 trait UnaryFunction extends Function {
 
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length == 1,
       s"Unary function ${symbol} should accept exactly one parameter, got ${parameters.length} parameters")
     eval(parameters(0))
   }
 
-  def eval(a: Any): Any
+  def eval(a: DataVal): DataVal
 }
 
 trait BinaryFunction extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length == 2,
       s"Binary function ${symbol} should accept exactly two parameters, got ${parameters.length} parameters")
     eval(parameters(0), parameters(1))
   }
 
-  def eval(left: Any, right: Any): Any
+  def eval(left: DataVal, right: DataVal): DataVal
 }
 
 trait TernaryFunction extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length == 3,
       s"Ternary function ${symbol} should accept exactly three parameters, got ${parameters.length} parameters")
     eval(parameters(0), parameters(1), parameters(2))
   }
 
-  def eval(a: Any, b: Any, c: Any): Any
+  def eval(a: DataVal, b: DataVal, c: DataVal): DataVal
 }
 
 trait UnaryArithmetic extends UnaryFunction {
-  override def eval(a: Any): Any = {
-    eval(Utils.toDouble(a))
+  override def eval(a: DataVal): DataVal = {
+    DataVal.from(eval(Utils.toDouble(a)))
   }
 
   def eval(a: Double): Double
 }
 
 trait UnaryBoolean extends UnaryFunction {
-  override def eval(a: Any): Boolean
+  override def eval(a: DataVal): DataVal = {
+    DataVal.from(evalVal(a))
+  }
+
+  def evalVal(a: DataVal): Boolean
 }
 
 trait UnaryString extends UnaryFunction {
-  override def eval(a: Any): Any = {
-    eval(Utils.toString(a))
+  override def eval(a: DataVal): DataVal = {
+    DataVal.from(eval(Utils.toString(a)))
   }
 
   def eval(a: String): String
 }
 
 trait BinaryArithmetic extends BinaryFunction {
-  override def eval(left: Any, right: Any): Any = {
-    eval(Utils.toDouble(left), Utils.toDouble(right))
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    DataVal.from(eval(Utils.toDouble(left), Utils.toDouble(right)))
   }
 
   def eval(left: Double, right: Double): Double
 }
 
 trait BinaryBoolean extends BinaryFunction {
-  override def eval(left: Any, right: Any): Boolean
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    DataVal.from(evalVal(left, right))
+  }
+
+  def evalVal(left: DataVal, right: DataVal): Boolean
 }
 
 trait BinaryString extends BinaryFunction {
-  override def eval(left: Any, right: Any): String
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    DataVal.from(evalVal(left, right))
+  }
+
+  def evalVal(left: DataVal, right: DataVal): String
 }
 
 trait MultipleBoolean extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length >= 2,
       s"function ${symbol} should accept at least two parameter, got ${parameters.length} parameter")
-    eval(parameters.map(x => Utils.toBoolean(x)): _*)
+    DataVal.from(eval(parameters.map(x => Utils.toBoolean(x)): _*))
   }
 
   def eval(parameters: Boolean*): Boolean
 }
 
 trait BinaryCompare extends BinaryFunction {
-  override def eval(left: Any, right: Any): Any = {
-    eval(Utils.toDouble(left), Utils.toDouble(right))
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    DataVal.from(eval(Utils.toDouble(left), Utils.toDouble(right)))
   }
 
   def eval(left: Double, right: Double): Boolean
 }
 
 trait MultipleArithmetic extends Function {
-  override def apply(parameters: Any*): Any = {
-    require(parameters.length > 0, s"function ${symbol} should accept at least one parameter, got 0 parameter")
-    eval(parameters.map(x => Utils.toDouble(x)): _*)
+  override def apply(parameters: DataVal*): DataVal = {
+    require(parameters.nonEmpty, s"function ${symbol} should accept at least one parameter, got 0 parameter")
+    DataVal.from(eval(parameters.map(x => Utils.toDouble(x)): _*))
   }
 
   def eval(parameters: Double*): Double
 }
 
 trait TernaryArithmetic extends TernaryFunction {
-  override def eval(a: Any, b: Any, c: Any): Any = {
-    eval(Utils.toDouble(a), Utils.toDouble(b), Utils.toDouble(c))
+  override def eval(a: DataVal, b: DataVal, c: DataVal): DataVal = {
+    DataVal.from(eval(Utils.toDouble(a), Utils.toDouble(b), Utils.toDouble(c)))
   }
 
   def eval(a: Double, b: Double, c: Double): Double
@@ -363,37 +374,37 @@ object Modulo extends BinaryArithmetic {
 }
 
 object IsMissing extends UnaryBoolean {
-  override def eval(a: Any): Boolean = Utils.isMissing(a)
+  override def evalVal(a: DataVal): Boolean = Utils.isMissing(a)
 
   override def symbol: String = "isMissing"
 }
 
 object IsNotMissing extends UnaryBoolean {
-  override def eval(a: Any): Boolean = Utils.nonMissing(a)
+  override def evalVal(a: DataVal): Boolean = Utils.nonMissing(a)
 
   override def symbol: String = "isNotMissing"
 }
 
 object IsValid extends UnaryBoolean {
-  override def eval(a: Any): Boolean = Utils.nonMissing(a)
+  override def evalVal(a: DataVal): Boolean = Utils.nonMissing(a)
 
   override def symbol: String = "isValid"
 }
 
 object IsNotValid extends UnaryBoolean {
-  override def eval(a: Any): Boolean = Utils.isMissing(a)
+  override def evalVal(a: DataVal): Boolean = Utils.isMissing(a)
 
   override def symbol: String = "isNotValid"
 }
 
 object Equal extends BinaryBoolean {
-  override def eval(left: Any, right: Any): Boolean = left == right
+  override def evalVal(left: DataVal, right: DataVal): Boolean = left == right
 
   override def symbol: String = "equal"
 }
 
 object NotEqual extends BinaryBoolean {
-  override def eval(left: Any, right: Any): Boolean = left != right
+  override def evalVal(left: DataVal, right: DataVal): Boolean = left != right
 
   override def symbol: String = "notEqual"
 }
@@ -445,15 +456,15 @@ object Or extends MultipleBoolean {
 }
 
 object Not extends UnaryFunction {
-  override def eval(a: Any): Any = !Utils.toBoolean(a)
+  override def eval(a: DataVal): DataVal = DataVal.from(!Utils.toBoolean(a))
 
   override def symbol: String = "not"
 }
 
 object IsIn extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length >= 2, s"isIn should accept at least two parameters, got ${parameters.length}")
-    parameters.tail.contains(parameters(0))
+    DataVal.from(parameters.tail.contains(parameters(0)))
   }
 
   override def symbol: String = "isIn"
@@ -461,21 +472,21 @@ object IsIn extends Function {
 
 
 object IsNotIn extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length >= 2, s"isNotIn should accept at least two parameters, got ${parameters.length}")
-    !parameters.tail.contains(parameters(0))
+    DataVal.from(!parameters.tail.contains(parameters(0)))
   }
 
   override def symbol: String = "isNotIn"
 }
 
 object If extends Function {
-  override def apply(parameters: Any*): Any = {
+  override def apply(parameters: DataVal*): DataVal = {
     require(parameters.length == 2 || parameters.length == 3,
       s"If should accept two or three parameters, got ${parameters.length}")
     val cond = Utils.toBoolean(parameters(0))
     if (cond) parameters(1) else {
-      if (parameters.length == 3) parameters(2) else null
+      if (parameters.length == 3) parameters(2) else DataVal.NULL
     }
   }
 
@@ -501,61 +512,60 @@ object TrimBlanks extends UnaryString {
 }
 
 object Concat extends Function {
-  override def apply(parameters: Any*): String = parameters.map({
+  override def apply(parameters: DataVal*): DataVal = DataVal.from(parameters.map({
     case null => ""
     case s    => s.toString
-  }).mkString
+  }).mkString)
 
   override def symbol: String = "concat"
 }
 
 object StringLength extends UnaryFunction {
-  override def eval(a: Any): Any = a match {
-    case s: String =>  s.length
-    case _ => null
-  }
+  override def eval(a: DataVal): DataVal = if (a != null) DataVal.from(a.toString.length) else DataVal.NULL
 
   override def symbol: String = "stringLength"
 }
 
 object Substring extends TernaryFunction {
-  override def eval(a: Any, b: Any, c: Any): String = {
+  override def eval(a: DataVal, b: DataVal, c: DataVal): DataVal = {
     val s = Utils.toString(a)
     val pos = Utils.toInt(b)
     val length = Utils.toInt(c)
 
-    if (s == null) {
+    val res: String = if (s == null) {
       null
     } else if (pos <= 0 || length <= 0) {
       s
     } else {
       s.substring(pos - 1, Math.min(s.length, pos + length - 1))
     }
+    DataVal.from(res)
   }
 
   override def symbol: String = "substring"
 }
 
 object Replace extends TernaryFunction {
-  override def eval(a: Any, b: Any, c: Any): Any = {
+  override def eval(a: DataVal, b: DataVal, c: DataVal): DataVal = {
     val input = Utils.toString(a)
     val pattern = Utils.toString(b)
     val replacement = Utils.toString(c)
 
-    if (input == null) {
+    val res = if (input == null) {
       null
     } else if (pattern == null || replacement == null) {
       input
     } else {
       input.replaceAll(pattern, replacement)
     }
+    DataVal.from(res)
   }
 
   override def symbol: String = "replace"
 }
 
 object Matches extends BinaryBoolean {
-  override def eval(left: Any, right: Any): Boolean = {
+  override def evalVal(left: DataVal, right: DataVal): Boolean = {
     val input = Utils.toString(left)
     val pattern = Utils.toString(right)
 
@@ -572,73 +582,74 @@ object Matches extends BinaryBoolean {
 }
 
 object FormatNumber extends BinaryFunction {
-  override def eval(left: Any, right: Any): String = {
+  override def eval(left: DataVal, right: DataVal): DataVal = {
     val pattern = Utils.toString(right)
-    if (pattern == null || left == null) {
+    val res: String = if (pattern == null || left == null) {
       null
     } else {
       pattern.format(left)
     }
+    DataVal.from(res)
   }
 
   override def symbol: String = "formatNumber"
 }
 
 object FormatDatetime extends BinaryFunction {
-  override def eval(left: Any, right: Any): String = {
-    if (left == null || right == null)
-      return null
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    if (left.isMissing || right.isMissing)
+      return DataVal.NULL
 
-    val date = left.asInstanceOf[Date]
-    val pattern = Utils.toString(right)
+    val date = left.asInstanceOf[DateVal]
+    val pattern = right.toString
     val format = new SimpleDateFormat(pattern)
-    format.format(date)
+    DataVal.from(format.format(date.toDate))
   }
 
   override def symbol: String = "formatDatetime"
 }
 
 object DateDaysSinceYear extends BinaryFunction {
-  override def eval(left: Any, right: Any): Any = {
-    if (left == null || right == null)
-      return null
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    if (left.isMissing || right.isMissing)
+      return DataVal.NULL
 
-    val date = left.asInstanceOf[Date]
-    val refYear = Utils.toInt(right)
+    val date = left.asInstanceOf[DateVal].toDate
+    val refYear = right.toInt
 
     val refDate = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     refDate.set(refYear, 0, 1)
-    (date.getTime - refDate.getTimeInMillis) / Datetime.MILLISECONDS_PER_DAY
+    DataVal.from((date.getTime - refDate.getTimeInMillis) / Datetime.MILLISECONDS_PER_DAY)
   }
 
   override def symbol: String = "dateDaysSinceYear"
 }
 
 object DateSecondsSinceYear extends BinaryFunction {
-  override def eval(left: Any, right: Any): Any = {
-    if (left == null || right == null)
-      return null
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    if (left.isMissing || right.isMissing)
+      return DataVal.NULL
 
-    val date = left.asInstanceOf[Date]
+    val date = left.asInstanceOf[DateVal].toDate
     val refYear = Utils.toInt(right)
 
     val refDate = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     refDate.set(refYear, 0, 1)
-    (date.getTime - refDate.getTimeInMillis) / 1000
+    DataVal.from((date.getTime - refDate.getTimeInMillis) / 1000)
   }
 
   override def symbol: String = "dateSecondsSinceYear"
 }
 
 object DateSecondsSinceMidnight extends UnaryFunction {
-  override def eval(a: Any): Any = {
-    if (a == null)
-      return null
+  override def eval(a: DataVal): DataVal = {
+    if (a.isMissing)
+      return DataVal.NULL
 
-    val date = a.asInstanceOf[Date]
+    val date = a.asInstanceOf[DateVal].toDate
     val c = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     c.setTime(date)
-    (c.get(Calendar.HOUR_OF_DAY) * 3600 + c.get(Calendar.MINUTE) * 60 + c.get(Calendar.SECOND))
+    DataVal.from(c.get(Calendar.HOUR_OF_DAY) * 3600 + c.get(Calendar.MINUTE) * 60 + c.get(Calendar.SECOND))
   }
 
   override def symbol: String = "dateSecondsSinceMidnight"

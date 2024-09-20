@@ -16,6 +16,7 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.common.{OpType, PmmlElement}
+import org.pmml4s.data.DataVal
 import org.pmml4s.model.Model
 
 /**
@@ -48,7 +49,7 @@ import org.pmml4s.metadata.CastInteger._
  *                         optype of the field is continuous.
  */
 class TargetValue(
-                   val value: Option[Any],
+                   val value: Option[DataVal],
                    val displayValue: Option[String],
                    val priorProbability: Option[Double],
                    val defaultValue: Option[Double]) extends PmmlElement
@@ -89,15 +90,15 @@ class Target(
               val rescaleFactor: Double = 1.0,
               val targetValues: Array[TargetValue] = Array.empty) extends PmmlElement {
 
-  lazy val priorPredictedValue: Any = if (priorProbabilities.nonEmpty) priorProbabilities.maxBy(_._2)._1 else null
-  lazy val displayValues: Map[Any, String] =
+  lazy val priorPredictedValue: DataVal = if (priorProbabilities.nonEmpty) priorProbabilities.maxBy(_._2)._1 else null
+  lazy val displayValues: Map[DataVal, String] =
     targetValues.filter(x => (x.value.isDefined && x.displayValue.isDefined)).map(x => x.value.get -> x.displayValue.get).toMap
 
   def defaultValue: Option[Double] = if (targetValues.length != 0) targetValues(0).defaultValue else None
 
-  def categories: Array[Any] = targetValues.flatMap(_.value)
+  def categories: Array[DataVal] = targetValues.flatMap(_.value)
 
-  def priorProbabilities: Map[Any, Double] = {
+  def priorProbabilities: Map[DataVal, Double] = {
     targetValues.map(x => (x.value, x.priorProbability)).filter(_._2.isDefined).map(x => (x._1.orNull, x._2.get)).toMap
   }
 
@@ -106,14 +107,14 @@ class Target(
     val b = if (max.isDefined) Math.min(max.get, a) else a
     val c = b * rescaleFactor + rescaleConstant
 
-    castInteger.map(x => x match {
-      case `round`   => Math.round(c).toDouble
+    castInteger.map {
+      case `round` => Math.round(c).toDouble
       case `ceiling` => Math.ceil(c)
-      case `floor`   => Math.floor(c)
-    }).getOrElse(c)
+      case `floor` => Math.floor(c)
+    }.getOrElse(c)
   }
 
-  def displayValue(value: Any): Option[String] = displayValues.get(value)
+  def displayValue(value: DataVal): Option[String] = displayValues.get(value)
 }
 
 trait HasTargetFields {
@@ -142,24 +143,24 @@ class Targets(val targets: Array[Target]) extends HasTargetFields with PmmlEleme
 
   def target: Target = targets.head
 
-  def categories: Array[Any] = target.categories
+  def categories: Array[DataVal] = target.categories
 
-  def categories(name: String): Option[Array[Any]] = get(name).map(_.categories)
+  def categories(name: String): Option[Array[DataVal]] = get(name).map(_.categories)
 
   def postPredictedValue(predictedValue: Double): Double = target.postPredictedValue(predictedValue)
 
   def defaultValue: Option[Double] = target.defaultValue
 
-  def priorPredictedValue: Any = target.priorPredictedValue
+  def priorPredictedValue: DataVal = target.priorPredictedValue
 
-  def priorPredictedValue(name: String): Any = get(name).map(_.priorPredictedValue).orNull
+  def priorPredictedValue(name: String): DataVal = get(name).map(_.priorPredictedValue).orNull
 
-  def priorProbabilities: Map[Any, Double] = target.priorProbabilities
+  def priorProbabilities: Map[DataVal, Double] = target.priorProbabilities
 
-  def priorProbabilities(name: String): Map[Any, Double] = get(name).map(_.priorProbabilities).getOrElse(Map.empty)
+  def priorProbabilities(name: String): Map[DataVal, Double] = get(name).map(_.priorProbabilities).getOrElse(Map.empty)
 
-  def displayValue(value: Any, name: String = null): Option[String] = if (name eq null) target.displayValue(value) else
-    get(name).flatMap(x => x.displayValue(name))
+  def displayValue(value: DataVal, name: String = null): Option[String] = if (name eq null) target.displayValue(value) else
+    get(name).flatMap(x => x.displayValue(value))
 }
 
 trait HasTargets {

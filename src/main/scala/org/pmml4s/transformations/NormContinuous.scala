@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.PmmlElement
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, DoubleVal, Series}
 import org.pmml4s.metadata.OutlierTreatmentMethod.OutlierTreatmentMethod
 import org.pmml4s.metadata.{Field, OutlierTreatmentMethod}
 import org.pmml4s.util.Utils
@@ -36,44 +36,49 @@ class NormContinuous(
                       val outliers: OutlierTreatmentMethod = OutlierTreatmentMethod.asIs)
   extends NumericFieldExpression {
 
-  private lazy val slopes = for (i <- 1 until linearNorms.size) yield {
+  private val replacement: DoubleVal = mapMissingTo.map(DataVal.from).getOrElse(DataVal.NaN)
+
+  private lazy val slopes = for (i <- 1 until linearNorms.length) yield {
     (linearNorms(i).norm - linearNorms(i - 1).norm) / (linearNorms(i).orig - linearNorms(i - 1).orig)
   }
 
-  private lazy val intercepts = for (i <- 1 until linearNorms.size) yield {
+  private lazy val intercepts = for (i <- 1 until linearNorms.length) yield {
     (linearNorms(i - 1).norm * linearNorms(i).orig - linearNorms(i).norm * linearNorms(i - 1).orig) /
       (linearNorms(i).orig - linearNorms(i - 1).orig)
   }
 
-  override def eval(series: Series): Double = {
-    val res = super.eval(series)
-    if (Utils.isMissing(res)) {
-      mapMissingTo.getOrElse(Double.NaN)
+  override def eval(series: Series): DoubleVal = {
+    val input = super.eval(series)
+    if (Utils.isMissing(input)) {
+      replacement
     } else {
-      if (res < linearNorms.head.orig || res > linearNorms.last.orig) {
+      val d = input.toDouble
+      val res = if (d < linearNorms.head.orig || d > linearNorms.last.orig) {
         import OutlierTreatmentMethod._
         outliers match {
           case `asIs`            => {
-            val pair = if (res < linearNorms.head.orig) (slopes.head, intercepts.head) else (slopes.last, intercepts.last)
-            normalize(res, pair)
+            val pair = if (d < linearNorms.head.orig) (slopes.head, intercepts.head) else (slopes.last, intercepts.last)
+            normalize(d, pair)
           }
           case `asMissingValues` => Double.NaN
           case `asExtremeValues` => {
-            if (res < linearNorms.head.orig) linearNorms.head.norm else linearNorms.last.norm
+            if (d < linearNorms.head.orig) linearNorms.head.norm else linearNorms.last.norm
           }
         }
       } else {
-        normalize(res, findOrig(res))
+        normalize(d, findOrig(d))
       }
+
+      DataVal.from(res)
     }
   }
 
-  override def deeval(input: Any): Double = {
-    val d = input.asInstanceOf[Double]
-    if (Utils.isMissing(d)) {
-      Double.NaN
+  override def deeval(input: DataVal): DoubleVal = {
+    if (Utils.isMissing(input)) {
+      DataVal.NaN
     } else {
-      if (d < linearNorms.head.norm || d > linearNorms.last.norm) {
+      val d = input.toDouble
+      val res = if (d < linearNorms.head.norm || d > linearNorms.last.norm) {
         import OutlierTreatmentMethod._
         outliers match {
           case `asIs`            => {
@@ -88,12 +93,14 @@ class NormContinuous(
       } else {
         denormalize(d, findNorm(d))
       }
+
+      DataVal.from(res)
     }
   }
 
   private def findOrig(value: Double): (Double, Double) = {
     var i = 0
-    while (i < linearNorms.size - 1) {
+    while (i < linearNorms.length - 1) {
       if (value >= linearNorms(i).orig && value <= linearNorms(i + 1).orig) {
         return (slopes(i), intercepts(i))
       }
@@ -105,7 +112,7 @@ class NormContinuous(
 
   private def findNorm(value: Double): (Double, Double) = {
     var i = 0
-    while (i < linearNorms.size - 1) {
+    while (i < linearNorms.length - 1) {
       if (value >= linearNorms(i).norm && value <= linearNorms(i + 1).norm) {
         return (slopes(i), intercepts(i))
       }

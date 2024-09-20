@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.DataType
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 
 /**
@@ -25,10 +25,10 @@ import org.pmml4s.metadata.Field
  * Constant can be optionally specified.
  */
 class Constant(
-                val value: Any,
+                val value: DataVal,
                 val dataType: Option[DataType] = None,
                 val missing: Boolean = false) extends LeafExpression {
-  override def eval(series: Series): Any = if (missing) null else value
+  override def eval(series: Series): DataVal = if (missing) DataVal.NULL else value
 
   override def getDataField: Option[Field] = None
 }

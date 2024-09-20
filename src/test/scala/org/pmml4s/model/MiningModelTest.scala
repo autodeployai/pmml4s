@@ -27,9 +27,9 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "day", "continent"))
     assert(model.targetName === "Class")
-    assert(model.classes === Array("Iris-setosa", "Iris-versicolor", "Iris-virginica"))
-    assert(model.field("continent").validValues === Array("africa", "asia"))
-    val r = model.predict(Series(2.0, 1.75, 10, "africa"))
+    assert(model.classes.map(_.toVal) === Array("Iris-setosa", "Iris-versicolor", "Iris-virginica"))
+    assert(model.field("continent").validValues.map(_.toVal) === Array("africa", "asia"))
+    val r = model.predict(Array(2.0, 1.75, 10, "africa"))
     assert(r(0) === "Iris-setosa")
     assert(r(1) === 1.0)
   }
@@ -39,7 +39,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "day", "continent", "sepal_width"))
     assert(model.targetName === "sepal_length")
-    val r = model.predict(Series(2.0, 1.75, 10, "africa", 1.0))
+    val r = model.predict(Array(2.0, 1.75, 10, "africa", 1.0))
     assert(r(0) === 5.254244999999999)
   }
 
@@ -48,7 +48,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "day", "continent"))
     assert(model.targetName === "Class")
-    val r = model.predict(Series(2.0, 1.75, 10, "africa"))
+    val r = model.predict(Array(2.0, 1.75, 10, "africa"))
     assert(r(0) === "Iris-setosa")
     assert(r(1) === 1.0)
   }
@@ -58,7 +58,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "temperature", "cloudiness"))
     assert(model.targetNames === Array("Class", "PollenIndex"))
-    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r(0) === 1.5000000000000002)
   }
 
@@ -67,7 +67,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "temperature", "cloudiness"))
     assert(model.targetNames === Array("Class", "PollenIndex"))
-    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r(0) === 0.7)
   }
 
@@ -76,7 +76,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("petal_length", "petal_width", "temperature", "cloudiness"))
     assert(model.targetNames === Array("PollenIndex"))
-    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r(0) === 0.7)
   }
 
@@ -85,7 +85,7 @@ class MiningModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.MiningModel)
     assert(model.inputNames === Array("SEPALLEN", "SEPALWID", "PETALLEN", "PETALWID"))
     assert(model.targetNames === Array("SPECIES"))
-    val r = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r(2) === 0.5555556666666667)
     assert(r(3) === 3)
   }

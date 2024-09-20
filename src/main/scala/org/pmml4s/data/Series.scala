@@ -16,13 +16,14 @@
 package org.pmml4s.data
 
 import java.util
-
 import org.pmml4s.common._
 import org.pmml4s.util.JsUtils._
 import org.pmml4s.util.Utils
 import spray.json._
 
 import scala.collection.mutable
+import scala.collection.mutable.HashMap
+import scala.reflect.ClassTag
 
 object Series {
 
@@ -37,91 +38,103 @@ object Series {
    * }
    * }}}
    */
-  def unapplySeq(row: Series): Some[Seq[Any]] = Some(row.toSeq)
+  def unapplySeq(row: Series): Some[Seq[DataVal]] = Some(row.toSeq)
 
   /**
    * This method can be used to construct a [[Series]] with the given values.
    */
-  def apply(values: Any*): Series = new GenericSeries(values.toArray)
+  def apply(values: Any*): Series = new GenericSeries(values.map(DataVal.from).toArray)
 
   /**
    * This method can be used to construct a [[Series]] from a [[Seq]] of values.
    */
-  def fromSeq(values: Seq[Any]): Series = new GenericSeries(values.toArray)
+  def fromSeq(values: Seq[DataVal]): Series = new GenericSeries(values.toArray)
   
-  def fromArray(values: Array[Any]): Series = new GenericSeries(values)  
+  def fromArray[T](values: Array[T]): Series = {
+    new GenericSeries(values.map(x => DataVal.from(x)))
+  }
 
-  def fromTuple(tuple: Product): Series = fromSeq(tuple.productIterator.toSeq)
+  def fromSeq(values: Seq[DataVal], schema: StructType): Series = new GenericSeriesWithSchema(values.toArray, schema)
 
-  def fromSeq(values: Seq[Any], schema: StructType): Series = new GenericSeriesWithSchema(values.toArray, schema)
+  def fromArray[T](values: Array[T], schema: StructType): Series = {
+    new GenericSeriesWithSchema(values.zip(schema).map(x => Utils.toDataVal(x._1, x._2.dataType)), schema)
+  }
 
-  def fromArray(values: Array[Any], schema: StructType): Series = new GenericSeriesWithSchema(values, schema)
-  
-  def fromTuple(tuple: Product, schema: StructType): Series = fromSeq(tuple.productIterator.toSeq, schema)
-
-  def fromSplit(columns: Seq[String], values: Seq[Any]): Series = {
+  def fromSplit(columns: Seq[String], values: Seq[DataVal]): Series = {
     require(values.size == columns.size, s"Should be same length, got columns=${columns.size} and values=${values.size}.")
 
     val fields = columns.map(x => StructField(x, UnresolvedDataType)).toArray
     new GenericSeriesWithSchema(values.toArray, StructType(fields))
-  }  
+  }
   
   def fromMap(map: Map[String, Any]): Series = {
-    val values = new Array[Any](map.size)
+    val values = new Array[DataVal](map.size)
     val fields = new Array[StructField](map.size)
 
     var i = 0
-    for (pair <- map) {
-      fields(i) = StructField(pair._1, UnresolvedDataType)
-      values(i) = pair._2
-      i += 1
-    }
-
+    map.foreach(
+      pair => {
+        val dataType = Utils.inferDataType(pair._2)
+        fields(i) = StructField(pair._1, dataType)
+        values(i) = Utils.toDataVal(pair._2, dataType)
+        i += 1
+      }
+    )
     new GenericSeriesWithSchema(values, StructType(fields))
   }
 
   def fromMap(map: java.util.Map[String, Any]): Series = {
-    val values = new Array[Any](map.size)
+    val values = new Array[DataVal](map.size)
     val fields = new Array[StructField](map.size)
 
     var i = 0
     val it = map.entrySet().iterator()
     while (it.hasNext) {
       val pair = it.next()
-      fields(i) = StructField(pair.getKey, UnresolvedDataType)
-      values(i) = pair.getValue
+      val dataType = Utils.inferDataType(pair.getValue)
+      fields(i) = StructField(pair.getKey, dataType)
+      values(i) = Utils.toDataVal(pair.getValue, dataType)
       i += 1
     }
-
     new GenericSeriesWithSchema(values, StructType(fields))
   }
 
   def fromMap(map: Map[String, Any], schema: StructType): Series = {
-    val values = schema.fields.map(x => {
-      map.get(x.name).map(y => Utils.toVal(y, x.dataType)).orNull
-    })
+    val len = schema.length
+    val values = new Array[DataVal](len)
+    var i = 0
+    while (i < len) {
+      val f = schema(i)
+      val v = map.get(f.name).orNull
+      values(i) = if (v != null) Utils.toDataVal(v, f.dataType) else DataVal.NULL
+      i += 1
+    }
     new GenericSeriesWithSchema(values, schema)
   }
 
   def fromMap(map: java.util.Map[String, Any], schema: StructType): Series = {
-    val values = new Array[Any](schema.size)
+    val len = schema.length
+    val values = new Array[DataVal](len)
     var i = 0
-    val len = schema.size
     while (i < len) {
       val f = schema(i)
       val v = map.get(f.name)
-      values(i) = if (v != null) Utils.toVal(v, f.dataType) else null
+      values(i) = if (v != null) Utils.toDataVal(v, f.dataType) else DataVal.NULL
       i += 1
     }
-
     new GenericSeriesWithSchema(values, schema)
   }
 
   def fromMap(map: JsObject, schema: StructType): Series = {
-    val values = schema.fields.map(x => {
-      map.fields.get(x.name).map(y => Utils.toVal(y.convertTo, x.dataType)).orNull
-    })
-
+    val len = schema.length
+    val values = new Array[DataVal](len)
+    var i = 0
+    while (i < len) {
+      val f = schema(i)
+      val v = map.fields.get(f.name).orNull
+      values(i) = if (v != null) Utils.toDataVal(v.convertTo, f.dataType) else DataVal.NULL
+      i += 1
+    }
     new GenericSeriesWithSchema(values, schema)
   }
 
@@ -137,7 +150,7 @@ object Series {
   }
 
   /** Returns an empty row. */
-  val empty = apply()
+  val empty: Series = apply()
 }
 
 /**
@@ -163,39 +176,44 @@ trait Series {
   /**
    * Returns the value at position i. If the value is null, null is returned.
    */
-  def apply(i: Int): Any = get(i)
+  def apply(i: Int): DataVal = get(i)
 
   /**
    * Returns the value at position i. If the value is null, null is returned.
    */
-  def get(i: Int): Any
+  def get(i: Int): DataVal
+
+  /**
+   * Returns the value of a given fieldName.
+   */
+  def get(fieldName: String): DataVal = get(fieldIndex(fieldName))
 
   /** Checks whether the value at position i is null. */
-  def isNullAt(i: Int): Boolean = get(i) == null
+  def isNullAt(i: Int): Boolean = Utils.isNull(get(i))
 
   /**
    * Checks whether the value at position i is missing (null or Double.NaN) if the position is valid,
    * otherwise treated as missing too.
    */
-  def isMissingAt(i: Int): Boolean = i < 0 || Utils.isMissing(get(i))
+  def isMissingAt(i: Int): Boolean = Utils.isMissing(get(i))
 
-  def getDouble(i: Int): Double = Utils.toDouble(get(i))
+  def getDouble(i: Int): Double = get(i).toDouble
 
-  def getString(i: Int): String = Utils.toString(get(i))
+  def getString(i: Int): String = get(i).toString
 
-  def getLong(i: Int): Long = Utils.toLong(get(i))
+  def getLong(i: Int): Long = get(i).toLong
 
-  def getInt(i: Int): Int = Utils.toInt(get(i))
+  def getInt(i: Int): Int = get(i).toInt
 
-  def getBoolean(i: Int): Boolean = Utils.toBoolean(get(i))
+  def getBoolean(i: Int): Boolean = get(i).toBool
 
-  def toSeq: Seq[Any] = {
-    toArray.toSeq
-  }
+  def toSeq: Seq[DataVal] = toArray.toSeq
 
-  def toArray: Array[Any] = {
+  def asSeq: Seq[Any] = asArray.toSeq
+
+  def toArray: Array[DataVal] = {
     val n = length
-    val values = new Array[Any](n)
+    val values = new Array[DataVal](n)
     var i = 0
     while (i < n) {
       values.update(i, get(i))
@@ -204,33 +222,45 @@ trait Series {
     values
   }
 
-  def toMap: Map[String, Any] = {
-    val result = new mutable.HashMap[String, Any]
+  def asArray: Array[Any] = toArray.map(_.toVal)
+
+  def toMap: Map[String, DataVal] = {
     val len = size
+    val result = new mutable.HashMap[String, DataVal]()
     result.sizeHint(len)
     var i = 0
     while (i < len) {
       result.put(if (schema != null) schema.fieldName(i) else i.toString, get(i))
       i += 1
     }
-
     result.toMap
   }
 
+  def asMap: Map[String, Any] = toMap.map(entry => (entry._1, entry._2.toVal))
 
-  def toJavaMap: java.util.Map[String, Any] = {
+  def toJavaMap: java.util.Map[String, DataVal] = {
     val len = size
-    val result = new util.HashMap[String, Any](len)
+    val result = new util.HashMap[String, DataVal](len)
     var i = 0
     while (i < len) {
       result.put(if (schema != null) schema.fieldName(i) else i.toString, get(i))
       i += 1
     }
-
     result
   }
 
-  def toPairSeq: Seq[(String, Any)] = {
+  def asJavaMap: java.util.Map[String, Any] = {
+    val len = size
+    val result = new util.HashMap[String, Any](len)
+    var i = 0
+    while (i < len) {
+      result.put(if (schema != null) schema.fieldName(i) else i.toString, get(i).toVal)
+      i += 1
+    }
+    result
+  }
+
+  def toPairSeq: Seq[(String, DataVal)] = {
     if (schema != null) {
       schema.fieldNames.zip(toArray).toSeq
     } else {
@@ -238,25 +268,7 @@ trait Series {
     }
   }
 
-  /**
-   * Returns the value at position i.
-   * For primitive types if value is null it returns 'zero value' specific for primitive
-   * ie. 0 for Int - use isNullAt to ensure that value is not null
-   *
-   * @throws ClassCastException when data type does not match.
-   */
-  def getAs[T](i: Int): T = get(i).asInstanceOf[T]
-
-  /**
-   * Returns the value of a given fieldName.
-   * For primitive types if value is null it returns 'zero value' specific for primitive
-   * ie. 0 for Int - use isNullAt to ensure that value is not null
-   *
-   * @throws UnsupportedOperationException when schema is not defined.
-   * @throws IllegalArgumentException      when fieldName do not exist.
-   * @throws ClassCastException            when data type does not match.
-   */
-  def getAs[T](fieldName: String): T = getAs[T](fieldIndex(fieldName))
+  def asPairSeq: Seq[(String, Any)] = toPairSeq.map(entry => (entry._1, entry._2.toVal))
 
   /**
    * Returns the index of a given field name.
@@ -305,9 +317,9 @@ trait Series {
     if (schema == null) {
       throw new IllegalArgumentException("Schema is not defined")
     }
-    JsObject(toMap.map(x => (x._1, x._2.toJson)))
+    JsObject(asMap.map(x => (x._1, x._2.toJson)))
   } else {
-    JsArray(toArray.map(x => x.toJson).toVector)
+    JsArray(asArray.map(x => x.toJson).toVector)
   }
 
   def columns: Array[String] = {
@@ -340,25 +352,25 @@ trait Series {
 /**
  * A series implementation that uses an array of objects as the underlying storage.
  */
-class GenericSeries(val values: Array[Any]) extends Series {
+class GenericSeries(val values: Array[DataVal]) extends Series {
 
-  def this() = this(Array.empty[Any])
+  def this() = this(Array.empty[DataVal])
 
-  def this(size: Int) = this(new Array[Any](size))
+  def this(size: Int) = this(new Array[DataVal](size))
 
-  override def length: Int = values.length
+  override val length: Int = values.length
 
-  override def get(i: Int): Any = if (i < 0 || i >= values.length) null else values(i)
+  override def get(i: Int): DataVal = if (i < 0 || i >= values.length) DataVal.NULL else values(i)
 
-  override def apply(i: Int): Any = values(i)
+  @inline
+  override def apply(i: Int): DataVal = values(i)
 
-  override def toArray: Array[Any] = values.clone()
+  override def toArray: Array[DataVal] = values.clone()
 
   override def copy(): GenericSeries = this
-
 }
 
-class GenericSeriesWithSchema(values: Array[Any], override val schema: StructType) extends GenericSeries(values) {
+class GenericSeriesWithSchema(values: Array[DataVal], override val schema: StructType) extends GenericSeries(values) {
 
   /** No-arg constructor for serialization. */
   protected def this() = this(null, null)
@@ -374,7 +386,7 @@ object NullSeries extends Series {
   /**
    * Returns the value at position i. If the value is null, null is returned.
    */
-  override def get(i: Int): Any = null
+  override def get(i: Int): DataVal = NullVal
 
   /**
    * Make a copy of the current [[Series]] object.

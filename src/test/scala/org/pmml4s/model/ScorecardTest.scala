@@ -16,7 +16,7 @@
 package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.ResultFeature
 
 /**
@@ -39,7 +39,7 @@ class ScorecardTest extends BaseModelTest {
     assert(scorecard.baselineMethod === BaselineMethod.other)
 
     val outputFields = model.outputFields
-    assert(outputFields.size === 4)
+    assert(outputFields.length === 4)
     assert(outputFields(0).feature === ResultFeature.predictedValue)
     assert(outputFields(1).feature === ResultFeature.reasonCode)
     assert(outputFields(1).rank === 1)
@@ -49,9 +49,9 @@ class ScorecardTest extends BaseModelTest {
     assert(outputFields(3).rank === 3)
 
     val result = model.predict(Series("engineering", 25, 500))
-    assert(result(0) === 29)
-    assert(result(1) === "RC2")
-    assert(result(2) === "RC1")
-    assert(result(3) === "RC1")
+    assert(result(0) === DataVal(29.0))
+    assert(result(1) === DataVal("RC2"))
+    assert(result(2) === DataVal("RC1"))
+    assert(result(3) === DataVal("RC1"))
   }
 }

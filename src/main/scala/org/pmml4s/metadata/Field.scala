@@ -16,8 +16,8 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.FieldNotFoundException
-import org.pmml4s.common.{HasDataType, HasOpType, Interval}
-import org.pmml4s.data.Series
+import org.pmml4s.common.{DoubleType, HasDataType, HasOpType, Interval}
+import org.pmml4s.data.{DataVal, DoubleVal, Series}
 import org.pmml4s.util.Utils
 
 import scala.collection.mutable
@@ -28,6 +28,9 @@ import scala.collection.mutable
 abstract class Field extends HasDataType with HasOpType with Attribute {
 
   require(!isDataField || name.nonEmpty, "Cannot have an empty string for name.")
+
+  // A flag if the field is a plain numeric field
+  override lazy val isPlain: Boolean = attribute.isPlain
 
   /** Name of the field. */
   def name: String
@@ -61,21 +64,21 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
    *
    * @throws java.lang.NumberFormatException - If the string does not contain a parsable number if dataType is numeric
    */
-  def toVal(s: String): Any = Utils.toVal(s, dataType)
+  def toVal(s: String): DataVal = Utils.toDataVal(s, dataType)
 
   /**
    * Converts a string to the corresponding value based on its data type.
    *
    * @return None if any error occurs
    */
-  def toValOption(s: String): Option[Any] = try {
-    Option(Utils.toVal(s, dataType))
+  def toValOption(s: String): Option[DataVal] = try {
+    Option(Utils.toDataVal(s, dataType))
   } catch {
     case _: Exception => None
   }
 
   /** Retrieve its value from the specified series, return null if missing */
-  def get(series: Series): Any
+  def get(series: Series): DataVal
 
   /** Tests if its value is missing from the specified series. */
   def isMissing(series: Series): Boolean = Utils.isMissing(get(series))
@@ -92,8 +95,18 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
     if (value != null) Utils.toDouble(value) else Double.NaN
   }
 
+  def getDoubleVal(series: Series): DoubleVal = {
+    val value = get(series)
+    if (value != null) {
+      if (value.dataType != DoubleType) {
+        DataVal.from(value.toDouble)
+      } else value.asInstanceOf[DoubleVal]
+    } else
+      DataVal.NaN
+  }
+
   /** Converts to an immutable attribute if it's mutable. */
-  def toImmutable(): Field = this
+  def toImmutable: Field = this
 
   /** Tests if the field is referenced in the model element. */
   def referenced: Boolean = false
@@ -101,21 +114,21 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
   /** Sets the referenced flag of the field. */
   def referenced_=(r: Boolean): Unit
 
-  override def labels: Map[Any, String] = attribute.labels
+  override def labels: Map[DataVal, String] = attribute.labels
 
-  override def getLabel(value: Any): Option[String] = attribute.getLabel(value)
+  override def getLabel(value: DataVal): Option[String] = attribute.getLabel(value)
 
-  override def missingValues: Set[Any] = attribute.missingValues
+  override def missingValues: Set[DataVal] = attribute.missingValues
 
-  override def isMissingValue(value: Any): Boolean = attribute.isMissingValue(value)
+  override def isMissingValue(value: DataVal): Boolean = attribute.isMissingValue(value)
 
-  override def invalidValues: Set[Any] = attribute.invalidValues
+  override def invalidValues: Set[DataVal] = attribute.invalidValues
 
-  override def isInvalidValue(value: Any): Boolean = attribute.isInvalidValue(value)
+  override def isInvalidValue(value: DataVal): Boolean = attribute.isInvalidValue(value)
 
-  override def validValues: Array[Any] = attribute.validValues
+  override def validValues: Array[DataVal] = attribute.validValues
 
-  override def isValidValue(value: Any): Boolean = attribute.isValidValue(value)
+  override def isValidValue(value: DataVal): Boolean = attribute.isValidValue(value)
 
   override def intervals: Array[Interval] = attribute.intervals
 
@@ -123,9 +136,9 @@ abstract class Field extends HasDataType with HasOpType with Attribute {
 
   override def isBinary: Boolean = attribute.isBinary
 
-  override def encode(value: Any): Double = attribute.encode(value)
+  override def encode(value: DataVal): Double = attribute.encode(value)
 
-  override def decode(index: Int): Any = attribute.decode(index)
+  override def decode(index: Int): DataVal = attribute.decode(index)
 
   override def attrType: AttributeType = attribute.attrType
 

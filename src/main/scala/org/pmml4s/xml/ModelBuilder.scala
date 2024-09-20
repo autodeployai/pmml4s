@@ -66,7 +66,7 @@ class ModelBuilder extends TransformationsBuilder
             val builder = Builder.get(label).getOrElse(throw new NotSupportedException(label))
             val model = builder.build(reader, attrs, parent)
             if (dataDict.exists(_.isMutable)) {
-              dataDict.foreach(_.toImmutable())
+              dataDict.foreach(_.toImmutable)
             }
             builder.postBuild()
 

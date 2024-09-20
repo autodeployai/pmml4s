@@ -16,7 +16,7 @@
 package org.pmml4s.metadata
 
 import org.pmml4s.common.{DataType, OpType}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 
 /**
  * Defines the wrapped field that contains an internal field acts all operations.
@@ -25,10 +25,10 @@ class WrappedField(override val name: String) extends Field {
   var field: Field = _
 
   /** Display name of the field. None if it is not set. */
-  override def displayName = field.displayName
+  override def displayName: Option[String] = field.displayName
 
   /** Attribute of the field. */
-  override def attribute = field.attribute
+  override def attribute: Attribute = field.attribute
 
   /** Index of the field in the input series. */
   override def index: Int = field.index
@@ -37,7 +37,7 @@ class WrappedField(override val name: String) extends Field {
   override def index_=(i: Int): Unit = field.index_=(i)
 
   /** Tests if the field is referenced in the model element. */
-  override def referenced = field.referenced
+  override def referenced: Boolean = field.referenced
 
   /** Sets the referenced flag of the field. */
   override def referenced_=(r: Boolean): Unit = field.referenced_=(r)
@@ -46,7 +46,7 @@ class WrappedField(override val name: String) extends Field {
   override def fieldType: FieldType = FieldType.WrappedField
 
   /** Retrieve its value from the specified series, return null if missing */
-  override def get(series: Series): Any = field.get(series)
+  override def get(series: Series): DataVal = field.get(series)
 
   /** Returns the data type of field. */
   override def dataType: DataType = field.dataType

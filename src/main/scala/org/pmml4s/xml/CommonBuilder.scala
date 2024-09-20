@@ -16,8 +16,9 @@
 package org.pmml4s.xml
 
 import org.pmml4s.common._
+import org.pmml4s.data.DataVal
 import org.pmml4s.metadata.Field
-import org.pmml4s.util.Utils
+import org.pmml4s.util.{StringUtils, Utils}
 import org.pmml4s.{InvalidValueException, PmmlException}
 
 
@@ -27,25 +28,26 @@ import org.pmml4s.{InvalidValueException, PmmlException}
 trait CommonBuilder extends ExtensionHandler with UnknownElemHandler {
 
   def toVal(s: String, dataType: DataType): Any = Utils.toVal(s, dataType)
+  def toDataVal(s: String, dataType: DataType): DataVal = Utils.toDataVal(s, dataType)
 
   /**
    * Verifies if the input sting values is valid for the specified field, here, we need to check if the field is null,
    * because this method is always called to verify the target field that could be absent for any model, for example
    * the child model under the Mining Model.
    */
-  def verifyValue(s: String, f: Field): Any = {
+  def verifyValue(s: String, f: Field): DataVal = {
     if (f != null) {
       val value = f.toVal(s)
       if (Utils.isMissing(f.encode(value))) throw new InvalidValueException(s, f.name) else value
     } else {
-      s
+      DataVal.from(s)
     }
   }
 
   def makeValue(reader: XMLEventReader, attrs: XmlAttrs): Value = {
     val value = attrs(AttrTags.VALUE)
     val displayValue = attrs.get(AttrTags.DISPLAY_NAME)
-    val property = attrs.get(AttrTags.PROPERTY).map(Property.withName(_)).getOrElse(Property.valid)
+    val property = attrs.get(AttrTags.PROPERTY).map(Property.withName).getOrElse(Property.valid)
 
     new Value(value, displayValue, property)
   }
@@ -54,11 +56,11 @@ trait CommonBuilder extends ExtensionHandler with UnknownElemHandler {
   def makeInterval(reader: XMLEventReader, attrs: XmlAttrs): Interval = {
     val closure = Closure.withName(attrs(AttrTags.CLOSURE))
     (attrs.get(AttrTags.LEFT_MARGIN, AttrTags.RIGHT_MARGIN) match {
-      case (Some(left), Some(right)) => Interval(left.toDouble, right.toDouble, closure)
-      case (Some(left), None)        => if (Closure.isOpenBelow(closure)) Interval.above(left.toDouble) else
-        Interval.atOrAbove(left.toDouble)
-      case (None, Some(right))       => if (Closure.isOpenAbove(closure)) Interval.below(right.toDouble) else
-        Interval.atOrBelow(right.toDouble)
+      case (Some(left), Some(right)) => Interval(StringUtils.asDouble(left), StringUtils.asDouble(right), closure)
+      case (Some(left), None)        => if (Closure.isOpenBelow(closure)) Interval.above(StringUtils.asDouble(left)) else
+        Interval.atOrAbove(StringUtils.asDouble(left))
+      case (None, Some(right))       => if (Closure.isOpenAbove(closure)) Interval.below(StringUtils.asDouble(right)) else
+        Interval.atOrBelow(StringUtils.asDouble(right))
       case _                         => Interval()
     })
   }

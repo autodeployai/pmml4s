@@ -15,7 +15,7 @@
  */
 package org.pmml4s.model
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 
 /**
  * Naive bayes model cases come from DMG examples: http://dmg.org/pmml/v4-3/NaiveBayes.html
@@ -29,7 +29,7 @@ class NaiveBayesModelTest extends BaseModelTest {
     assert(model.inputNames === Array("age of individual", "gender", "no of claims", "domicile", "age of car"))
     assert(model.targetName === "amount of claims")
     val r = model.predict(Series(24, "male", "2", null, 1))
-    assert(r(0) === 500)
+    assert(r(0) === DataVal(500))
     assert(r.getDouble(1) === 0.3577224807531526)
     assert(r.getDouble(2) === 0.04043221681936915)
     assert(r.getDouble(3) === 0.3577224807531526)

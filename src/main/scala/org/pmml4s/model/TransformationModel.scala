@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2024 AutoDeploy AI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,5 +49,9 @@ class TransformationModel(
   }
 
   /** Creates an object of subclass of ModelOutputs that is for writing into an output series.  */
-  override def createOutputs(): ModelOutputs = new ModelOutputs() {}
+  override def createOutputs(): ModelOutputs = new ModelOutputs() {
+    override def modelElement: ModelElement = ModelElement.TransformationModel
+
+    override def clear(): this.type = this
+  }
 }

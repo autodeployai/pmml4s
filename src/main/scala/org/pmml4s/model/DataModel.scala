@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,13 @@ class DataModel(
   override def defaultOutputFields: Array[OutputField] = Array.empty
 
   /** Creates an object of subclass of ModelOutputs that is for writing into an output series.  */
-  override def createOutputs(): ModelOutputs = new ModelOutputs {}
+  override def createOutputs(): ModelOutputs = new ModelOutputs {
+    override def modelElement: ModelElement = ModelElement.DataModel
+
+    override def clear(): this.type = {
+      this
+    }
+  }
 
   def asTransformation: TransformationModel =
     new TransformationModel(version, header, dataDictionary, transformationDictionary)

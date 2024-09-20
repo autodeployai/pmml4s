@@ -15,11 +15,13 @@
  */
 package org.pmml4s.common
 
+import org.pmml4s.data.DataVal
+
 /**
  * Comprises a method to list predicted values in a classification trees structure.
  */
 class ScoreDistribution(
-                         val value: Any,
+                         val value: DataVal,
                          val recordCount: Double,
                          val confidence: Option[Double],
                          val probability: Option[Double]) extends PmmlElement {
@@ -34,19 +36,15 @@ class ScoreDistribution(
 trait HasScoreDistributions {
   def scoreDistributions: ScoreDistributions
 
-  def getConfidence(value: Any): Double = scoreDistributions.valueToDistribution.get(value).flatMap(_.confidence) getOrElse
-    Double.NaN
+  def getConfidence(value: DataVal): Double = scoreDistributions.confidences.getOrElse(value, Double.NaN)
 
-  def getProbability(value: Any): Double = scoreDistributions.valueToDistribution.get(value).flatMap(_.probability) getOrElse
-    Double.NaN
+  def getProbability(value: DataVal): Double = scoreDistributions.probabilities.getOrElse(value, Double.NaN)
 
-  def getScoreDistribution(value: Any): Option[ScoreDistribution] = scoreDistributions.valueToDistribution.get(value)
-
-  def probabilities: Map[Any, Double] = scoreDistributions.valueToDistribution.map(x => (x._1, x._2.probability.getOrElse(Double.NaN))).toMap
+  def probabilities: Map[DataVal, Double] = scoreDistributions.probabilities
 }
 
 class ScoreDistributions(val scoreDistributions: Array[ScoreDistribution]) extends PmmlElement {
-  val valueToDistribution: Map[Any, ScoreDistribution] = {
+  val valueToDistribution: Map[DataVal, ScoreDistribution] = {
     val total = scoreDistributions.map(_.recordCount).sum
 
     // Compute probabilities if not present.
@@ -59,9 +57,13 @@ class ScoreDistributions(val scoreDistributions: Array[ScoreDistribution]) exten
     } else scoreDistributions).map(x => (x.value, x)).toMap
   }
 
+  val probabilities: Map[DataVal, Double] = valueToDistribution.map(x => (x._1, x._2.probability.getOrElse(Double.NaN)))
+
+  val confidences: Map[DataVal, Double] = valueToDistribution.map(x => (x._1, x._2.confidence.getOrElse(Double.NaN)))
+
   def this() = {
     this(Array.empty)
   }
 
-  def classes: Array[Any] = scoreDistributions.map(_.value)
+  def classes: Array[DataVal] = scoreDistributions.map(_.value)
 }

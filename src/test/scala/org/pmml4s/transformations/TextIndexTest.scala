@@ -15,11 +15,10 @@
  */
 package org.pmml4s.transformations
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, DoubleVal, Series}
 import org.pmml4s.metadata.DataField
 import org.pmml4s.xml.{ElemTags, TransformationsBuilder}
-import org.pmml4s.xml.{XMLEventReader, EvElemStart}
-
+import org.pmml4s.xml.{EvElemStart, XMLEventReader}
 import org.scalatest._
 import funsuite._
 
@@ -31,45 +30,45 @@ import scala.io.Source
 class TextIndexTest extends AnyFunSuite with TransformationsBuilder {
 
   test("wordSeparatorCharacterRE=[\\s\\-]") {
-    val textIndex = new TextIndex(new DataField("textField"), new Constant("user friendly"), wordSeparatorCharacterRE = "[\\s\\-]")
-    assert(textIndex.eval(Series.fromMap(Map("textField" -> "user-friendly"))) === 1)
-    assert(textIndex.eval(Series.fromMap(Map("textField" -> "user friendly"))) === 1)
+    val textIndex = new TextIndex(new DataField("textField"), new Constant(DataVal.from("user friendly")), wordSeparatorCharacterRE = "[\\s\\-]")
+    assert(textIndex.eval(Series.fromMap(Map("textField" -> "user-friendly"))) === DoubleVal(1))
+    assert(textIndex.eval(Series.fromMap(Map("textField" -> "user friendly"))) === DoubleVal(1))
   }
 
   test("maxLevenshteinDistance") {
     // maxLevenshteinDistance = 1
-    val textIndex = new TextIndex(new DataField("textField"), new Constant("brown fox"), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s]")
-    assert(textIndex.eval(Series.fromMap(Map("textField" -> "The quick browny foxy jumps over the lazy dog. The brown fox runs away and to be with another brown foxy."))) === 2)
+    val textIndex = new TextIndex(new DataField("textField"), new Constant(DataVal.from("brown fox")), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s]")
+    assert(textIndex.eval(Series.fromMap(Map("textField" -> "The quick browny foxy jumps over the lazy dog. The brown fox runs away and to be with another brown foxy."))) === DoubleVal(2))
 
     // maxLevenshteinDistance = 2
-    val textIndex2 = new TextIndex(new DataField("textField"), new Constant("brown fox"), maxLevenshteinDistance = 2, wordSeparatorCharacterRE = "[\\s]")
-    assert(textIndex2.eval(Series.fromMap(Map("textField" -> "The quick browny foxy jumps over the lazy dog. The brown fox runs away and to be with another brown foxy."))) === 3)
+    val textIndex2 = new TextIndex(new DataField("textField"), new Constant(DataVal.from("brown fox")), maxLevenshteinDistance = 2, wordSeparatorCharacterRE = "[\\s]")
+    assert(textIndex2.eval(Series.fromMap(Map("textField" -> "The quick browny foxy jumps over the lazy dog. The brown fox runs away and to be with another brown foxy."))) === DoubleVal(3))
   }
 
   test("countHits") {
     val text = "I have a doog. My dog is white. The doog is friendly"
 
     // countHits = CountHits.allHits
-    val textIndex = new TextIndex(new DataField("textField"), new Constant("dog"), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s\\.]", countHits = CountHits.allHits)
-    assert(textIndex.eval(Series.fromMap(Map("textField" -> text))) === 3)
+    val textIndex = new TextIndex(new DataField("textField"), new Constant(DataVal.from("dog")), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s\\.]", countHits = CountHits.allHits)
+    assert(textIndex.eval(Series.fromMap(Map("textField" -> text))) === DoubleVal(3))
 
     // countHits = CountHits.bestHits
-    val textIndex2 = new TextIndex(new DataField("textField"), new Constant("dog"), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s\\.]", countHits = CountHits.bestHits)
-    assert(textIndex2.eval(Series.fromMap(Map("textField" -> text))) === 1)
+    val textIndex2 = new TextIndex(new DataField("textField"), new Constant(DataVal.from("dog")), maxLevenshteinDistance = 1, wordSeparatorCharacterRE = "[\\s\\.]", countHits = CountHits.bestHits)
+    assert(textIndex2.eval(Series.fromMap(Map("textField" -> text))) === DoubleVal(1))
   }
 
   test("An example with maxLevenshteinDistance and case insensitive") {
     val text = "The Sun was setting while the captain's son reached the bounty island, minutes after their ship had sunk to the bottom of the ocean"
 
     // maxLevenshteinDistance = 1
-    val derivedField = new DerivedField("sunFrequency", new TextIndex(new DataField("myTextField"), new Constant("sun"), isCaseSensitive = false, maxLevenshteinDistance = 1))
+    val derivedField = new DerivedField("sunFrequency", new TextIndex(new DataField("myTextField"), new Constant(DataVal.from("sun")), isCaseSensitive = false, maxLevenshteinDistance = 1))
     val value = derivedField.eval(Series.fromMap(Map("myTextField" -> text)))
-    assert(value === 3)
+    assert(value === DoubleVal(3))
 
     // maxLevenshteinDistance = 0
-    val derivedField2 = new DerivedField("sunFrequency", new TextIndex(new DataField("myTextField"), new Constant("sun"), isCaseSensitive = false, maxLevenshteinDistance = 0))
+    val derivedField2 = new DerivedField("sunFrequency", new TextIndex(new DataField("myTextField"), new Constant(DataVal.from("sun")), isCaseSensitive = false, maxLevenshteinDistance = 0))
     val value2 = derivedField2.eval(Series.fromMap(Map("myTextField" -> text)))
-    assert(value2 === 1)
+    assert(value2 === DoubleVal(1))
   }
 
   test("An example with normalization") {
@@ -116,7 +115,7 @@ class TextIndexTest extends AnyFunSuite with TransformationsBuilder {
 
     val reader = new XMLEventReader(Source.fromString(str))
     val myIndexFunction = if (reader.hasNext) {
-      reader.next match {
+      reader.next() match {
         case EvElemStart(_, ElemTags.DEFINE_FUNCTION, attrs, _) => {
           makeDefineFunction(reader, attrs)
         }
@@ -125,11 +124,11 @@ class TextIndexTest extends AnyFunSuite with TransformationsBuilder {
     } else ???
 
     val derivedField = new DerivedField("isGoodUI",
-      new Apply(myIndexFunction, Array(new FieldRef(new DataField("Review")), new Constant("ui_good"))))
+      new Apply(myIndexFunction, Array(new FieldRef(new DataField("Review")), new Constant(DataVal.from("ui_good")))))
 
     val text = "Testing the app for a few days convinced me the interfaces are excellent!"
     val value = derivedField.eval(Series.fromMap(Map("Review" -> text)))
-    assert(value === 1)
+    assert(value.toDouble === 1)
   }
 }
 

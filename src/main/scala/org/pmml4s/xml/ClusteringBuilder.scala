@@ -16,6 +16,7 @@
 package org.pmml4s.xml
 
 import org.pmml4s.common.{CompareFunction, ComparisonMeasure, Matrix, Partition}
+import org.pmml4s.data.DataVal
 import org.pmml4s.model._
 
 import scala.collection.mutable
@@ -50,7 +51,7 @@ class ClusteringBuilder extends Builder[ClusteringModel] {
 
   def makeCluster(reader: XMLEventReader, attrs: XmlAttrs): Cluster = makeElem(reader, attrs, new ElemBuilder[Cluster] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): Cluster = {
-      val id = attrs.get(AttrTags.ID)
+      val id = attrs.get(AttrTags.ID).map(DataVal.from)
       val name = attrs.get(AttrTags.NAME)
       val size = attrs.getInt(AttrTags.SIZE)
       var kohonenMap: KohonenMap = null

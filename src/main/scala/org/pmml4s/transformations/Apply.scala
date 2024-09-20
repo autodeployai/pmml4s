@@ -15,7 +15,7 @@
  */
 package org.pmml4s.transformations
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.InvalidValueTreatment.InvalidValueTreatment
 import org.pmml4s.metadata.{Field, InvalidValueTreatment}
 import org.pmml4s.util.Utils
@@ -29,14 +29,13 @@ import org.pmml4s.util.Utils
 class Apply(
              val function: Function,
              val children: Array[Expression],
-             val mapMissingTo: Option[Any] = None,
-             val defaultValue: Option[Any] = None,
+             val mapMissingTo: Option[DataVal] = None,
+             val defaultValue: Option[DataVal] = None,
              val invalidValueTreatment: InvalidValueTreatment = InvalidValueTreatment.returnInvalid) extends Expression {
 
   /** Returns the result of evaluating this expression on a given input Series */
-  override def eval(series: Series): Any = {
-    val values = new Array[Any](children.length)
-    var hasMissing = false
+  override def eval(series: Series): DataVal = {
+    val values = new Array[DataVal](children.length)
     var i = 0
     while (i < values.length) {
       val child = children(i)
@@ -44,7 +43,6 @@ class Apply(
       if (Utils.isMissing(res)) {
         if (mapMissingTo.isDefined)
           return mapMissingTo.get
-        hasMissing = true
       }
       values(i) = res
       i += 1
@@ -58,7 +56,7 @@ class Apply(
         import InvalidValueTreatment._
         invalidValueTreatment match {
           case `returnInvalid` | `asIs` => res
-          case `asMissing`              => null
+          case `asMissing`              => DataVal.NULL
         }
       }
     } else res

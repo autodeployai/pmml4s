@@ -29,7 +29,7 @@ class ClusteringModelTest extends BaseModelTest {
     assert(clustering.inputNames === Array("marital status", "age", "salary"))
     assert(clustering.targetNames.length === 0)
     assert(clustering.targetField === null)
-    val r = model.predict(Series("s", 20, 5000))
+    val r = model.predict(Array("s", 20, 5000))
     assert(r(0) === "2")
     assert(r(1) === "marital status is m")
     assert(r(2) === 471.587647006278)

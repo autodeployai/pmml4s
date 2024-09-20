@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 AutoDeploy AI
+ * Copyright (c) 2017-2024 AutoDeploy AI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,17 @@ trait Predicate extends PmmlElement {
 
   /** Evaluates the predicate. */
   def eval(series: Series): Predication
+
+  def isTrue: Boolean = false
 }
 
 object Predicate {
 
   import ElemTags._
 
-  val values = Set(SIMPLE_PREDICATE, COMPOUND_PREDICATE, SIMPLE_SET_PREDICATE, TRUE, FALSE)
+  val values: Set[String] = Set(SIMPLE_PREDICATE, COMPOUND_PREDICATE, SIMPLE_SET_PREDICATE, TRUE, FALSE)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }
 
 /** Pre-defined comparison operators. */
@@ -93,16 +95,17 @@ class SimplePredicate(
                        val value: Double = Double.NaN) extends Predicate {
 
   def eval(input: Series): Predication = {
-    val v = field.encode(input)
+    val v: Double = field.encode(input)
+    val missing = (v != v)
     operator match {
-      case `equal`          => if (Utils.isMissing(v)) UNKNOWN else if (v == value) TRUE else FALSE
-      case `notEqual`       => if (Utils.isMissing(v)) UNKNOWN else if (v != value) TRUE else FALSE
-      case `lessThan`       => if (Utils.isMissing(v)) UNKNOWN else if (v < value) TRUE else FALSE
-      case `lessOrEqual`    => if (Utils.isMissing(v)) UNKNOWN else if (v <= value) TRUE else FALSE
-      case `greaterThan`    => if (Utils.isMissing(v)) UNKNOWN else if (v > value) TRUE else FALSE
-      case `greaterOrEqual` => if (Utils.isMissing(v)) UNKNOWN else if (v >= value) TRUE else FALSE
-      case `isMissing`      => if (Utils.isMissing(v)) TRUE else FALSE
-      case `isNotMissing`   => if (!Utils.isMissing(v)) TRUE else FALSE
+      case `lessOrEqual`    => if (missing) UNKNOWN else if (v <= value) TRUE else FALSE
+      case `equal`          => if (missing) UNKNOWN else if (v == value) TRUE else FALSE
+      case `notEqual`       => if (missing) UNKNOWN else if (v != value) TRUE else FALSE
+      case `lessThan`       => if (missing) UNKNOWN else if (v < value) TRUE else FALSE
+      case `greaterThan`    => if (missing) UNKNOWN else if (v > value) TRUE else FALSE
+      case `greaterOrEqual` => if (missing) UNKNOWN else if (v >= value) TRUE else FALSE
+      case `isMissing`      => if (missing) TRUE else FALSE
+      case `isNotMissing`   => if (!missing) TRUE else FALSE
     }
   }
 }
@@ -195,6 +198,8 @@ class SimpleSetPredicate(
 /** Identifies the boolean constant TRUE. */
 object True extends Predicate {
   def eval(input: Series): Predication = TRUE
+
+  override def isTrue: Boolean = true
 }
 
 /** Identifies the boolean constant FALSE. */

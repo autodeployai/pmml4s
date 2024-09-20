@@ -33,14 +33,15 @@ scalacOptions := Seq(
 
 scalacOptions in(Compile, doc) := Seq("-no-link-warnings")
 
-scalaVersion := "2.12.18"
+scalaVersion := "2.13.14"
 
-crossScalaVersions := Seq("2.12.18", "2.11.12", "2.13.14", "3.1.3")
+crossScalaVersions := Seq("2.13.14", "2.11.12", "2.12.18", "3.1.3")
 
 libraryDependencies ++= {
   Seq(
+    "org.apache.commons" % "commons-lang3" % "3.15.0",
     "org.apache.commons" % "commons-math3" % "3.6.1",
-    "org.apache.commons" % "commons-text" % "1.10.0",
+    "org.apache.commons" % "commons-text" % "1.12.0",
     "io.spray" %% "spray-json" % "1.3.6",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     "junit" % "junit" % "4.13.2" % "test"

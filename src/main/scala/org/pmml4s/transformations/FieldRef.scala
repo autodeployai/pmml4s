@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.MixedEvaluator
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, NullVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.util.Utils
 
@@ -30,17 +30,19 @@ import org.pmml4s.util.Utils
  */
 class FieldRef(
                 override val field: Field,
-                val mapMissingTo: Option[Any] = None) extends FieldExpression with MixedEvaluator {
-  override def eval(series: Series): Any = {
+                val mapMissingTo: Option[DataVal] = None) extends FieldExpression with MixedEvaluator {
+  private val replacement: DataVal = mapMissingTo.getOrElse(NullVal)
+
+  override def eval(series: Series): DataVal = {
     val res = super.eval(series)
     if (Utils.isMissing(res)) {
-      mapMissingTo.getOrElse(null)
+      replacement
     } else {
       res
     }
   }
 
-  override def deeval(input: Any) = field match {
+  override def deeval(input: DataVal): DataVal = field match {
     case df: DerivedField => df.deeval(input)
     case  _ => input // itself
   }

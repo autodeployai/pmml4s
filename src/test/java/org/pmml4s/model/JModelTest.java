@@ -17,6 +17,7 @@ package org.pmml4s.model;
 
 import org.junit.Test;
 import org.pmml4s.common.*;
+import org.pmml4s.data.DataVal;
 import org.pmml4s.data.Series;
 import org.pmml4s.metadata.AttributeType;
 import org.pmml4s.metadata.DataField;
@@ -59,7 +60,7 @@ public class JModelTest {
         assertTrue(t.dataType() == DataType.STRING());
         assertTrue(t.opType() == OpType.NOMINAL());
         assertTrue(t.attrType() == AttributeType.CATEGORICAL());
-        assertArrayEquals(new String[]{"Iris-setosa", "Iris-versicolor", "Iris-virginica"}, t.validValues());
+        assertArrayEquals(DataVal.from(new String[]{"Iris-setosa", "Iris-versicolor", "Iris-virginica"}), t.validValues());
 
         assertTrue(model.modelElement() == ModelElement.TREE_MODEL());
         assertEquals("DecisionTree", model.modelName().get());
@@ -74,7 +75,7 @@ public class JModelTest {
         assertEquals(1, model.targetFields().length);
         assertEquals("class", model.targetField().name());
         assertTrue(model.opType() == OpType.NOMINAL());
-        assertArrayEquals(new String[]{"Iris-setosa", "Iris-versicolor", "Iris-virginica"}, model.classes());
+        assertArrayEquals(DataVal.from(new String[]{"Iris-setosa", "Iris-versicolor", "Iris-virginica"}), model.classes());
         assertTrue(model.numClasses() == 3);
         assertTrue(model.outputSchema().length() == 6);
         assertTrue(model.isClassification());
@@ -88,19 +89,19 @@ public class JModelTest {
         StructType schema = model.inputSchema();
         Series r = model.predict(Series.fromArray(new Object[]{5.1, 3.5, 1.4, 0.2}, schema));
         assertTrue(r.schema().equals(model.outputSchema()));
-        assertArrayEquals(new Object[]{"Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1"}, r.toArray());
+        assertArrayEquals(new Object[]{"Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1"}, r.asArray());
 
         Series r2 = model.predict(Series.fromArray(new Object[]{7, 3.2, 4.7, 1.4}, schema));
         assertTrue(r2.schema().equals(model.outputSchema()));
-        assertArrayEquals(new Object[]{"Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3"}, r2.toArray());
+        assertArrayEquals(new Object[]{"Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3"}, r2.asArray());
 
         // Series without schema
         Series r3 = model.predict(Series.fromArray(new Object[]{5.1, 3.5, 1.4, 0.2}));
         assertTrue(r3.schema().equals(model.outputSchema()));
-        assertArrayEquals(new Object[]{"Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1"}, r3.toArray());
+        assertArrayEquals(new Object[]{"Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1"}, r3.asArray());
         Series r4 = model.predict(Series.fromArray(new Object[]{7, 3.2, 4.7, 1.4}));
         assertTrue(r4.schema().equals(model.outputSchema()));
-        assertArrayEquals(new Object[]{"Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3"}, r4.toArray());
+        assertArrayEquals(new Object[]{"Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3"}, r4.asArray());
 
         // Array
         Object[] r5 = model.predict(new Double[]{5.1, 3.5, 1.4, 0.2});

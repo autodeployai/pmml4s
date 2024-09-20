@@ -18,6 +18,7 @@ package org.pmml4s.data
 import org.pmml4s.common.StructType
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 class CombinedSeries(val rows: Array[Series]) extends Series {
   val individualRows: Array[Series] = CombinedSeries.expand(rows)
@@ -34,7 +35,7 @@ class CombinedSeries(val rows: Array[Series]) extends Series {
   }
 
   override val schema: StructType = if (rows.forall(_.schema != null)) {
-    StructType(rows.map(_.schema.fields).flatten)
+    StructType(rows.flatMap(_.schema.fields))
   } else null
 
   override val length: Int = indices(indices.length - 1)
@@ -46,14 +47,18 @@ class CombinedSeries(val rows: Array[Series]) extends Series {
     schema.getFieldIndex(name).getOrElse(-1)
   } else -1
   
-  override def toArray: Array[Any] = {
-    val result = new Array[Any](length)
+  override def toArray: Array[DataVal] = {
+    val n = length
+    val values = new Array[DataVal](n)
     var i = 0
-    for (r <- individualRows) {
-      Array.copy(r.toArray, 0, result, i, r.length)
+    var j = 0
+    while (j < individualRows.length) {
+      val r = individualRows(i)
+      Array.copy(r.toArray, 0, values, i, r.length)
       i += r.length
+      j += 1
     }
-    result
+    values
   }
 
   def index(i: Int): (Series, Int) = {
@@ -104,7 +109,7 @@ class CombinedSeries(val rows: Array[Series]) extends Series {
   /**
    * Returns the value at position i. If the value is null, null is returned.
    */
-  override def get(i: Int): Any = {
+  override def get(i: Int): DataVal = {
     val (series, pos) = index(i)
     if (pos != -1) {
       series.get(pos)

@@ -16,9 +16,11 @@
 package org.pmml4s.util
 
 import org.pmml4s.common._
+import org.pmml4s.data.{BoolVal, DataVal, DoubleVal, FloatVal, LongVal, NullVal, NumericVal, StringVal}
 
+import scala.annotation.tailrec
 import scala.collection.mutable.{AnyRefMap, Iterable}
-import scala.collection.{mutable}
+import scala.collection.mutable
 
 /**
  * Various utility methods used by PMML4S.
@@ -26,11 +28,12 @@ import scala.collection.{mutable}
 object Utils {
 
   def isNumeric(value: Any): Boolean = value match {
-    case _: Double | _: Float | _: Int | _: Long | _: Short | _: Byte => true
+    case _: NumericVal | _: Double | _: Float | _: Int | _: Long | _: Short | _: Byte => true
     case _                                                            => false
   }
 
   def toDouble(value: Any): Double = value match {
+    case x: DataVal    => x.toDouble
     case x: Double     => x
     case x: Float      => x.toDouble
     case x: BigDecimal => x.doubleValue
@@ -42,12 +45,16 @@ object Utils {
     case _             => Double.NaN
   }
 
+  @inline
+  def toString(a: DataVal): String = if (a != null) a.toString else null
+
   def toString(a: Any): String = a match {
     case null => null
     case _    => a.toString
   }
 
   def toLong(a: Any): Long = a match {
+    case x: DataVal    => x.toLong
     case x: Long       => x
     case x: Int        => x.toLong
     case x: BigDecimal => x.longValue
@@ -60,6 +67,7 @@ object Utils {
   }
 
   def toInt(a: Any): Int = a match {
+    case x: DataVal    => x.toInt
     case x: Int        => x
     case x: Long       => x.toInt
     case x: BigDecimal => x.intValue
@@ -72,6 +80,7 @@ object Utils {
   }
 
   def toBoolean(a: Any): Boolean = a match {
+    case x: DataVal => x.toBool
     case x: Boolean => x
     case x: Int     => x != 0
     case x: Long    => x != 0L
@@ -79,16 +88,17 @@ object Utils {
     case x: Byte    => x != 0
     case x: Double  => x != 0.0
     case x: Float   => x != 0.0f
-    case x: String  => x.compareToIgnoreCase("true") == 0
+    case x: String  => x.toBoolean
     case _          => false
   }
 
   def inferDataType(a: Any): DataType = a match {
-    case _: Double | Float | BigDecimal => RealType
-    case _: Long | Int | Short | Byte   => IntegerType
-    case _: String                      => StringType
-    case _: Boolean                     => BooleanType
-    case _                              => UnresolvedDataType
+    case _: DoubleVal | _: FloatVal | _: Double | _: Float | _:BigDecimal   => RealType
+    case _: LongVal | _: Long | _: Int | _: Short | _: Byte                 => IntegerType
+    case _: String                                                          => StringType
+    case _: StringVal                                                       => StringType
+    case _: BoolVal | _: Boolean                                            => BooleanType
+    case _                                                                  => UnresolvedDataType
   }
 
   def toVal(s: String, dataType: DataType): Any = dataType match {
@@ -109,6 +119,24 @@ object Utils {
     case _              => s
   }
 
+  def toDataVal(s: String, dataType: DataType): DataVal = dataType match {
+    case IntegerType    => {
+      try {
+        LongVal(s.toLong)
+      } catch {
+        // Support such float number, for example "1.0", which is converted into double firstly,
+        // then converted to integer again.
+        case _: NumberFormatException => {
+          LongVal(s.toDouble.toLong)
+        }
+        case e: Throwable             => DataVal.NULL
+      }
+    }
+    case _: NumericType => DataVal.from(StringUtils.asDouble(s))
+    case BooleanType    => BoolVal(s.toBoolean)
+    case _              => StringVal(s)
+  }
+
   def getVal(s: String, dataType: DataType): Option[Any] = dataType match {
     case IntegerType    => {
       try {
@@ -127,15 +155,53 @@ object Utils {
     case _              => Option(s)
   }
 
+  def getDataVal(s: String, dataType: DataType): Option[DataVal] = dataType match {
+    case IntegerType    => {
+      try {
+        Option(LongVal(s.toLong))
+      } catch {
+        // Support such float number, for example "1.0", which is converted into double firstly,
+        // then converted to integer again.
+        case _: NumberFormatException => {
+          StringUtils.toDouble(s).map(x => LongVal(x.toLong))
+        }
+        case e: Throwable             => None
+      }
+    }
+    case _: NumericType => StringUtils.toDouble(s).map(DoubleVal.apply)
+    case BooleanType    => StringUtils.toBool(s).map(BoolVal.apply)
+    case _              => Option(s).map(StringVal.apply)
+  }
+
   def toVal(a: Any, dataType: DataType): Any = dataType match {
-    case UnresolvedDataType => a
     case IntegerType        => toLong(a)
     case _: NumericType     => toDouble(a)
     case BooleanType        => toBoolean(a)
+    case UnresolvedDataType => a
     case _                  => toString(a)
   }
 
+  @tailrec
+  def toDataVal(a: Any, dataType: DataType): DataVal = dataType match {
+    case x: DataVal         => x
+    case IntegerType        => LongVal(toLong(a))
+    case _: NumericType     => DoubleVal(toDouble(a))
+    case BooleanType        => BoolVal(toBoolean(a))
+    case UnresolvedDataType => {
+      val dataTypeInferred = inferDataType(a)
+      if (dataTypeInferred != UnresolvedDataType) toDataVal(a, dataTypeInferred) else NullVal
+    }
+    case _                  => StringVal(toString(a))
+  }
+
+  @inline
+  def isNull(value: DataVal): Boolean = (value == null || value == DataVal.NULL)
+
+  @inline
+  def isMissing(value: DataVal): Boolean = (value == null || value.isMissing)
+
   def isMissing(value: Any): Boolean = (value == null) || (value match {
+    case x: DataVal => x.isMissing
     case x: Double => x != x
     case _         => false
   })
@@ -144,9 +210,13 @@ object Utils {
     if (a == null) null else b
   }
 
+  @inline
+  def nonMissing(value: DataVal): Boolean = (value != null && value.nonMissing)
+
   def nonMissing(value: Any): Boolean = !isMissing(value)
 
-  @inline def isMissing(value: Double): Boolean = value != value
+  @inline
+  def isMissing(value: Double): Boolean = value != value
 
   def nonMissing(value: Double): Boolean = value == value
 
@@ -184,10 +254,9 @@ object Utils {
     val arm = new AnyRefMap[K, V](sz)
     val ki = keys.iterator
     val vi = values.iterator
-    while (ki.hasNext && vi.hasNext) arm(ki.next) = vi.next
+    while (ki.hasNext && vi.hasNext) arm(ki.next()) = vi.next
     arm.repack()
     arm
   }
-
 }
 

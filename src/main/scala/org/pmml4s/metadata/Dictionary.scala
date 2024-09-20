@@ -60,7 +60,7 @@ abstract class Dictionary[T <: Field] extends Seq[T] with HasField {
 
   override def apply(fieldIndex: Int): T = fields(fieldIndex)
 
-  override def length: Int = fields.length
+  override val length: Int = fields.length
 
   override def iterator: Iterator[T] = fields.iterator
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,13 +57,13 @@ class Scorecard(
                  override val extensions: immutable.Seq[Extension] = immutable.Seq.empty)
   extends Model with HasWrappedScorecardAttributes {
 
-  val ch = characteristics.characteristics
+  private val ch = characteristics.characteristics
 
   /** Collected all reason codes with order that appears in the PMML file, from top to bottom. */
-  val reasonCodes = SortedSet(ch.flatMap(x => (x.reasonCode +: x.attributes.map(_.reasonCode))).filter(_.isDefined).toIndexedSeq: _*)
+  val reasonCodes: SortedSet[Option[String]] = SortedSet(ch.flatMap(x => (x.reasonCode +: x.attributes.map(_.reasonCode))).filter(_.isDefined).toIndexedSeq: _*)
 
   /** The number of reason codes need to return. */
-  lazy val reasonCodesWanted = outputFields.filter(_.feature == ResultFeature.reasonCode).size
+  private lazy val reasonCodesWanted = outputFields.count(_.feature == ResultFeature.reasonCode)
 
   /** Model element type. */
   override def modelElement: ModelElement = ModelElement.Scorecard
@@ -80,7 +80,7 @@ class Scorecard(
 
     val outputs = createOutputs()
     val results = ch.map(x => x.score(series))
-    outputs.predictedValue = results.map(_._1).sum + initialScore
+    outputs.setPredictedValue(results.map(_._1).sum + initialScore)
 
     if (useReasonCodes) {
       val pointsMissed = mutable.HashMap(reasonCodes.map(x => x -> 0.0).toSeq: _*)
@@ -306,5 +306,13 @@ trait HasWrappedScorecardAttributes extends HasWrappedModelAttributes with HasSc
   def baselineMethod: BaselineMethod = attributes.baselineMethod
 }
 
-class ScorecardOutput extends RegOutputs with MutableReasonCodes
+class ScorecardOutput extends RegOutputs with MutableReasonCodes {
+  override def modelElement: ModelElement = ModelElement.Scorecard
+
+  override def clear(): this.type = {
+    super[RegOutputs].clear()
+    super[MutableReasonCodes].clear()
+    this
+  }
+}
 

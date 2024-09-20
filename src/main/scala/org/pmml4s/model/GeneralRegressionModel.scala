@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.pmml4s.model
 import org.pmml4s.PmmlDeprecated
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{Field, MiningSchema, Output, Targets}
 import org.pmml4s.model.CumulativeLinkFunction.CumulativeLinkFunction
 import org.pmml4s.model.Distribution.Distribution
@@ -55,6 +55,8 @@ class GeneralRegressionModel(
                               override val extensions: immutable.Seq[Extension] = immutable.Seq.empty)
   extends Model with HasWrappedGeneralRegressionAttributes {
 
+  override val targetReferenceCategory: Option[DataVal] = attributes.targetReferenceCategory.map(targetField.toVal)
+
   private[this] val parameters: Array[RegressionParameter] = parameterList.parameters.map(x => {
     val cells = ppMatrix.getPPCells(x.name)
     val factors = mutable.ArrayBuilder.make[FactorPredictor]
@@ -72,13 +74,13 @@ class GeneralRegressionModel(
     new RegressionParameter(factors.result(), covariances.result())
   })
 
-  private[this] val betas: Map[Any, (Array[Int], Array[Double])] = {
+  private[this] val betas: Map[DataVal, (Array[Int], Array[Double])] = {
     val res = paramMatrix.cells.groupBy(_.targetCategory).
       map(x => ((if (x._1.isDefined) x._1.get else null), (x._2.map(c => parameterList.indexOf(c.parameterName)), x._2.map(_.beta))))
 
     if (isClassification && res.size == numClasses - 1) {
-      val miss: Any = targetReferenceCategory.getOrElse({
-        val missSet = classes.toSet -- res.map(_._1)
+      val miss: DataVal = targetReferenceCategory.getOrElse({
+        val missSet = classes.toSet -- res.keys
         if (missSet.size == 1) {
           missSet.head
         } else null
@@ -110,11 +112,11 @@ class GeneralRegressionModel(
     modelType match {
       case `regression` | `generalLinear` => {
         val rs = betas.map(x => (x._1, MathUtils.product(x._2._1.map(ind => xs(ind)), x._2._2)))
-        outputs.predictedValue = rs.head._2
+        outputs.setPredictedValue(rs.head._2)
       }
       case `multinomialLogistic`          => {
         val rs = betas.map(x => (x._1, MathUtils.product(x._2._1.map(ind => xs(ind)), x._2._2)))
-        outputs.predictedValue = rs.maxBy(_._2)._1
+        outputs.setPredictedValue(rs.maxBy(_._2)._1)
 
         if (!isPredictionOnly) {
           val ss = rs.map(x => (x._1, rs.map(s => s._2 - x._2)))
@@ -200,10 +202,10 @@ class GeneralRegressionModel(
 
         if (distribution.isDefined && distribution.get == Distribution.binomial && isClassification) {
           val p1 = if (predictedValue < 0) 0 else if (predictedValue > 1) 1 else predictedValue
-          outputs.probabilities = Map(betas.head._1 -> p1)
-          outputs.evalPredictedValueByProbabilities(classes)
+          outputs.setProbabilities(Map(betas.head._1 -> p1))
+            .evalPredictedValueByProbabilities(classes)
         } else {
-          outputs.predictedValue = predictedValue
+          outputs.setPredictedValue(predictedValue)
         }
       }
       case `CoxRegression`                => {
@@ -234,7 +236,7 @@ class GeneralRegressionModel(
           hazard = h0 * Math.exp(r.head._2 - s)
           survival = Math.exp(-hazard)
         }
-        outputs.predictedValue = survival
+        outputs.setPredictedValue(survival)
       }
     }
 
@@ -304,12 +306,12 @@ class FactorList(val predictors: Array[Predictor]) extends PmmlElement {
   def get(name: String): Option[Predictor] = nameToPredictor.get(name)
 }
 
-class Category(val value: Any) extends PmmlElement
+class Category(val value: DataVal) extends PmmlElement
 
 class Categories(val categories: Array[Category]) extends PmmlElement {
   require(categories.length > 0, "At least one category is required.")
 
-  lazy val valueToIndex: Map[Any, Int] = categories.map(_.value).zipWithIndex.toMap
+  lazy val valueToIndex: Map[DataVal, Int] = categories.map(_.value).zipWithIndex.toMap
 }
 
 /**
@@ -334,10 +336,10 @@ class PPMatrix(val cells: Array[PPCell]) extends PmmlElement {
 }
 
 /** Cell in the PPMatrix. Knows its row name, column name. */
-class PPCell(val value: Any,
+class PPCell(val value: DataVal,
              val predictorName: Field,
              val parameterName: String,
-             val targetCategory: Option[Any] = None) extends PmmlElement {
+             val targetCategory: Option[DataVal] = None) extends PmmlElement {
 
   def toPredictor(p: Predictor): RegressionPredictor = if (predictorName.isCategorical) {
     if (p != null && p.matrix.isDefined && p.categories.isDefined) {
@@ -372,7 +374,7 @@ class PCovCell(val pRow: String,
                val value: Double,
                val tRow: Option[String] = None,
                val tCol: Option[String] = None,
-               val targetCategory: Option[Any] = None) extends PmmlElement
+               val targetCategory: Option[DataVal] = None) extends PmmlElement
 
 /**
  * Parameter matrix. A table containing the Parameter values along with associated statistics (degrees of freedom). One
@@ -390,17 +392,17 @@ class ParamMatrix(val cells: Array[PCell]) extends PmmlElement
  * all target variable values. For multinomialLogistic model ParamMatrix specifies parameter estimates for each target
  * category except the reference category.
  */
-class PCell(val parameterName: String, val beta: Double, val targetCategory: Option[Any], val df: Option[Int]) extends PmmlElement
+class PCell(val parameterName: String, val beta: Double, val targetCategory: Option[DataVal], val df: Option[Int]) extends PmmlElement
 
 class EventValues(val values: Array[Value], val intervals: Array[Interval]) extends PmmlElement
 
 class BaseCumHazardTables(val baselineStratums: Array[BaselineStratum], val baselineCells: Array[BaselineCell], val maxTime: Option[Double]) extends PmmlElement {
-  private lazy val valueToBaselineStratum: Map[Any, BaselineStratum] = baselineStratums.map(x => (x.value, x)).toMap
+  private lazy val valueToBaselineStratum: Map[DataVal, BaselineStratum] = baselineStratums.map(x => (x.value, x)).toMap
 
-  def getBaselineStratum(value: Any): Option[BaselineStratum] = valueToBaselineStratum.get(value)
+  def getBaselineStratum(value: DataVal): Option[BaselineStratum] = valueToBaselineStratum.get(value)
 }
 
-class BaselineStratum(val cells: Array[BaselineCell], val value: Any, val maxTime: Double, val label: Option[String]) extends PmmlElement
+class BaselineStratum(val cells: Array[BaselineCell], val value: DataVal, val maxTime: Double, val label: Option[String]) extends PmmlElement
 
 class BaselineCell(val time: Double, val cumHazard: Double) extends PmmlElement
 
@@ -454,7 +456,7 @@ trait HasGeneralRegressionAttributes extends HasModelAttributes {
    * the reference category is the one from DataDictionary that does not appear in the ParamMatrix, but when several
    * models are combined in one PMML file an explicit specification is needed.
    */
-  def targetReferenceCategory: Option[String]
+  def targetReferenceCategory: Option[DataVal]
 
   /** Specifies the type of cumulative link function to use when ordinalMultinomial model type is specified. */
   def cumulativeLink: Option[CumulativeLinkFunction]
@@ -552,8 +554,6 @@ trait HasWrappedGeneralRegressionAttributes extends HasWrappedModelAttributes wi
 
   override def modelType: GeneralModelType = attributes.modelType
 
-  override def targetReferenceCategory: Option[String] = attributes.targetReferenceCategory
-
   override def cumulativeLink: Option[CumulativeLinkFunction] = attributes.cumulativeLink
 
   override def linkFunction: Option[LinkFunction] = attributes.linkFunction
@@ -608,7 +608,9 @@ class GeneralRegressionAttributes(
                                    override val modelName: Option[String] = None,
                                    override val algorithmName: Option[String] = None,
                                    override val isScorable: Boolean = true)
-  extends ModelAttributes(functionName, modelName, algorithmName, isScorable) with HasGeneralRegressionAttributes
+  extends ModelAttributes(functionName, modelName, algorithmName, isScorable)
 
-class GeneralRegressionOutputs extends MixedClsWithRegOutputs
+class GeneralRegressionOutputs extends MixedClsWithRegOutputs {
+  override def modelElement: ModelElement = ModelElement.GeneralRegressionModel
+}
 

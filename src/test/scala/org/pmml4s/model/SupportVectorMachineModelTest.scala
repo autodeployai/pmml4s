@@ -15,7 +15,7 @@
  */
 package org.pmml4s.model
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 
 /**
  * SVM model cases come from DMG examples: http://dmg.org/pmml/v4-3/SupportVectorMachine.html
@@ -27,16 +27,16 @@ class SupportVectorMachineModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.SupportVectorMachineModel)
     assert(model.inputNames === Array("x1", "x2"))
     assert(model.targetName === "class")
-    val r = model.predict(Series(0, 0))
+    val r = model.predict(Array(0, 0))
     assert(r(0) === "no")
 
-    val r2 = model.predict(Series(0, 1))
+    val r2 = model.predict(Array(0, 1))
     assert(r2(0) === "yes")
 
-    val r3 = model.predict(Series(1, 0))
+    val r3 = model.predict(Array(1, 0))
     assert(r3(0) === "yes")
 
-    val r4 = model.predict(Series(1, 1))
+    val r4 = model.predict(Array(1, 1))
     assert(r4(0) === "no")
   }
 
@@ -45,7 +45,7 @@ class SupportVectorMachineModelTest extends BaseModelTest {
     assert(model.modelElement === ModelElement.SupportVectorMachineModel)
     assert(model.inputNames === Array("Age", "Employment"))
     assert(model.targetName === "TARGET")
-    val r = model.predict(Series(20, "Private"))
+    val r = model.predict(Array(20, "Private"))
     assert(r(0) === "1")
   }
 

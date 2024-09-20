@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.{PmmlElement, StructField, StructType, Transformer}
-import org.pmml4s.data.{GenericMutableSeriesWithSchema, Series}
+import org.pmml4s.data.{GenericMutableSeriesWithSchema, JoinedSeries, Series}
 import org.pmml4s.metadata.{DataDictionary, Dictionary, Field}
 
 /**
@@ -64,7 +64,7 @@ class TransformationDictionary(
 
     val outputSeries = new GenericMutableSeriesWithSchema(fields.length, outputSchema)
     outputSeries.clear()
-    val combinedSeries = Series.merge(series, outputSeries)
+    val combinedSeries = new JoinedSeries(series, outputSeries)
     var i = 0
     while (i < length) {
       fields(i).write(combinedSeries, outputSeries, i)

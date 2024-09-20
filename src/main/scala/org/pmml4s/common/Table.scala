@@ -15,10 +15,11 @@
  */
 package org.pmml4s.common
 
+import org.pmml4s.data.DataVal
 import org.pmml4s.xml.ElemTags.{INLINE_TABLE, TABLE_LOCATOR}
 
 sealed trait Table extends PmmlElement {
-  def find(inputs: Map[String, Any], output: String): Option[Any]
+  def find(inputs: Map[String, DataVal], output: String): Option[DataVal]
 
   def apply(i: Int): Row
 
@@ -26,34 +27,34 @@ sealed trait Table extends PmmlElement {
 }
 
 object Table {
-  val values = Set(TABLE_LOCATOR, INLINE_TABLE)
+  val values: Set[String] = Set(TABLE_LOCATOR, INLINE_TABLE)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }
 
 class InlineTable(val rows: Array[Row]) extends Table {
-  override def find(inputs: Map[String, Any], output: String): Option[Any] = {
-    val r = rows.find(x => inputs.forall(p => x.elements.get(p._1) == Some(p._2)))
+  override def find(inputs: Map[String, DataVal], output: String): Option[DataVal] = {
+    val r = rows.find(x => inputs.forall(p => x.elements.get(p._1).contains(p._2)))
     if (r.isDefined) r.get.elements.get(output) else None
   }
 
   override def apply(i: Int): Row = rows(i)
 
-  override def dim: (Int, Int) = (rows.size, if (rows.nonEmpty) rows.head.size else 0)
+  override def dim: (Int, Int) = (rows.length, if (rows.nonEmpty) rows.head.size else 0)
 }
 
 class TableLocator extends Table {
-  override def find(inputs: Map[String, Any], output: String): Option[Any] = ???
+  override def find(inputs: Map[String, DataVal], output: String): Option[DataVal] = ???
 
   override def apply(i: Int): Row = ???
 
   override def dim: (Int, Int) = ???
 }
 
-class Row(val elements: Map[String, Any]) extends PmmlElement {
+class Row(val elements: Map[String, DataVal]) extends PmmlElement {
   def size: Int = elements.size
 
-  def apply(name: String): Any = elements(name)
+  def apply(name: String): DataVal = elements(name)
 
-  def get(name: String): Option[Any] = elements.get(name)
+  def get(name: String): Option[DataVal] = elements.get(name)
 }

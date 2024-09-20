@@ -72,7 +72,7 @@ class RegressionBuilder extends Builder[RegressionModel] {
           val fields = makeElems(reader, ElemTags.PREDICTOR_TERM, ElemTags.FIELD_REF, new ElemBuilder[FieldRef] {
             override def build(reader: XMLEventReader, attrs: XmlAttrs): FieldRef = {
               val f = field(attrs(AttrTags.FIELD))
-              val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(f.toVal(_))
+              val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(f.toVal)
               new FieldRef(f, mapMissingTo)
             }
           })

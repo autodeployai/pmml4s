@@ -15,7 +15,7 @@
  */
 package org.pmml4s.transformations
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.util.Utils
 
@@ -35,14 +35,16 @@ import org.pmml4s.util.Utils
  */
 class NormDiscrete(
                     val field: Field,
-                    val value: Any,
+                    val value: DataVal,
                     val mapMissingTo: Option[Double]) extends FieldExpression {
-  override def eval(series: Series): Double = {
+  private val replacement: DataVal = mapMissingTo.map(DataVal.from).getOrElse(DataVal.NaN)
+
+  override def eval(series: Series): DataVal = {
     val res = super.eval(series)
     if (Utils.isMissing(res)) {
-      mapMissingTo.getOrElse(Double.NaN)
+      replacement
     } else {
-      if (res == value) 1.0 else 0.0
+      if (res == value) DataVal.`1.0` else DataVal.`0.0`
     }
   }
 }

@@ -15,6 +15,8 @@
  */
 package org.pmml4s.util
 
+import org.apache.commons.lang3.math.NumberUtils
+
 
 /**
  * Various utility methods about string conversions to different types.
@@ -51,23 +53,19 @@ object StringUtils {
     case e: NumberFormatException => None
   }
 
-  def toFloat(s: String, d: Float): Float = try {
-    s.toFloat
-  } catch {
-    case e: NumberFormatException => d
+  @inline
+  def toFloat(s: String, d: Float): Float = NumberUtils.toFloat(s, d)
+
+  def toDouble(s: String): Option[Double] = {
+    val d = NumberUtils.toDouble(s, Double.NaN)
+    if (d == d) Some(d) else None
   }
 
-  def toDouble(s: String): Option[Double] = try {
-    Some(s.toDouble)
-  } catch {
-    case e: NumberFormatException => None
-  }
+  @inline
+  def toDouble(s: String, d: Double): Double = NumberUtils.toDouble(s, d)
 
-  def toDouble(s: String, d: Double): Double = try {
-    s.toDouble
-  } catch {
-    case e: NumberFormatException => d
-  }
+  @inline
+  def asDouble(s: String): Double = toDouble(s, Double.NaN)
 
   def toBool(s: String): Option[Boolean] = try {
     Some(s.toBoolean)

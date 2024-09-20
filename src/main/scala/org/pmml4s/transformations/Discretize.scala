@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common.{DataType, Interval, PmmlElement}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.util.Utils
 
@@ -28,30 +28,31 @@ import scala.collection.mutable
 class Discretize(
                   val discretizeBins: Array[DiscretizeBin],
                   val field: Field,
-                  val mapMissingTo: Option[Any],
-                  val defaultValue: Option[Any],
+                  val mapMissingTo: Option[DataVal],
+                  val defaultValue: Option[DataVal],
                   val dataType: Option[DataType]) extends FieldExpression {
+  private val replacement: DataVal = mapMissingTo.getOrElse(DataVal.NULL)
 
-  override def eval(series: Series): Any = {
-    val res = Utils.toDouble(super.eval(series))
+  override def eval(series: Series): DataVal = {
+    val res = super.eval(series)
     if (Utils.isMissing(res)) {
-      mapMissingTo.orNull
+      replacement
     } else {
-      evaluate(res)
+      evaluate(res.toDouble)
     }
   }
 
-  override def eval(x: Any) = {
+  override def eval(x: DataVal): DataVal = {
     if (Utils.isMissing(x)) {
-      mapMissingTo.orNull
+      replacement
     } else {
-      evaluate(Utils.toDouble(x))
+      evaluate(x.toDouble)
     }
   }
 
-  override def categories: Array[Any] = {
-    val c = new mutable.LinkedHashSet[Any]()
-    for (e <- discretizeBins) {
+  override val categories: Array[DataVal] = {
+    val c = new mutable.LinkedHashSet[DataVal]()
+    discretizeBins.foreach { e =>
       c += e.binValue
     }
 
@@ -61,12 +62,12 @@ class Discretize(
     c.toArray
   }
 
-  private def evaluate(value: Double): Any = {
+  private def evaluate(value: Double): DataVal = {
     val one = discretizeBins.find(x => x.interval.contains(value))
-    one.map(_.binValue).getOrElse(defaultValue.orNull)
+    one.map(_.binValue).getOrElse(replacement)
   }
 }
 
 class DiscretizeBin(
                      val interval: Interval,
-                     val binValue: Any) extends PmmlElement
+                     val binValue: DataVal) extends PmmlElement

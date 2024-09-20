@@ -17,6 +17,8 @@ package org.pmml4s.util
 
 import org.scalatest._
 import funsuite._
+import org.pmml4s.common.{BooleanType, DoubleType, IntegerType, RealType, StringType}
+import org.pmml4s.data.DataVal
 
 class UtilsTest extends AnyFunSuite {
 
@@ -36,6 +38,23 @@ class UtilsTest extends AnyFunSuite {
 
     val a: Any = Double.NaN
     assert(isMissing(a))
+  }
+
+  test("inferDataType") {
+    import Utils.inferDataType
+
+    assert(inferDataType(0.0) == RealType)
+    assert(inferDataType(0) == IntegerType)
+    assert(inferDataType("") == StringType)
+    assert(inferDataType(false) == BooleanType)
+    assert(inferDataType(true) == BooleanType)
+
+    assert(inferDataType(DataVal.`0.0`) == RealType)
+    assert(inferDataType(DataVal.`1.0`) == RealType)
+    assert(inferDataType(DataVal.`1`) == IntegerType)
+    assert(inferDataType(DataVal.NaN) == RealType)
+    assert(inferDataType(DataVal.EmptyString) == StringType)
+    assert(inferDataType(DataVal.NULLString) == StringType)
   }
 }
 

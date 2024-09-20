@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@ package org.pmml4s.model
 
 import java.io.{File, InputStream}
 import java.nio.file.Path
-
 import org.pmml4s.common._
-import org.pmml4s.data.{DSeries, GenericMutableSeriesWithSchema, JoinedSeries, Series}
+import org.pmml4s.data.{DSeries, DataVal, GenericMutableSeriesWithSchema, GenericSeriesWithSchema, JoinedSeries, NullSeries, Series}
 import org.pmml4s.metadata.UsageType.UsageType
 import org.pmml4s.metadata._
 import org.pmml4s.transformations.{FieldRef, HasLocalTransformations, TransformationDictionary}
@@ -55,7 +54,7 @@ abstract class Model extends HasParent
 
   /** All input fields in an array. */
   lazy val inputFields: Array[Field] = if (isTopLevelModel) inputNames.map(dataDictionary(_)) else
-    inputNames.map(field(_))
+    inputNames.map(field)
 
   /** Referenced derived fields. */
   lazy val inputDerivedFields: Array[Field] = {
@@ -85,6 +84,8 @@ abstract class Model extends HasParent
   /** The first target field for the supervised model. */
   lazy val targetField: Field = if (targetFields.nonEmpty) targetFields.head else null
 
+  protected val NullOutputsPair: (Series, ModelOutputs) =  (null, null)
+
   /** Get fields by its usage type: 'active', 'target', 'predicted', 'group' and so on */
   def fieldsOfUsageType(typ: UsageType): Array[Field] = miningSchema.getByUsageType(typ).map(x => field(x.name))
 
@@ -104,23 +105,23 @@ abstract class Model extends HasParent
   }
 
   /** The class labels in a classification model. */
-  lazy val classes: Array[Any] = if (isClassification) {
+  lazy val classes: Array[DataVal] = if (isClassification) {
     if (targetField != null) targets.map(_.categories).getOrElse(targetField.validValues) else inferClasses
-  } else ArrayUtils.emptyAnyArray
+  } else ArrayUtils.emptyDataValArray
 
   /** The sub-classes can override this method to provide classes of target inside model. */
-  def inferClasses: Array[Any] = {
+  def inferClasses: Array[DataVal] = {
     if (isClassification) {
       // collect classes from the output fields with probability
       outputFields.filter(x => x.feature == ResultFeature.probability && x.value.isDefined).map(_.value.get)
-    } else ArrayUtils.emptyAnyArray
+    } else ArrayUtils.emptyDataValArray
   }
 
   /** The number of class labels in a classification model. */
   lazy val numClasses: Int = classes.length
 
   /** The class labels of all categorical targets. */
-  lazy val targetClasses: Map[String, Array[Any]] = targetFields.filter(_.isCategorical).map(x => {
+  lazy val targetClasses: Map[String, Array[DataVal]] = targetFields.filter(_.isCategorical).map(x => {
     (x.name, targets.flatMap(y => y.categories(x.name)).getOrElse(x.validValues))
   }).toMap
 
@@ -140,13 +141,13 @@ abstract class Model extends HasParent
   })
 
   /** Returns class labels of the specified target. */
-  def classes(name: String): Array[Any] = targetClasses.getOrElse(name, Array.empty)
+  def classes(name: String): Array[DataVal] = targetClasses.getOrElse(name, ArrayUtils.emptyDataValArray)
 
   /** Returns the number of class labels of the specified target. */
   def numClasses(name: String): Int = classes(name).length
 
   /** Tests if this is a classification model. */
-  override def isClassification: Boolean = super.isClassification 
+  override def isClassification: Boolean = super.isClassification
 
   /** Tests if this is a classification model of the specified target, it's applicable for multiple targets. */
   def isClassification(name: String): Boolean = hasTarget && OpType.isCategorical(opType(name))
@@ -185,32 +186,32 @@ abstract class Model extends HasParent
 
   /** Predicts values for a given data map. */
   def predict(values: Map[String, Any]): Map[String, Any] = {
-    predict(Series.fromMap(values, usedSchema)).toMap
+    predict(Series.fromMap(values, usedSchema)).asMap
   }
 
   /** Predicts values for a given data map of Java. */
   def predict(values: java.util.Map[String, Any]): java.util.Map[String, Any] = {
-    predict(Series.fromMap(values, usedSchema)).toJavaMap
+    predict(Series.fromMap(values, usedSchema)).asJavaMap
   }
 
   /** Predicts values for a given list of key/value pairs. */
   def predict(values: (String, Any)*): Seq[(String, Any)] = {
-    predict(Series.fromMap(Map(values: _*), usedSchema)).toPairSeq
+    predict(Series.fromMap(Map(values: _*), usedSchema)).asPairSeq
   }
 
   /** Predicts values for a given Array, and the order of those values is supposed as same as the input fields list */
   def predict[T](values: Array[T]): Array[Any] = {
     // convert the values based on the required types of inputs
     val len = usedSchema.size
-    val convertedValues = new Array[Any](len)
+    val convertedValues = new Array[DataVal](len)
     var i = 0
     while (i < len) {
       if (i < values.length) {
-        convertedValues(i) = Utils.toVal(values(i), usedSchema(i).dataType)
+        convertedValues(i) = Utils.toDataVal(values(i), usedSchema(i).dataType)
       }
       i += 1
     }
-    predict(Series.fromArray(convertedValues)).toArray
+    predict(Series.fromArray(convertedValues)).asArray
   }
 
   def predict(values: java.util.List[Any]): java.util.List[Any] = {
@@ -266,8 +267,21 @@ abstract class Model extends HasParent
     }
   }
 
-  /** Predicts values for a given data series. */
+  /** Predicts values for a given data series.
+   *
+   * @param values An input data series
+   * @return An output data series
+   */
   def predict(values: Series): Series
+
+  /** Predicts value for a given data series
+   *
+   * @param values An input data series
+   * @param modelOutputs An input model outputs that can hold all results, it will be ignored if its type doesn't
+   *                     match the current model.
+   * @return An object of model outputs
+   */
+  def score(values: Series, modelOutputs: Option[ModelOutputs] = None): (Series, ModelOutputs) = NullOutputsPair
 
   /** Creates an object of subclass of ModelOutputs that is for writing into an output series.  */
   def createOutputs(): ModelOutputs
@@ -301,15 +315,16 @@ abstract class Model extends HasParent
 
   /** Pre-process the input series. */
   protected def prepare(series: Series): (Series, Boolean) = {
-    val newValues = new Array[Any](if (isTopLevelModel) usedFields.length else series.length)
+    val fields = usedFields
+    val newValues = new Array[DataVal](if (isTopLevelModel) fields.length else series.length)
     val newSchema = if (isTopLevelModel) usedSchema else series.schema
 
     // Some models do not have the Mining Schema, for example the transformation model, and embedded models
     if (miningSchema != null) {
       var i = 0
-      val len = usedFields.length
+      val len = fields.length
       while (i < len) {
-        val field = usedFields(i)
+        val field = fields(i)
 
         // If there is no schema in the input series, that means its values can only be accessed by index, not name.
         // Then the order of that series is supposed as same as the used fields list
@@ -317,48 +332,52 @@ abstract class Model extends HasParent
         if (idx >= 0) {
           val value = series(idx)
           val mf = miningSchema(field.name)
-          val missing = (mf.outliers == OutlierTreatmentMethod.asMissingValues && field.isValidValue(value) && {
-            val d = series.getDouble(idx);
-            d < mf.lowValue.get || d > mf.highValue.get
-          }) ||
-            (mf.invalidValueTreatment == InvalidValueTreatment.asMissing && field.isInvalidValue(value)) ||
-            field.isMissingValue(value)
-          val invalid = if (!missing) {
-            field.isInvalidValue(value) || !field.isValidValue(value)
-          } else false
-
-          newValues(idx) = if (missing) {
-            if (mf.missingValueTreatment.contains(MissingValueTreatment.returnInvalid)) {
-              return (series, true)
-            }
-
-            if (mf.missingValueReplacement.isDefined) {
-              mf.missingValueReplacement.get
-            } else {
-              null
-            }
-          } else if (invalid) {
-            mf.invalidValueTreatment match {
-              case InvalidValueTreatment.returnInvalid =>
-                return (series, true)
-              case InvalidValueTreatment.asValue =>
-                mf.invalidValueReplacement.get
-              case _ => value
-            }
+          if (field.isPlain && mf.isDefault) {
+            newValues(idx) = value
           } else {
-            if (mf.outliers == OutlierTreatmentMethod.asExtremeValues) {
+            val missing = (mf.outliers == OutlierTreatmentMethod.asMissingValues && field.isValidValue(value) && {
               val d = series.getDouble(idx)
-              if (d < mf.lowValue.get) mf.lowValue.get else if (d > mf.highValue.get) mf.highValue else value
-            } else value
+              d < mf.lowValue.get || d > mf.highValue.get
+            }) ||
+              (mf.invalidValueTreatment == InvalidValueTreatment.asMissing && field.isInvalidValue(value)) ||
+              field.isMissingValue(value)
+            val invalid = if (!missing) {
+              field.isInvalidValue(value) || !field.isValidValue(value)
+            } else false
+
+            newValues(idx) = if (missing) {
+              if (mf.missingValueTreatment.contains(MissingValueTreatment.returnInvalid)) {
+                return (series, true)
+              }
+
+              if (mf.missingValueReplacement.isDefined) {
+                mf.missingValueReplacement.get
+              } else {
+                null
+              }
+            } else if (invalid) {
+              mf.invalidValueTreatment match {
+                case InvalidValueTreatment.returnInvalid =>
+                  return (series, true)
+                case InvalidValueTreatment.asValue =>
+                  mf.invalidValueReplacement.get
+                case _ => value
+              }
+            } else {
+              if (mf.outliers == OutlierTreatmentMethod.asExtremeValues) {
+                val d = series.getDouble(idx)
+                if (d < mf.lowValue.get) DataVal.from(mf.lowValue.get) else if (d > mf.highValue.get) DataVal.from(mf.highValue.get) else value
+              } else value
+            }
           }
         }
         i += 1
       }
     } else {
       var i = 0
-      val len = usedFields.length
+      val len = fields.length
       while (i < len) {
-        val field = usedFields(i)
+        val field = fields(i)
         val idx = if (field.index >= 0) field.index else series.fieldIndex(field.name)
         if (idx >= 0) {
           val value = series(idx)
@@ -375,7 +394,7 @@ abstract class Model extends HasParent
 
     val transformed = if (isTopLevelModel && parent != null) {
       // Compute the values of all referenced derived fields for the top level model
-      parent.predict(Series.fromArray(newValues, newSchema))
+      parent.predict(new GenericSeriesWithSchema(newValues, newSchema))
     } else {
       // Copy the values of referenced derived fields of its parent model
       var i = 0
@@ -387,7 +406,7 @@ abstract class Model extends HasParent
         }
         i += 1
       }
-      Series.fromArray(newValues, newSchema)
+      new GenericSeriesWithSchema(newValues, newSchema)
     }
 
     (localTransformations.map(_.transform(transformed)).getOrElse(transformed), false)
@@ -456,7 +475,7 @@ abstract class Model extends HasParent
         case `predictedValue`                                  => outputs match {
           // The expected data type could be different from the storage type of value, so try to convert it
           case x: HasPredictedValue   => outputSeries.update(i,
-            Utils.toVal(x.predictedValue, of.dataType))
+            if (x.predictedValue.dataType != of.dataType) Utils.toDataVal(x.predictedValue.toVal, of.dataType) else x.predictedValue)
           case x: HasAssociationRules => outputSeries.update(i,
             x.getRule(of.criterion, of.rank).map(_.predictedValue).orNull)
           case _                      =>
@@ -471,7 +490,7 @@ abstract class Model extends HasParent
               outputs match {
                 case x: HasSegment => {
                   val ref = of.expr.get.asInstanceOf[FieldRef]
-                  outputSeries.update(i, x.segment(of.segmentId.get).getAs(ref.field.name))
+                  outputSeries.update(i, x.segment(of.segmentId.get).get(ref.field.name))
                 }
                 case _             =>
               }
@@ -499,7 +518,7 @@ abstract class Model extends HasParent
         case `affinity` | `entityAffinity` | `clusterAffinity` => outputs match {
           case x: HasAffinities       => {
             if (of.value.isDefined) {
-              outputSeries.setDouble(i, x.affinity(of.value.get.toString))
+              outputSeries.setDouble(i, x.affinity(of.value.get))
             } else {
               outputs match {
                 case y: HasEntityId  => outputSeries.setDouble(i, x.affinity(y.entityId))
@@ -535,10 +554,10 @@ abstract class Model extends HasParent
         }
         case `clusterId` | `entityId` | `ruleId`               => outputs match {
           // The expected data type could be different from the storage type of value, so try to convert it
-          case x: HasEntityId         => outputSeries.update(i, Utils.toVal(x.entityId, of.dataType))
-          case x: HasEntityIds        => outputSeries.update(i, Utils.toVal(x.entityId(of.rank), of.dataType))
+          case x: HasEntityId         => outputSeries.update(i, Utils.toDataVal(x.entityId, of.dataType))
+          case x: HasEntityIds        => outputSeries.update(i, Utils.toDataVal(x.entityId(of.rank), of.dataType))
           case x: HasAssociationRules => outputSeries.update(i,
-            x.getRule(of.criterion, of.rank).map(_.entityId).orNull)
+            x.getRule(of.criterion, of.rank).map(_.entityId).getOrElse(DataVal.NULL))
           case _                      =>
         }
         case `warning`                                         => outputs match {
@@ -627,10 +646,10 @@ abstract class Model extends HasParent
     outputs
   }
 
-  protected def postRegression(predictedValue: Any, name: String = null): Any = {
+  protected def postRegression(predictedValue: DataVal, name: String = null): DataVal = {
     if (targets.isDefined) {
       val ts = targets.get
-      if (Utils.isMissing(predictedValue)) {
+      val res = if (Utils.isMissing(predictedValue)) {
         (if (ts.singleTarget) {
           ts.defaultValue
         } else {
@@ -644,12 +663,13 @@ abstract class Model extends HasParent
           ts.get(name).map(_.postPredictedValue(dValue)).getOrElse(Double.NaN)
         }
       }
+      DataVal.from(res)
     } else {
       predictedValue
     }
   }
 
-  protected def postClassification(name: String = null): (Any, Map[Any, Double]) = {
+  protected def postClassification(name: String = null): (DataVal, Map[DataVal, Double]) = {
     if (targets.isDefined) {
       val ts = targets.get
       if (ts.singleTarget) {
@@ -663,7 +683,7 @@ abstract class Model extends HasParent
   }
 
   /** A series with all null values is returned when can not produce a result. */
-  lazy val nullSeries: Series = Series.fromArray(new Array[Any](outputSchema.size), outputSchema)
+  lazy val nullSeries: Series = Series.fromArray(new Array[DataVal](outputSchema.size), outputSchema)
 
   /**
    * Setup indices to retrieve data from series faster by index instead of name, the index is immutable when model is
@@ -673,7 +693,7 @@ abstract class Model extends HasParent
    * Setup indices of targets that are usually not used by the scoring process, they are only used when residual
    * values to be computed.
    */
-  lazy val usedFields = if (isTopLevelModel) {
+  lazy val usedFields: Array[Field] = if (isTopLevelModel) {
     val ones = inputFields ++ targetFieldsOfResidual
     ones.zipWithIndex.foreach(x => x._1.index = x._2)
     ones

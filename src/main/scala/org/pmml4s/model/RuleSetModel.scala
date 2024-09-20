@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.pmml4s.model
 
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, OutputField, Targets}
 import org.pmml4s.model.Criterion.Criterion
 import org.pmml4s.transformations.LocalTransformations
@@ -131,7 +131,7 @@ class RuleSet(val ruleSelectionMethods: Array[RuleSelectionMethod],
               val rules: Array[Rule],
               val recordCount: Option[Int],
               val nbCorrect: Option[Int],
-              val defaultScore: Option[Any],
+              val defaultScore: Option[DataVal],
               val defaultConfidence: Option[Double]) extends PmmlElement {
 
   def first(series: Series): Option[SimpleRule] = {
@@ -144,7 +144,7 @@ class RuleSet(val ruleSelectionMethods: Array[RuleSelectionMethod],
   }
 
   def fire(series: Series): Array[SimpleRule] = {
-    rules.map(_.fire(series)).flatten
+    rules.flatMap(_.fire(series))
   }
 }
 
@@ -192,9 +192,9 @@ sealed trait Rule {
 object Rule {
   val emptySimpleRuleArray: Array[SimpleRule] = Array.empty
 
-  val values = Set(SIMPLE_RULE, COMPOUND_RULE)
+  val values: Set[String] = Set(SIMPLE_RULE, COMPOUND_RULE)
 
-  def contains(s: String) = values.contains(s)
+  def contains(s: String): Boolean = values.contains(s)
 }
 
 /**
@@ -216,7 +216,7 @@ object Rule {
  */
 class SimpleRule(val predicate: Predicate,
                  val scoreDistributions: ScoreDistributions,
-                 val score: Any,
+                 val score: DataVal,
                  val id: Option[String] = None,
                  val recordCount: Option[Int] = None,
                  val nbCorrect: Option[Int] = None,
@@ -241,7 +241,7 @@ class SimpleRule(val predicate: Predicate,
  */
 class CompoundRule(val predicate: Predicate, val rules: Array[Rule]) extends Rule with PmmlElement {
   override def fire(series: Series): Array[SimpleRule] = if (predicate.eval(series) == Predication.TRUE) {
-    rules.map(_.fire(series)).flatten
+    rules.flatMap(_.fire(series))
   } else Rule.emptySimpleRuleArray
 
   override def first(series: Series): Option[SimpleRule] = if (predicate.eval(series) == Predication.TRUE) {
@@ -254,5 +254,13 @@ class CompoundRule(val predicate: Predicate, val rules: Array[Rule]) extends Rul
   } else None
 }
 
-class RuleSetOutputs extends ModelOutputs with MutablePredictedValue with MutableConfidence
+class RuleSetOutputs extends ModelOutputs with MutablePredictedValue with MutableConfidence {
+  override def modelElement: ModelElement = ModelElement.RuleSetModel
+
+  override def clear(): this.type = {
+    super[MutablePredictedValue].clear()
+    super[MutableConfidence].clear()
+    this
+  }
+}
 

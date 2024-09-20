@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata._
 import org.pmml4s.model.AlgorithmType.AlgorithmType
 import org.pmml4s.transformations.LocalTransformations
@@ -55,7 +55,7 @@ class AnomalyDetectionModel(
   require(algorithmType != AlgorithmType.clusterMeanDist || meanClusterDistances.isDefined,
     "MeanClusterDistances is required when the algorithm type is clusterMeanDist.")
 
-  val (predictedIndex, affinityIndex) = if (algorithmType == AlgorithmType.clusterMeanDist) {
+  private val (predictedIndex, affinityIndex) = if (algorithmType == AlgorithmType.clusterMeanDist) {
     var predictedIndex = model.outputIndex(ResultFeature.predictedValue)
     if (predictedIndex == -1) {
       predictedIndex = model.outputIndex(ResultFeature.clusterId)
@@ -98,15 +98,17 @@ class AnomalyDetectionModel(
           val n = sampleDataSize.get
           val cn = 2.0 * (Math.log(n - 1.0) + 0.57721566) - (2.0 * (n - 1.0) / n)
           val b = -(Utils.toDouble(predictedValue) / cn)
-          Math.pow(2.0, b)
+          DataVal.from(Math.pow(2.0, b))
         }
         case `ocsvm`           => predictedValue
         case `clusterMeanDist` => {
           val clusteringModel = model.asInstanceOf[ClusteringModel]
-          val winner = Utils.toString(predictedValue)
-          val winnerIdx = clusteringModel.clusters.zipWithIndex.find(x => if (x._1.id.isDefined) x._1.id.get == winner else (x._2 + 1).toString == winner).get._2
+          val winner = predictedValue
+          val winnerIdx = clusteringModel.clusters.zipWithIndex.find(x =>
+            if (x._1.id.isDefined) x._1.id.get == winner else DataVal.from((x._2 + 1).toString) == winner
+          ).get._2
           val affinity = Utils.toDouble(outSeries.get(affinityIndex))
-          affinity / meanClusterDistances.get.array(winnerIdx)
+          DataVal.from(affinity / meanClusterDistances.get.array(winnerIdx))
         }
         case `other`           => ???
       }
@@ -190,4 +192,6 @@ trait HasWrappedAnomalyDetectionAttributes extends HasWrappedModelAttributes wit
   def sampleDataSize: Option[Long] = attributes.sampleDataSize
 }
 
-class AnomalyDetectionOutput extends RegOutputs
+class AnomalyDetectionOutput extends RegOutputs {
+  override def modelElement: ModelElement = ModelElement.AnomalyDetectionModel
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package org.pmml4s.model
 import org.pmml4s.Since
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Algorithm.Algorithm
 import org.pmml4s.metadata.RankBasis.RankBasis
 import org.pmml4s.metadata.RankOrder.RankOrder
 import org.pmml4s.metadata._
 import org.pmml4s.transformations.LocalTransformations
+import org.pmml4s.util.Utils
 
 import scala.collection.{immutable, mutable}
 
@@ -69,8 +70,8 @@ class AssociationModel(
   require(groupField == null || activeField != null, "An active field is required when a group field is present")
 
   // An active field could be a derived field
-  val activeNames = items.map(_.getName).filter(_.isDefined).map(_.get).toSet.toArray
-  val activeFields: Array[Field] = if (activeNames.nonEmpty) activeNames.map(x => field(x)) else inputFields
+  private val activeNames = items.map(_.getName).filter(_.isDefined).map(_.get).distinct
+  private val activeFields: Array[Field] = if (activeNames.nonEmpty) activeNames.map(x => field(x)) else inputFields
 
   private val idToItem: Map[String, String] = items.map(x => (x.id, x.toString)).toMap
   private val idToItemset: Map[String, Set[String]] =
@@ -113,7 +114,7 @@ class AssociationModel(
       lastItemset.clear()
       for (elem <- activeFields) {
         elem.dataType match {
-          case BooleanType => if (elem.get(series) == true) lastItemset += elem.name
+          case BooleanType => if (Utils.toBoolean(elem.get(series))) lastItemset += elem.name
           case _           => {
             val value = elem.get(series)
             if (value != null) {
@@ -151,7 +152,7 @@ class AssociationModel(
 
   def topCriteria: Map[(Algorithm, RankBasis, RankOrder), Int] = {
     val ofs = candidateOutputFields
-    ofs.groupBy(_.criterion).map(x => (x._1, x._2.maxBy(_.rank).rank)).toMap
+    ofs.groupBy(_.criterion).map(x => (x._1, x._2.maxBy(_.rank).rank))
   }
 
   /** Creates an object of subclass of ModelOutputs that is for writing into an output series.  */
@@ -301,9 +302,9 @@ class AssociationRule(val antecedent: String,
     case `ruleAssociation`         => antecedentItemset.subsetOf(itemset) && consequentItemset.subsetOf(itemset)
   }
 
-  override def predictedValue: Any = consequentRule
+  lazy override val predictedValue: DataVal = DataVal.from(consequentRule)
 
-  override def entityId: String = id.getOrElse(indexId)
+  lazy override val entityId: DataVal = DataVal.from(id.getOrElse(indexId))
 }
 
 trait HasAssociationAttributes extends HasModelAttributes {
@@ -413,7 +414,7 @@ class AssociationAttributes(
 }
 
 class AssociationOutputs extends ModelOutputs with HasAssociationRules {
-  var rules: Map[(Algorithm, RankBasis, RankOrder), Array[AssociationRule]] = _
+  var rules: Map[(Algorithm, RankBasis, RankOrder), Array[AssociationRule]] = Map.empty
 
   def setRules(rules: Map[(Algorithm, RankBasis, RankOrder), Array[AssociationRule]]): this.type = {
     this.rules = rules
@@ -421,5 +422,12 @@ class AssociationOutputs extends ModelOutputs with HasAssociationRules {
   }
 
   override def getRules(criterion: (Algorithm, RankBasis, RankOrder)): Array[AssociationRule] = rules(criterion)
+
+  override def modelElement: ModelElement = ModelElement.AssociationModel
+
+  override def clear(): this.type = {
+    rules = Map.empty
+    this
+  }
 }
 

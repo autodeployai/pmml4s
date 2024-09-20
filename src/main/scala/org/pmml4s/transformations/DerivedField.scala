@@ -16,7 +16,7 @@
 package org.pmml4s.transformations
 
 import org.pmml4s.common._
-import org.pmml4s.data.{CombinedSeries, MutableSeries, Series}
+import org.pmml4s.data.{CombinedSeries, DataVal, MutableSeries, NullVal, Series}
 import org.pmml4s.metadata.{DataField, Field, FieldType}
 import org.pmml4s.util.Utils
 
@@ -46,7 +46,7 @@ class DerivedField(
   override def fieldType: FieldType = FieldType.DerivedField
 
   /** Retrieve its value from the specified series, return null if missing */
-  override def get(series: Series): Any = {
+  override def get(series: Series): DataVal = {
     val result = super.get(series)
     if (result == null) {
       eval(series)
@@ -55,26 +55,30 @@ class DerivedField(
     }
   }
 
-  def write(series: Series, mutableSeries: MutableSeries, pos: Int): Any = {
+  def write(series: Series, mutableSeries: MutableSeries, pos: Int): DataVal = {
     val res = eval(series)
     mutableSeries.update(pos, res)
     res
   }
 
-  override def eval(series: Series): Any = {
+  override def eval(series: Series): DataVal = {
     val result = super.get(series)
 
-    if (result == null) {
+    if (result == null || result.isMissing) {
       val value = expr.eval(series)
 
       // Convert the result based on the field's data type
-      Utils.orNull(value, Utils.toVal(value, dataType))
+      if (value == null || value.isMissing) {
+        NullVal
+      } else if (value.dataType != dataType) {
+        Utils.toDataVal(value, dataType)
+      } else value
     } else result
   }
 
   override def children: Array[Expression] = expr.children
 
-  override def deeval(input: Any): Any = expr.deeval(input)
+  override def deeval(input: DataVal): DataVal = expr.deeval(input)
 
   override def getDataField: Option[Field] = expr.getDataField
 }

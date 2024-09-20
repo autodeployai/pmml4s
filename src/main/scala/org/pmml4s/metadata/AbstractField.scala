@@ -15,7 +15,7 @@
  */
 package org.pmml4s.metadata
 
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 
 /**
  * Abstract class for field in a PMML with common implementations.
@@ -32,28 +32,32 @@ abstract class AbstractField extends Field {
   protected var _attribute: Attribute = Attribute(opType)
 
   /** Index of the field in the input series. */
+  @inline
   override def index: Int = _index
 
   /** Sets the index of this field. */
   override def index_=(i: Int): Unit = _index = i
 
   /** Tests if the field is referenced in the model element. */
-  override def referenced = _referenced
+  override def referenced: Boolean = _referenced
 
   /** Sets the referenced flag of the field. */
   override def referenced_=(r: Boolean): Unit = _referenced = r
 
   /** Retrieve its value from the specified series, return null if missing */
-  override def get(series: Series): Any = if (index >= 0) series.get(index) else {
-    val idx = series.fieldIndex(name)
-    if (idx >= 0) series.get(idx) else null
+  override def get(series: Series): DataVal ={
+    var idx = index
+    if (idx >= 0) series(idx) else {
+      idx = series.fieldIndex(name)
+      if (idx >= 0) series(idx) else DataVal.NULL
+    }
   }
 
   /** Attribute of the field. */
-  override def attribute = _attribute
+  override def attribute: Attribute = _attribute
 
   /** Converts to an immutable attribute if it's mutable. */
-  override def toImmutable(): this.type = {
+  override def toImmutable: this.type = {
     if (attribute.isMutable) {
       _attribute = toAttribute
     }

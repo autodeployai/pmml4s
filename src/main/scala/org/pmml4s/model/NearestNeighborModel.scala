@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.pmml4s.model
 import org.pmml4s.common.CompareFunction.CompareFunction
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata._
 import org.pmml4s.model.CatScoringMethod.CatScoringMethod
 import org.pmml4s.model.ContScoringMethod.ContScoringMethod
@@ -109,9 +109,9 @@ class NearestNeighborModel(
   }
 
   // In case of a tie, the category with the largest number of cases in the training data is the winner.
-  private lazy val numCases4CatTargets: Map[String, Map[Any, Long]] = {
+  private lazy val numCases4CatTargets: Map[String, Map[DataVal, Long]] = {
     val catTargets = targetFields.filter(_.isCategorical).map(_.name)
-    val distributions: Array[Array[Any]] = Array.ofDim(trainingInstances.nbRows, catTargets.length)
+    val distributions: Array[Array[DataVal]] = Array.ofDim(trainingInstances.nbRows, catTargets.length)
     var i = 0
     while (i < trainingInstances.nbRows) {
       val row = trainingInstances.row(i)
@@ -178,7 +178,7 @@ class NearestNeighborModel(
       }
     } else {
       val entities = topK.map(k => instanceIdVariable.map(x => trainingInstances.row(k._2)(x)).orNull)
-      createOutputs().setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
+      createOutputs().setEntitiesId(entities).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
     }
 
     result(series, outputs)
@@ -198,8 +198,8 @@ class NearestNeighborModel(
           val ties = votes.filter(x => x._2 == max._2)
           outputs.predictedValue = if (ties.size > 1) {
             val cases = ties.map(x => (x._1, numCases4CatTargets(col).getOrElse(x._1, 0L)))
-            val maxCases: (Any, Long) = cases.maxBy(_._2)
-            val tiesCases: Map[Any, Long] = cases.filter(x => x._2 == maxCases._2)
+            val maxCases: (DataVal, Long) = cases.maxBy(_._2)
+            val tiesCases: Map[DataVal, Long] = cases.filter(x => x._2 == maxCases._2)
             if (tiesCases.size > 1) {
               tiesCases.toSeq.sortBy(_._2).head._1
             } else {
@@ -220,7 +220,7 @@ class NearestNeighborModel(
     } else if (target.isContinuous) {
       import ContScoringMethod._
       val contPredictions = predictions.map(Utils.toDouble(_))
-      outputs.predictedValue = continuousScoringMethod match {
+      val predictedValue = continuousScoringMethod match {
         case `median`          => {
           Median.eval(contPredictions.toIndexedSeq: _*)
         }
@@ -233,15 +233,17 @@ class NearestNeighborModel(
           ws.map(_ / sum).zip(contPredictions).map(x => x._1 * x._2).sum / contPredictions.length
         }
       }
+      outputs.setPredictedValue(predictedValue)
     }
 
     if (instanceIdVariable.isDefined) {
       instanceIdVariable.foreach(x => {
         val entities = topK.map(k => trainingInstances.row(k._2)(x))
-        outputs.setEntitiesId(entities.toArray).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
+        outputs.setEntitiesId(entities).setAffinities(entities.zip(topK).map(x => (x._1, x._2._1)).toMap)
       })
     } else {
-      outputs.setEntitiesId(topK.map(x => x._2 + 1)).setAffinities(topK.map(x => (x._2 + 1, x._1)).toMap)
+      val entities = topK.map(x => (x._1, DataVal.from(x._2 + 1)))
+      outputs.setEntitiesId(entities.map(x => x._2)).setAffinities(entities.map(x => (x._2, x._1)).toMap)
     }
 
     outputs
@@ -347,7 +349,7 @@ class KNNInputs(val knnInputs: Array[KNNInput]) extends PmmlElement {
  *
  * @param field       Contains the name of a DataField or a DerivedField. If a DerivedField is used and isTransformed is
  *                    false, the training instances will also need to be transformed together with the k-NN input.
- * @param compareFunction
+ * @param compareFunction Comparing function specified
  * @param fieldWeight Defines the importance factor for the field. It is used in the comparison functions to compute the
  *                    comparison measure. The value must be a number greater than 0. The default value is 1.0.
  */
@@ -433,5 +435,7 @@ class NearestNeighborAttributes(
                                ) extends ModelAttributes(functionName, modelName, algorithmName, isScorable)
   with HasNearestNeighborAttributes
 
-class NearestNeighborModelOutputs extends KNNOutputs
+class NearestNeighborModelOutputs extends KNNOutputs {
+  override def modelElement: ModelElement = ModelElement.NearestNeighborModel
+}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.pmml4s.model
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common.Predication.Predication
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata._
 import org.pmml4s.model.MissingPredictionTreatment.MissingPredictionTreatment
 import org.pmml4s.model.MultipleModelMethod.MultipleModelMethod
@@ -73,7 +73,7 @@ class MiningModel(
 
   segmentation.foreach(_.setParent(this))
   private val segmentOutputs = candidateOutputFields.filter(_.segmentId.isDefined).map(_.segmentId.get).toSet
-  val isWeighted = isSegmentation && (Set(`weightedMajorityVote`, `weightedAverage`, `weightedMedian`, `weightedSum`)
+  private val isWeighted = isSegmentation && (Set(`weightedMajorityVote`, `weightedAverage`, `weightedMedian`, `weightedSum`)
     contains segmentation.get.multipleModelMethod)
 
   // enable the predicted value if it's not
@@ -136,7 +136,7 @@ class MiningModel(
 
           if (output.isDefined) {
             // Handle the results further when outputs defined in the ensemble model
-            val probabilities = mutable.Map.empty[Any, Double]
+            val probabilities = mutable.Map.empty[DataVal, Double]
             last.toSeq.zip(lastOutputFields).foreach(x => {
               x._2.feature match {
                 case ResultFeature.predictedValue => outputs.predictedValue = x._1
@@ -155,7 +155,7 @@ class MiningModel(
           } else last
         }
         case method        => {
-          val selections = segments.filter(x => Predication.fire(x.eval(series)))
+          val selections = seg.filter(series)
           if (selections.isEmpty) return nullSeries
 
           if (isRegression || ((isClassification || isClustering) && (method == majorityVote || method == weightedMajorityVote))) {
@@ -182,8 +182,8 @@ class MiningModel(
             }
 
             if (isRegression) {
-              val realPredictions = predictions.map(_.asInstanceOf[Double])
-              outputs.predictedValue = method match {
+              val realPredictions = predictions.map(_.toDouble)
+              val predictedValue = method match {
                 case `average`         => {
                   realPredictions.sum / realPredictions.length.toDouble
                 }
@@ -201,12 +201,13 @@ class MiningModel(
                 case `weightedSum` | `x-weightedSum`     =>
                   MathUtils.product(realPredictions, weights)
               }
+              outputs.setPredictedValue(predictedValue)
             } else {
               // Convert predictions to the data type of target, because its type could be different from its target
               // in some cases, the probabilities could all become 0 if both data types not match.
               val dataTypeWanted = if (classes.nonEmpty) Utils.inferDataType(classes(0)) else UnresolvedDataType
               val probabilities = Utils.reduceByKey(predictions.zip(weights)).map(x =>
-                (Utils.toVal(x._1, dataTypeWanted), x._2 / predictions.length)).withDefaultValue(0.0)
+                (Utils.toDataVal(x._1, dataTypeWanted), x._2 / predictions.length)).withDefaultValue(0.0)
               outputs.setProbabilities(classes.map(x => (x, probabilities(x))).toMap).evalPredictedValueByProbabilities()
             }
           } else if (isClassification) {
@@ -215,7 +216,7 @@ class MiningModel(
             val probabilityIndexes = classes.map(x => selections.head.model.outputIndex(ResultFeature.probability, Some(x)))
 
             // Get the probabilities of each class
-            var probabilities = outSeries.map(x => probabilityIndexes.map(y => if (y != -1) x.get(y).asInstanceOf[Double] else Double.NaN))
+            var probabilities = outSeries.map(x => probabilityIndexes.map(y => if (y != -1) x.get(y).toDouble else Double.NaN))
 
             // Compute model weights
             var weights = if (isWeighted) outSeries.zip(selections).map(x => x._2.weight(Series.merge(series, x._1))) else Array.fill(selections.length)(1.0)
@@ -237,7 +238,7 @@ class MiningModel(
 
             var evalPredictedValue = true
             val matrix = probabilities.transpose
-            outputs.probabilities = method match {
+            outputs.setProbabilities(method match {
               case `average`         => {
                 classes.zip(matrix.map(_.sum / selections.length)).toMap
               }
@@ -247,7 +248,7 @@ class MiningModel(
               }
               case `max`             => {
                 evalPredictedValue = false
-                outputs.predictedValue = classes.zip(matrix.map(_.max)).maxBy(_._2)
+                outputs.predictedValue = classes.zip(matrix.map(_.max)).maxBy(_._2)._1
                 val contributions = probabilities.filter(x => classes.zip(x).maxBy(_._2)._1 == outputs.predictedValue)
                 classes.zip(contributions.transpose.map(_.sum / contributions.length)).toMap
               }
@@ -257,7 +258,7 @@ class MiningModel(
               case `weightedMedian` | `x-weightedMedian`  => {
                 classes.zip(matrix.map(x => MathUtils.weightedMedian(x, weights))).toMap
               }
-            }
+            })
 
             if (evalPredictedValue) {
               outputs.evalPredictedValueByProbabilities()
@@ -303,7 +304,7 @@ class MiningModel(
           lastModel.candidateOutputFields
         }
         case `selectAll`                                                      => {
-          segmentation.get.segments.map(_.model.candidateOutputFields).flatten
+          segmentation.get.segments.flatMap(_.model.candidateOutputFields)
         }
         case _                                                                => {
           super.defaultOutputFields
@@ -394,6 +395,7 @@ class Segmentation(val multipleModelMethod: MultipleModelMethod,
                    val segments: Array[Segment],
                    val missingPredictionTreatment: MissingPredictionTreatment = MissingPredictionTreatment.continue,
                    val missingThreshold: Double = 1) extends PmmlElement {
+  private val allTrue: Boolean = segments.count(x => x.isTrue) == segments.length
 
   def +=(segment: Segment): Segmentation = {
     new Segmentation(multipleModelMethod, segments :+ segment)
@@ -402,6 +404,10 @@ class Segmentation(val multipleModelMethod: MultipleModelMethod,
   def setParent(parent: Model): Segmentation = {
     segments.foreach(x => x.model.setParent(parent))
     this
+  }
+
+  def filter(series: Series): Array[Segment] = if (allTrue) segments else {
+    segments.filter(x => Predication.fire(x.eval(series)))
   }
 }
 
@@ -421,7 +427,19 @@ class Segment(val predicate: Predicate,
   override def eval(series: Series): Predication = predicate.eval(series)
 
   def weight(series: Series): Double = variableWeight.map(x => x.field.getDouble(series) * weight).getOrElse(weight)
+
+  override def isTrue: Boolean = predicate.isTrue
 }
 
-class MiningOutputs extends ClsOutputs with RegOutputs with CluOutputs with SegmentOutputs
+class MiningOutputs extends ClsOutputs with RegOutputs with CluOutputs with SegmentOutputs {
+  override def modelElement: ModelElement = ModelElement.MiningModel
+
+  override def clear(): this.type = {
+    super[ClsOutputs].clear()
+    super[RegOutputs].clear()
+    super[CluOutputs].clear()
+    super[SegmentOutputs].clear()
+    this
+  }
+}
 

@@ -48,8 +48,8 @@ class SupportVectorMachineBuilder extends Builder[SupportVectorMachineModel] {
 
   def makeSupportVectorMachine(reader: XMLEventReader, attrs: XmlAttrs): SupportVectorMachine = makeElem(reader, attrs, new ElemBuilder[SupportVectorMachine] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): SupportVectorMachine = {
-      val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(target.toVal(_))
-      val alternateTargetCategory = attrs.get(AttrTags.ALTERNATE_TARGET_CATEGORY).map(target.toVal(_))
+      val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(target.toVal)
+      val alternateTargetCategory = attrs.get(AttrTags.ALTERNATE_TARGET_CATEGORY).map(target.toVal)
       val threshold = attrs.getDouble(AttrTags.THRESHOLD)
       var supportVectors: SupportVectors = null
       var coefficients: Coefficients = null

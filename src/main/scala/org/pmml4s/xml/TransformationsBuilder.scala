@@ -23,6 +23,7 @@ import org.pmml4s.util.Utils
 
 import scala.collection.mutable
 import org.apache.commons.text.StringEscapeUtils
+import org.pmml4s.data.DataVal
 
 /**
  * Builder of transformations
@@ -143,16 +144,16 @@ trait TransformationsBuilder extends CommonBuilder
             case EvText(text) => content = text
           }, true)
 
-          val value = if (dataType.isDefined) {
+          val value: DataVal = if (dataType.isDefined) {
             if (content != null && dataType.get == RealType) {
               content.toLowerCase match {
-                case "nan"  => Double.NaN
-                case "inf"  => Double.PositiveInfinity
-                case "-inf" => Double.NegativeInfinity
-                case _      => Utils.toVal(content, dataType.get)
+                case "nan"  => DataVal.NaN
+                case "inf"  => DataVal.PositiveInfinity
+                case "-inf" => DataVal.NegativeInfinity
+                case _      => Utils.toDataVal(content, dataType.get)
               }
-            } else Utils.toVal(content, dataType.get)
-          } else content
+            } else Utils.toDataVal(content, dataType.get)
+          } else DataVal.from(content)
 
           new Constant(value, dataType, missing)
         }
@@ -191,7 +192,7 @@ trait TransformationsBuilder extends CommonBuilder
           val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE).flatMap(x => dataType.map(_.toVal(x)))
           val discretizeBins = makeElems(reader, ElemTags.DISCRETIZE, ElemTags.DISCRETIZE_BIN, new ElemBuilder[DiscretizeBin] {
             override def build(reader: XMLEventReader, attrs: XmlAttrs): DiscretizeBin = {
-              val binValue = attrs(AttrTags.BIN_VALUE)
+              val binValue = DataVal.from(attrs(AttrTags.BIN_VALUE))
               val interval = makeElem(reader, ElemTags.DISCRETIZE_BIN, ElemTags.INTERVAL, new ElemBuilder[Interval] {
                 override def build(reader: XMLEventReader, attrs: XmlAttrs): Interval = makeInterval(reader, attrs)
               })
@@ -206,9 +207,9 @@ trait TransformationsBuilder extends CommonBuilder
       case EvElemStart(_, ElemTags.MAP_VALUES, attrs, _)      => makeElem(reader, attrs, new ElemBuilder[MapValues] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): MapValues = {
           val outputColumn = attrs(AttrTags.OUTPUT_COLUMN)
-          val dataType = attrs.get(AttrTags.DATA_TYPE).map(DataType.withName(_))
-          val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO)
-          val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE)
+          val dataType = attrs.get(AttrTags.DATA_TYPE).map(DataType.withName)
+          val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(DataVal.from)
+          val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE).map(DataVal.from)
           val fieldColumnPairs = mutable.ArrayBuilder.make[FieldColumnPair]
           var table: Table = null
           val dataTypes = mutable.Map.empty[String, DataType]
@@ -278,8 +279,8 @@ trait TransformationsBuilder extends CommonBuilder
       case EvElemStart(_, ElemTags.APPLY, attrs, _)           => makeElem(reader, attrs, new ElemBuilder[Apply] {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): Apply = {
           val func = function(attrs(AttrTags.FUNCTION))
-          val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO)
-          val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE)
+          val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(DataVal.from)
+          val defaultValue = attrs.get(AttrTags.DEFAULT_VALUE).map(DataVal.from)
           val invalidValueTreatment = attrs.get(AttrTags.INVALID_VALUE_TREATMENT).map(InvalidValueTreatment.withName(_)).
             getOrElse(InvalidValueTreatment.returnInvalid)
 
@@ -301,7 +302,7 @@ trait TransformationsBuilder extends CommonBuilder
   def makeFieldRef(reader: XMLEventReader, attrs: XmlAttrs, scope: FieldScope): FieldRef = makeElem(reader, attrs, new ElemBuilder[FieldRef] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): FieldRef = {
       val fld = scope.field(attrs(AttrTags.FIELD))
-      val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(fld.toVal(_))
+      val mapMissingTo = attrs.get(AttrTags.MAP_MISSING_TO).map(fld.toVal)
 
       new FieldRef(fld, mapMissingTo)
     }
@@ -330,7 +331,7 @@ trait TransformationsBuilder extends CommonBuilder
         override def build(reader: XMLEventReader, attrs: XmlAttrs): InlineTable = {
           val rows = makeElems(reader, ElemTags.INLINE_TABLE, ElemTags.ROW, new ElemBuilder[Row] {
             override def build(reader: XMLEventReader, attrs: XmlAttrs): Row = {
-              val elements = new mutable.HashMap[String, Any]()
+              val elements = new mutable.HashMap[String, DataVal]()
               var key: String = null
               var value: String = ""
               traverseElems(reader, ElemTags.ROW, {
@@ -340,9 +341,7 @@ trait TransformationsBuilder extends CommonBuilder
                   value = ""
                 }
                 case EvElemEnd(_, _)               => if (key != null) {
-                  elements += {
-                    key -> dataTypes.getOrElse(key, StringType).toVal(value)
-                  }
+                  elements += (key -> dataTypes.getOrElse(key, StringType).toVal(value))
                   key = null
                   value = ""
                 }

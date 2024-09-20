@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 AutoDeployAI
+ * Copyright (c) 2017-2024 AutoDeployAI
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.pmml4s.model
 
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, Targets}
 import org.pmml4s.model.ActivationFunction.ActivationFunction
 import org.pmml4s.model.NNNormalizationMethod.NNNormalizationMethod
@@ -156,7 +156,7 @@ class NeuralNetwork(
         val t = f.get
         if (t.isContinuous) {
           val regOutputs = outputs.getOrInsert[NeuralNetworkOutputs](t.name, createOutputs())
-          regOutputs.setPredictedValue(neuralOutput.derivedField.deeval(normalizedVal))
+          regOutputs.setPredictedValue(neuralOutput.derivedField.deeval(DataVal.from(normalizedVal)))
         } else {
           val cls = getClass(neuralOutput.derivedField.expr)
           if (cls.isDefined) {
@@ -184,7 +184,7 @@ class NeuralNetwork(
   /** Creates an object of NeuralNetworkOutputs that is for writing into an output series.  */
   override def createOutputs(): NeuralNetworkOutputs = new NeuralNetworkOutputs
 
-  private def getClass(expr: Expression): Option[Any] = expr match {
+  private def getClass(expr: Expression): Option[DataVal] = expr match {
     case nd: NormDiscrete => Some(nd.value)
     case fr: FieldRef     => if (fr.field.isDerivedField) {
       getClass(fr.field.asInstanceOf[DerivedField].expr)
@@ -308,5 +308,7 @@ class Neuron(
 /** Defines the connections coming into that parent element. The neuron identified by from may be part of any layer. */
 class Con(val from: String, val weight: Double) extends PmmlElement
 
-class NeuralNetworkOutputs extends MixedClsWithRegOutputs
+class NeuralNetworkOutputs extends MixedClsWithRegOutputs {
+  override def modelElement: ModelElement = ModelElement.NeuralNetwork
+}
 

@@ -15,6 +15,8 @@
  */
 package org.pmml4s.transformations
 
+import org.pmml4s.data.DataVal
+
 /**
  * Defines several user-defined functions produced by various vendors, actually, well-defined "DefineFunction" is fully
  * supported by pmml4s, while some could be not. Here is the place for those user-defined functions are not well defined.
@@ -47,8 +49,8 @@ object UserDefinedFunctions extends FunctionProvider {
  * }}}
  */
 object `SAS-EM-String-Normalize` extends BinaryFunction {
-  override def eval(left: Any, right: Any): Any = {
-    TrimBlanks.eval(Uppercase.eval(Substring.eval(right, 1, left)))
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    TrimBlanks.eval(Uppercase.eval(Substring.eval(right, DataVal.`1`, left)))
   }
 
   override def symbol: String = "SAS-EM-String-Normalize"
@@ -68,7 +70,7 @@ object `SAS-EM-String-Normalize` extends BinaryFunction {
  * }}}
  */
 object `SAS-FORMAT-BESTw` extends BinaryFunction {
-  override def eval(left: Any, right: Any): String = {
+  override def eval(left: DataVal, right: DataVal): DataVal = {
     FormatNumber.eval(left, right)
   }
 
@@ -90,8 +92,8 @@ object `SAS-FORMAT-BESTw` extends BinaryFunction {
  * }}}
  */
 object `SAS-FORMAT-$CHARw` extends BinaryFunction {
-  override def eval(left: Any, right: Any): String = {
-    Substring.eval(right, 1, left)
+  override def eval(left: DataVal, right: DataVal): DataVal = {
+    Substring.eval(right, DataVal.`1`, left)
   }
 
   override def symbol: String = "SAS-FORMAT-$CHARw"

@@ -16,7 +16,7 @@
 package org.pmml4s.model
 
 import org.pmml4s.common.{StructField, _}
-import org.pmml4s.data.Series
+import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{AttributeType, ContinuousAttribute, ResultFeature}
 
 import scala.io.Source
@@ -53,14 +53,14 @@ class ModelTest extends BaseModelTest {
     assert(f2.dataType === DataType.string)
     assert(f2.opType === OpType.nominal)
     assert(f2.attrType === AttributeType.Categorical)
-    assert(f2.validValues.sameElements(Array("Private", "Consultant", "SelfEmp", "PSLocal", "PSState", "PSFederal", "Unemployed", "NA", "Volunteer")))
+    assert(f2.validValues.map(_.toVal).sameElements(Array("Private", "Consultant", "SelfEmp", "PSLocal", "PSState", "PSFederal", "Unemployed", "NA", "Volunteer")))
 
     val targetField = model.targetField
     assert(targetField.name === "TARGET_Adjusted")
     assert(targetField.dataType === DataType.string)
     assert(targetField.opType === OpType.nominal)
     assert(targetField.attrType === AttributeType.Categorical)
-    assert(targetField.validValues.sameElements(Array("0", "1")))
+    assert(targetField.validValues.map(_.toVal).sameElements(Array("0", "1")))
 
     val targetFields = model.targetFields
     assert(targetFields.map(_.name).sameElements(Array("TARGET_Adjusted")))
@@ -69,8 +69,8 @@ class ModelTest extends BaseModelTest {
     assert(outputFields.map(_.name).sameElements(Array("predicted_TARGET_Adjusted", "probability", "probability_0", "probability_1", "node_id")))
     assert(outputFields.map(_.feature).sameElements(Array(ResultFeature.predictedValue, ResultFeature.probability, ResultFeature.probability, ResultFeature.probability, ResultFeature.entityId)))
     assert(outputFields(1).value.isEmpty)
-    assert(outputFields(2).value === Some("0"))
-    assert(outputFields(3).value === Some("1"))
+    assert(outputFields(2).value === Some(DataVal("0")))
+    assert(outputFields(3).value === Some(DataVal("1")))
 
     assert(model.inputSchema === StructType(Array(
       StructField("Age", DataType.integer),
@@ -117,7 +117,7 @@ class ModelTest extends BaseModelTest {
     assert(t.dataType === DataType.string)
     assert(t.opType === OpType.nominal)
     assert(t.attrType === AttributeType.Categorical)
-    assert(t.validValues.sameElements(Array("Iris-setosa", "Iris-versicolor", "Iris-virginica")))
+    assert(t.validValues.map(_.toVal).sameElements(Array("Iris-setosa", "Iris-versicolor", "Iris-virginica")))
 
     assert(model.modelElement === ModelElement.TreeModel)
     assert(model.modelName === Some("DecisionTree"))
@@ -132,7 +132,7 @@ class ModelTest extends BaseModelTest {
     assert(model.targetFields.length === 1)
     assert(model.targetField.name === "class")
     assert(model.opType === OpType.nominal)
-    assert(model.classes.sameElements(Array("Iris-setosa", "Iris-versicolor", "Iris-virginica")))
+    assert(model.classes.sameElements(Array("Iris-setosa", "Iris-versicolor", "Iris-virginica").map(DataVal.from)))
     assert(model.numClasses === 3)
     assert(model.inputSchema === StructType(Array(StructField("sepal_length", DataType.double),
       StructField("sepal_width", DataType.double),
@@ -150,18 +150,18 @@ class ModelTest extends BaseModelTest {
     val schema = model.inputSchema
     val r = model.predict(Series.fromArray(Array(5.1, 3.5, 1.4, 0.2), schema))
     assert(r.schema === model.outputSchema)
-    assert(r.toArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
+    assert(r.asArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
     val r2 = model.predict(Series.fromArray(Array(7, 3.2, 4.7, 1.4), schema))
     assert(r2.schema === model.outputSchema)
-    assert(r2.toArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
+    assert(r2.asArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
 
     // Series without schema
     val r3 = model.predict(Series.fromArray(Array(5.1, 3.5, 1.4, 0.2)))
     assert(r3.schema === model.outputSchema)
-    assert(r3.toArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
+    assert(r3.asArray.sameElements(Array("Iris-setosa", 1.0, 1.0, 0.0, 0.0, "1")))
     val r4 = model.predict(Series.fromArray(Array(7, 3.2, 4.7, 1.4)))
     assert(r4.schema === model.outputSchema)
-    assert(r4.toArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
+    assert(r4.asArray.sameElements(Array("Iris-versicolor", 0.9074074074074074, 0.0, 0.9074074074074074, 0.09259259259259259, "3")))
 
     // Array
     val r5 = model.predict(Array(5.1, 3.5, 1.4, 0.2))
@@ -184,7 +184,7 @@ class ModelTest extends BaseModelTest {
     model.setSupplementOutput(true)
     assert(model.supplementOutput)
     assert(model.outputNames === Array("PROB_1", "PROB_2", "predicted_SPECIES", "probability", "probability_3"))
-    val r2 = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r2 = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r2.length === 5)
     assert(r2(2) === 3)
     assert(r2(3) === 0.5555556666666667)
@@ -193,7 +193,7 @@ class ModelTest extends BaseModelTest {
     val outputFields = model.outputFields
     model.setOutputFields(Array(outputFields(2)))
     assert(model.outputNames === Array("predicted_SPECIES"))
-    val r3 = model.predict(Series(2.0, 1.75, 30, 2.0))
+    val r3 = model.predict(Array(2.0, 1.75, 30, 2.0))
     assert(r3.length === 1)
     assert(r3(0) === 3)
   }  
