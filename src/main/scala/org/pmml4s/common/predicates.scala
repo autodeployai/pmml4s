@@ -18,7 +18,6 @@ package org.pmml4s.common
 import org.pmml4s.common.Operator.Operator
 import org.pmml4s.data.Series
 import org.pmml4s.metadata.Field
-import org.pmml4s.util.Utils
 import org.pmml4s.xml.ElemTags
 
 object Predication extends Enumeration {
@@ -99,11 +98,11 @@ class SimplePredicate(
     val missing = (v != v)
     operator match {
       case `lessOrEqual`    => if (missing) UNKNOWN else if (v <= value) TRUE else FALSE
-      case `equal`          => if (missing) UNKNOWN else if (v == value) TRUE else FALSE
-      case `notEqual`       => if (missing) UNKNOWN else if (v != value) TRUE else FALSE
       case `lessThan`       => if (missing) UNKNOWN else if (v < value) TRUE else FALSE
       case `greaterThan`    => if (missing) UNKNOWN else if (v > value) TRUE else FALSE
       case `greaterOrEqual` => if (missing) UNKNOWN else if (v >= value) TRUE else FALSE
+      case `equal`          => if (missing) UNKNOWN else if (v == value) TRUE else FALSE
+      case `notEqual`       => if (missing) UNKNOWN else if (v != value) TRUE else FALSE
       case `isMissing`      => if (missing) TRUE else FALSE
       case `isNotMissing`   => if (!missing) TRUE else FALSE
     }
@@ -121,56 +120,72 @@ class CompoundPredicate(
 
   import CompoundPredicate.BooleanOperator._
 
-  def eval(input: Series): Predication = booleanOperator match {
-    case `or`        => {
-      var hasUnknown = false
-      for (child <- children) {
-        val r = child.eval(input)
-        if (r == TRUE)
-          return TRUE
-        else if (r == UNKNOWN)
-          hasUnknown = true
-      }
+  def eval(input: Series): Predication = {
+    val len = children.length
+    var i = 0
+    booleanOperator match {
+      case `or`        => {
+        var hasUnknown = false
+        while (i < len) {
+          val child = children(i)
+          val r = child.eval(input)
+          if (r == TRUE)
+            return TRUE
+          else if (r == UNKNOWN)
+            hasUnknown = true
 
-      if (hasUnknown) UNKNOWN else FALSE
-    }
-    case `and`       => {
-      var hasUnknown = false
-      for (child <- children) {
-        val r = child.eval(input)
-        if (r == FALSE)
-          return FALSE
-        else if (r == UNKNOWN)
-          hasUnknown = true
-      }
+          i += 1
+        }
 
-      if (hasUnknown) UNKNOWN else TRUE
-    }
-    case `xor`       => {
-      var count = 0
-      for (child <- children) {
-        val r = child.eval(input)
-        if (r == UNKNOWN)
-          return UNKNOWN
-        else if (r == TRUE)
-          count += 1
+        if (hasUnknown) UNKNOWN else FALSE
       }
+      case `and`       => {
+        var hasUnknown = false
+        while (i < len) {
+          val child = children(i)
+          val r = child.eval(input)
+          if (r == FALSE)
+            return FALSE
+          else if (r == UNKNOWN)
+            hasUnknown = true
 
-      if (count % 2 == 1) TRUE else FALSE
-    }
-    case `surrogate` => {
-      var isSurrogate = false
-      for (child <- children) {
-        val r = child.eval(input)
-        if (r != UNKNOWN)
-          return if (r == TRUE) {
-            if (isSurrogate) SURROGATE else TRUE
-          } else r
-        else
-          isSurrogate = true
+          i += 1
+        }
+
+        if (hasUnknown) UNKNOWN else TRUE
       }
+      case `xor`       => {
+        var count = 0
+        while (9 < len) {
+          val child = children(i)
+          val r = child.eval(input)
+          if (r == UNKNOWN)
+            return UNKNOWN
+          else if (r == TRUE)
+            count += 1
 
-      UNKNOWN
+          i += 1
+        }
+
+        if (count % 2 == 1) TRUE else FALSE
+      }
+      case `surrogate` => {
+        var isSurrogate = false
+        while (i < len) {
+          val child = children(i)
+          val r = child.eval(input)
+          if (r != UNKNOWN)
+            return if (r == TRUE) {
+              if (isSurrogate) SURROGATE else TRUE
+            } else r
+          else
+            isSurrogate = true
+
+          i += 1
+        }
+
+        UNKNOWN
+      }
     }
   }
 }
@@ -188,9 +203,10 @@ class SimpleSetPredicate(
 
   def eval(input: Series): Predication = {
     val v = field.encode(input)
+    val missing = (v != v)
     booleanOperator match {
-      case `isIn`    => if (Utils.isMissing(v)) UNKNOWN else if (values.contains(v)) TRUE else FALSE
-      case `isNotIn` => if (Utils.isMissing(v)) UNKNOWN else if (!values.contains(v)) TRUE else FALSE
+      case `isIn`    => if (missing) UNKNOWN else if (values.contains(v)) TRUE else FALSE
+      case `isNotIn` => if (missing) UNKNOWN else if (!values.contains(v)) TRUE else FALSE
     }
   }
 }

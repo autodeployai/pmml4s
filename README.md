@@ -162,7 +162,7 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
     val row = Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2")
 
     // You need to convert the data to the desired type defined by PMML, and keep the same order as defined in the input schema.
-    val values = inputSchema.map(x => Utils.toVal(row(x.name), x.dataType))
+    val values = inputSchema.map(x => Utils.toDataVal(row(x.name), x.dataType))
 
     scala> val result = model.predict(Series.fromSeq(values))
     result: org.pmml4s.data.Series = [Iris-setosa,1.0,1.0,0.0,0.0,1],[(predicted_class,string),(probability,double),(probability_Iris-setosa,double),(probability_Iris-versicolor,double),(probability_Iris-virginica,double),(node_id,string)]

@@ -21,7 +21,6 @@ import org.pmml4s.common._
 import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.{MiningSchema, Output, OutputField, Targets}
 import org.pmml4s.transformations.LocalTransformations
-import org.pmml4s.util.Utils
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{immutable, mutable}
@@ -91,20 +90,20 @@ class TreeModel(
       while (i < len && !hit) {
         val c = children(i)
         c.eval(series) match {
-          case Predication.TRUE      => {
+          case Predication.TRUE       => {
             r = Predication.TRUE
             child = c
             hit = true
           }
-          case Predication.SURROGATE => {
+          case Predication.FALSE      =>
+          case Predication.SURROGATE  => {
             r = Predication.SURROGATE
             child = c
             hit = true
           }
-          case Predication.UNKNOWN   => {
+          case Predication.UNKNOWN    => {
             unknown = true
           }
-          case _         =>
         }
         i += 1
       }
@@ -133,10 +132,15 @@ class TreeModel(
             val total = selected.recordCount.getOrElse(Double.NaN)
             val candidates = selected.children.filter { x => x.eval(series) == UNKNOWN }
             var max = 0.0
-            for (cls <- classes) {
+            var i = 0
+            while (i < numClasses) {
+              val cls = classes(i)
               var conf = 0.0
-              for (cand <- candidates) {
-                conf += cand.getConfidence(cls) * cand.recordCount.getOrElse(0.0) / total
+              var j = 0
+              while (j < candidates.length) {
+                val candi = candidates(j)
+                conf += candi.getConfidence(cls) * candi.recordCount.getOrElse(0.0) / total
+                j += 1
               }
 
               if (conf > max) {
@@ -144,6 +148,8 @@ class TreeModel(
                 outputs.predictedValue = cls
                 outputs.confidence = conf
               }
+
+              i += 1
             }
 
             done = true
@@ -213,7 +219,7 @@ class TreeModel(
     result(series, outputs)
   }
 
-  /** The sub-classes can override this method to provide classes of target inside model. */
+  /** The subclasses can override this method to provide classes of target inside model. */
   override def inferClasses: Array[DataVal] = {
     firstLeaf.scoreDistributions.classes
   }
@@ -289,8 +295,12 @@ class TreeModel(
         i += 1
       }
 
-      for (child <- candidates)
+      i = 0
+      while (i < candidates.length) {
+        val child = candidates(i)
         traverseLeaves(child, series, leaves)
+        i += 1
+      }
     }
   }
 

@@ -109,12 +109,17 @@ object Utils {
         // Support such float number, for example "1.0", which is converted into double firstly,
         // then converted to integer again.
         case _: NumberFormatException => {
-          s.toDouble.toLong
+          val d = StringUtils.asDouble(s)
+          if (d != d) {
+            null
+          } else {
+            d.toLong
+          }
         }
-        case e: Throwable             => throw e
+        case e: Throwable             => null
       }
     }
-    case _: NumericType => s.toDouble
+    case _: NumericType => StringUtils.asDouble(s)
     case BooleanType    => s.toBoolean
     case _              => s
   }
@@ -127,7 +132,12 @@ object Utils {
         // Support such float number, for example "1.0", which is converted into double firstly,
         // then converted to integer again.
         case _: NumberFormatException => {
-          LongVal(s.toDouble.toLong)
+          val d = StringUtils.asDouble(s)
+          if (d != d) {
+            DataVal.NULL
+          } else {
+            LongVal(d.toLong)
+          }
         }
         case e: Throwable             => DataVal.NULL
       }

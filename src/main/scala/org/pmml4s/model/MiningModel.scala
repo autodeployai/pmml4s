@@ -141,7 +141,7 @@ class MiningModel(
               x._2.feature match {
                 case ResultFeature.predictedValue => outputs.predictedValue = x._1
                 case ResultFeature.probability    => x._2.value.foreach(y => {
-                  probabilities += (y -> x._1.asInstanceOf[Double])
+                  probabilities += (y -> x._1.toDouble)
                 })
               }
             })

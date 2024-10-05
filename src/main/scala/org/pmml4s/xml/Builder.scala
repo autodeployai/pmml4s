@@ -502,13 +502,13 @@ trait Builder[T <: Model] extends TransformationsBuilder {
   }
 
   def makeMatrix(reader: XMLEventReader, attrs: XmlAttrs): Matrix = {
-    val kind = attrs.get(AttrTags.KIND).map(MatrixKind.withName(_)).getOrElse(MatrixKind.any)
+    val kind = attrs.get(AttrTags.KIND).map(MatrixKind.withName).getOrElse(MatrixKind.any)
     val nbRows = attrs.getInt(AttrTags.NB_ROWS)
     val nbCols = attrs.getInt(AttrTags.NB_COLS)
     val diagDefault = attrs.getDouble(AttrTags.DIAG_DEFAULT)
     val offDiagDefault = attrs.getDouble(AttrTags.OFF_DIAG_DEFAULT)
     val arrays = mutable.ArrayBuilder.make[Array[Double]]
-    nbRows.foreach(arrays.sizeHint(_))
+    nbRows.foreach(arrays.sizeHint)
     val matCells = mutable.ArrayBuilder.make[MatCell]
 
     traverseElems(reader, ElemTags.MATRIX, {
@@ -517,7 +517,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
         override def build(reader: XMLEventReader, attrs: XmlAttrs): MatCell = {
           val row = attrs.int(AttrTags.ROW)
           val col = attrs.int(AttrTags.COL)
-          val value = extractText(reader, ElemTags.MAT_CELL).toDouble
+          val value = StringUtils.asDouble(extractText(reader, ElemTags.MAT_CELL))
 
           new MatCell(row, col, value)
         }
@@ -625,7 +625,7 @@ trait Builder[T <: Model] extends TransformationsBuilder {
       override def build(reader: XMLEventReader, attrs: XmlAttrs): ComparisonMeasure = {
         val kind = ComparisonMeasureKind.withName(attrs(AttrTags.KIND))
         val compareFunction =
-          attrs.get(AttrTags.COMPARE_FUNCTION).map(CompareFunction.withName(_)).getOrElse(CompareFunction.absDiff)
+          attrs.get(AttrTags.COMPARE_FUNCTION).map(CompareFunction.withName).getOrElse(CompareFunction.absDiff)
         val minimum = attrs.getDouble(AttrTags.MINIMUM)
         val maximum = attrs.getDouble(AttrTags.MAXIMUM)
         var distance: Distance = null
