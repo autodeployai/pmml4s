@@ -158,23 +158,30 @@ _PMML4S_ is really easy to use. Just do one or more of the following:
     scala> val inputSchema = model.inputSchema
     inputSchema: org.pmml4s.common.StructType = StructType(StructField(sepal_length,double), StructField(sepal_width,double), StructField(petal_length,double), StructField(petal_width,double))
 
+    // There are several factory methods to construct a Series object.
+    // 1. values in a Map
+    scala> val result = model.predict(Series.fromMap(Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2"), inputSchema))
+    val result: org.pmml4s.data.Series = [Iris-setosa,1,1,0,0,1],[(predicted_class,string),(probability,real),(probability_Iris-setosa,real),(probability_Iris-versicolor,real),(probability_Iris-virginica,real),(node_id,string)]
+   
+    // 2. values in an Array
+    scala> val result = model.predict(Series.fromArray(Array(5.1, 3.5, 1.4, 0.2), inputSchema))
+    val result: org.pmml4s.data.Series = [Iris-setosa,1,1,0,0,1],[(predicted_class,string),(probability,real),(probability_Iris-setosa,real),(probability_Iris-versicolor,real),(probability_Iris-virginica,real),(node_id,string)]
+   
+    // 3. DataVals in a Seq
     // Suppose the row is a record in map from an external columnar data, e.g. a CSV file, or relational database.
-    val row = Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2")
-
+    scala> val row = Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2")
+   
     // You need to convert the data to the desired type defined by PMML, and keep the same order as defined in the input schema.
-    val values = inputSchema.map(x => Utils.toDataVal(row(x.name), x.dataType))
-
+    scala> val values = inputSchema.map(x => Utils.toDataVal(row(x.name), x.dataType))
+    val values: Seq[org.pmml4s.data.DataVal] = List(5.1, 3.5, 1.4, 0.2)
+    
     scala> val result = model.predict(Series.fromSeq(values))
     result: org.pmml4s.data.Series = [Iris-setosa,1.0,1.0,0.0,0.0,1],[(predicted_class,string),(probability,double),(probability_Iris-setosa,double),(probability_Iris-versicolor,double),(probability_Iris-virginica,double),(node_id,string)]
-
-    // You can also create a Series with schema, so that values will be accessed by names, the order of values is trivial, e.g.
-    scala> val result = model.predict(Series.fromSeq(values.reverse, org.pmml4s.common.StructType(inputSchema.fields.reverse)))
-    result: org.pmml4s.data.Series = [Iris-setosa,1.0,1.0,0.0,0.0,1], [(predicted_class,string),(probability,double),(probability_Iris-setosa,double),(probability_Iris-versicolor,double),(probability_Iris-virginica,double),(node_id,string)]
     ```
 
     **Which format to use?**
 
-    You can use any formats of values according to your environment. Except of the `Series` that need to convert the data explicitly, you don't need to call `Utils.toVal` explicitly to convert data to ones defined by PMML for others, the conversion will be operated properly automatically. e.g. those input values are string, not double, you can still get the same correct results.
+    You can use any formats of values according to your environment. In most cases, you don't need to call `Utils.toDataVal` explicitly to convert data to ones defined by PMML for others, the conversion will be operated properly automatically. e.g. those input values are string, not double, you can still get the same correct results.
 
     ```scala
     scala> val result = model.predict(Map("sepal_length" -> "5.1", "sepal_width" -> "3.5", "petal_length" -> "1.4", "petal_width" -> "0.2"))
@@ -278,19 +285,19 @@ It's also easy to use and similar as Scala.
                 put("sepal_width", "3.5");
                 put("petal_length", "1.4");
                 put("petal_width", "0.2");
-            }}
+            }};
 
     // You need to convert the data to the desired type defined by PMML, and keep the same order as defined in the input schema.
     Object[] values = new Object[inputSchema.size()];
     for (int i = 0; i < values.length; i++) {
       StructField sf = inputSchema.apply(i);
-      values[i] = Utils.toVal(row.get(sf.name()), sf.dataType());
+      values[i] = Utils.toDataVal(row.get(sf.name()), sf.dataType());
     }
 
-    Series result = model.predict(Series.fromArray(values))
+    Series result = model.predict(Series.fromArray(values));
 
     // You can also create a Series with schema, so that values will be accessed by names, the order of values is trivial, e.g.
-    Series result = model.predict(Series.fromArray(values, inputSchema)))
+    Series result = model.predict(Series.fromArray(values, inputSchema));
     ```
 
 3. Understand the result values. See details in Scala above 

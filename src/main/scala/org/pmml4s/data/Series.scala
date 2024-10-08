@@ -22,8 +22,6 @@ import org.pmml4s.util.Utils
 import spray.json._
 
 import scala.collection.mutable
-import scala.collection.mutable.HashMap
-import scala.reflect.ClassTag
 
 object Series {
 
@@ -49,7 +47,10 @@ object Series {
    * This method can be used to construct a [[Series]] from a [[Seq]] of values.
    */
   def fromSeq(values: Seq[DataVal]): Series = new GenericSeries(values.toArray)
-  
+
+  /**
+   * This method can be used to construct a [[Series]] from a [[Array]] of values.
+   */
   def fromArray[T](values: Array[T]): Series = {
     new GenericSeries(values.map(x => DataVal.from(x)))
   }
@@ -58,13 +59,6 @@ object Series {
 
   def fromArray[T](values: Array[T], schema: StructType): Series = {
     new GenericSeriesWithSchema(values.zip(schema).map(x => Utils.toDataVal(x._1, x._2.dataType)), schema)
-  }
-
-  def fromSplit(columns: Seq[String], values: Seq[DataVal]): Series = {
-    require(values.size == columns.size, s"Should be same length, got columns=${columns.size} and values=${values.size}.")
-
-    val fields = columns.map(x => StructField(x, UnresolvedDataType)).toArray
-    new GenericSeriesWithSchema(values.toArray, StructType(fields))
   }
   
   def fromMap(map: Map[String, Any]): Series = {
