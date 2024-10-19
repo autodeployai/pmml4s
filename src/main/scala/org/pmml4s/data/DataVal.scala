@@ -21,10 +21,9 @@ import org.pmml4s.util.StringUtils
 
 import java.text.DecimalFormat
 import java.util.Date
-import scala.collection.immutable.Iterable
 import scala.reflect.ClassTag
 
-sealed trait DataVal {
+sealed trait DataVal extends Serializable {
   def isMissing: Boolean = false
 
   def nonMissing: Boolean = true
