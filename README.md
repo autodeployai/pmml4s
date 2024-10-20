@@ -18,7 +18,6 @@ _PMML4S_ is a PMML (Predictive Model Markup Language) scoring library for Scala.
 - [Use PMML in PySpark](#use-pmml-in-pyspark)
 - [Use PMML in Python](#use-pmml-in-python)
 - [Deploy PMML as REST API](#deploy-pmml-as-rest-api)
-- [Deploy and Manage AI/ML models at scale](#deploy-and-manage-aiml-models-at-scale)
 - [Attentions](#attentions)
 - [Support](#support)
 - [License](#license)
@@ -313,9 +312,6 @@ See the [PyPMML](https://github.com/autodeployai/pypmml) project. _PyPMML_ is a 
 
 ## Deploy PMML as REST API
 See the [AI-Serving](https://github.com/autodeployai/ai-serving) project. _AI-Serving_ is serving AI/ML models in the open standard formats PMML and ONNX with both HTTP (REST API) and gRPC endpoints.
-
-## Deploy and Manage AI/ML models at scale
-See the [DaaS](https://www.autodeployai.com/) system that deploys AI/ML models in production at scale on Kubernetes.
 
 ## Attentions
 * Thread Safe. 
