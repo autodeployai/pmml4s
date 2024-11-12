@@ -135,10 +135,14 @@ class RuleSet(val ruleSelectionMethods: Array[RuleSelectionMethod],
               val defaultConfidence: Option[Double]) extends PmmlElement {
 
   def first(series: Series): Option[SimpleRule] = {
-    for (rule <- rules) {
+    val len = rules.length
+    var i = 0
+    while (i < len) {
+      val rule = rules(i)
       val res = rule.first(series)
       if (res.isDefined)
         return res
+      i += 1
     }
     None
   }
@@ -245,10 +249,14 @@ class CompoundRule(val predicate: Predicate, val rules: Array[Rule]) extends Rul
   } else Rule.emptySimpleRuleArray
 
   override def first(series: Series): Option[SimpleRule] = if (predicate.eval(series) == Predication.TRUE) {
-    for (rule <- rules) {
+    val len = rules.length
+    var i = 0
+    while (i < len) {
+      val rule = rules(i)
       val res = rule.first(series)
       if (res.isDefined)
         return res
+      i += 1
     }
     None
   } else None
