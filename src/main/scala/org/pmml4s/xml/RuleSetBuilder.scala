@@ -86,7 +86,7 @@ class RuleSetBuilder extends Builder[RuleSetModel] {
           val rules = mutable.ArrayBuilder.make[Rule]
           var predicate: Predicate = null
 
-          traverseElems(reader, ElemTags.SIMPLE_RULE, {
+          traverseElems(reader, ElemTags.COMPOUND_RULE, {
             case event: EvElemStart if Predicate.contains(event.label) => predicate = makePredicate(reader, event)
             case event: EvElemStart if Rule.contains(event.label)      => rules += makeRule(reader, event)
           })

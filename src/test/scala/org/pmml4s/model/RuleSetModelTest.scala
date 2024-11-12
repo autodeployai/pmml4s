@@ -69,4 +69,87 @@ class RuleSetModelTest extends BaseModelTest {
     assert(r3("predicted_$C-Drug") === "drugB")
     assert(r3("confidence") === 0.9)
   }
+
+  test("CompoundRule") {
+    val pmml = """<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+                 |        <Header description="Test Rule Model"/>
+                 |        <DataDictionary numberOfFields="3">
+                 |            <DataField name="predictedValue" optype="continuous" dataType="double"/>
+                 |            <DataField name="X" optype="categorical" dataType="string">
+                 |                <Value value="A"/>
+                 |                <Value value="B"/>
+                 |            </DataField>
+                 |        </DataDictionary>
+                 |        <RuleSetModel functionName="regression" algorithmName="RuleSet">
+                 |            <MiningSchema>
+                 |                <MiningField name="X" usageType="active"/>
+                 |                <MiningField name="predictedValue" usageType="target"/>
+                 |            </MiningSchema>
+                 |            <Output>
+                 |                <OutputField name="predictedValue" optype="continuous" dataType="double" feature="predictedValue"/>
+                 |            </Output>
+                 |            <RuleSet>
+                 |                <RuleSelectionMethod criterion="firstHit"/>
+                 |                {rules}
+                 |            </RuleSet>
+                 |        </RuleSetModel>
+                 |    </PMML>""".stripMargin
+
+    val simpleRule =
+      """
+        |<SimpleRule score="10.0" confidence="1" weight="1">
+        |    <SimplePredicate field="X" operator="equal" value="A" />
+        |</SimpleRule>
+        |<SimpleRule score="20.0" confidence="1" weight="1">
+        |    <True/>
+        |</SimpleRule>
+        |""".stripMargin
+
+    val pmmlSimpleRule = pmml.replace("{rules}", simpleRule)
+    val modelSimpleRule = Model.fromString(pmmlSimpleRule)
+    val r11 = modelSimpleRule.predict(Array("A"))
+    assert(r11(0) === 10.0)
+    val r12 = modelSimpleRule.predict(Array("B"))
+    assert(r12(0) === 20.0)
+
+    val compoundRule =
+      """
+        |<CompoundRule>
+        |    <True/>
+        |    <SimpleRule score="10.0" confidence="1" weight="1">
+        |        <SimplePredicate field="X" operator="equal" value="A" />
+        |    </SimpleRule>
+        |</CompoundRule>
+        |<SimpleRule score="20.0" confidence="1" weight="1">
+        |    <True/>
+        |</SimpleRule>
+        |""".stripMargin
+
+    val pmmlCompoundRule = pmml.replace("{rules}", compoundRule)
+    val modelCompoundRule = Model.fromString(pmmlCompoundRule)
+    val r21 = modelCompoundRule.predict(Array("A"))
+    assert(r21(0) === 10.0)
+    val r22 = modelCompoundRule.predict(Array("B"))
+    assert(r22(0) === 20.0)
+
+    val outCompoundRule =
+      """
+        |<CompoundRule>
+        |    <SimplePredicate field="X" operator="equal" value="A" />
+        |    <SimpleRule score="10.0" confidence="1" weight="1">
+        |        <True/>
+        |    </SimpleRule>
+        |</CompoundRule>
+        |<SimpleRule score="20.0" confidence="1" weight="1">
+        |    <True/>
+        |</SimpleRule>
+        |""".stripMargin
+
+    val pmmlOutCompoundRule = pmml.replace("{rules}", outCompoundRule)
+    val modelOutCompoundRule = Model.fromString(pmmlOutCompoundRule)
+    val r31 = modelOutCompoundRule.predict(Array("A"))
+    assert(r31(0) === 10.0)
+    val r32 = modelOutCompoundRule.predict(Array("B"))
+    assert(r32(0) === 20.0)
+  }
 }
