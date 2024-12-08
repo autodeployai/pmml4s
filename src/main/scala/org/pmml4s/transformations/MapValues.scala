@@ -31,14 +31,15 @@ class MapValues(
                  val mapMissingTo: Option[DataVal],
                  val defaultValue: Option[DataVal],
                  val dataType: Option[DataType]) extends Expression {
-  private val replacement: DataVal = mapMissingTo.getOrElse(DataVal.NULL)
+  private val missingReplacement: DataVal = mapMissingTo.getOrElse(DataVal.NULL)
+  private val defaultReplacement: DataVal = defaultValue.getOrElse(DataVal.NULL)
 
   override def eval(series: Series): DataVal = {
     if (fieldColumnPairs.exists(x => x.field.isMissing(series))) {
-      replacement
+      missingReplacement
     } else {
       val r = table.find(fieldColumnPairs.map(x => (x.column, x.field.get(series))).toMap, outputColumn)
-      r.getOrElse(replacement)
+      r.getOrElse(defaultReplacement)
     }
   }
 
