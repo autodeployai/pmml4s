@@ -143,6 +143,7 @@ class MiningModel(
                 case ResultFeature.probability    => x._2.value.foreach(y => {
                   probabilities += (y -> x._1.toDouble)
                 })
+                case _ =>
               }
             })
             outputs.probabilities = probabilities.toMap
@@ -151,7 +152,7 @@ class MiningModel(
             if (outputs.probabilities.nonEmpty && outputs.predictedValue == null) {
               outputs.evalPredictedValueByProbabilities()
             }
-            result(series, outputs)
+            result(last, outputs)
           } else last
         }
         case method        => {
