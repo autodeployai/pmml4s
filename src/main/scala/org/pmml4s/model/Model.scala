@@ -454,6 +454,7 @@ abstract class Model extends HasParent
 
     val candidateFields = candidateOutputFields
     val outputSeries = new GenericMutableSeriesWithSchema(candidateFields.length, candidateOutputSchema)
+    outputSeries.clear()
 
     import ResultFeature._
 

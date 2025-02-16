@@ -32,12 +32,12 @@ class TreeModelTest extends BaseModelTest {
     assert(model.targetName === "whatIdo")
 
     val outputs = model.outputFields
-    assert(outputs.size === 1)
+    assert(outputs.length === 1)
     assert(outputs(0).feature === ResultFeature.predictedValue)
 
     val r = model.predict("temperature" -> 75, "humidity" -> 55, "windy" -> "false", "outlook" -> "overcast")
     assert(r.size === 1)
-    assert(r(0)._2 === "may play")
+    assert(r.head._2 === "may play")
   }
 
   test("Scoring Procedure in records json format") {
@@ -52,6 +52,14 @@ class TreeModelTest extends BaseModelTest {
     assert(r ==="""{"columns":["predicted_whatIdo"],"data":[["may play"]]}""")
   }
 
+  test("Scoring with residuals") {
+    val model = Model.fromFile("src/test/resources/models/tree/sas_3.1_iris_tree.xml")
+    val r = model.predict(Map("petal_width" -> 0.2, "petal_length" -> 1.4, "sepal_length" -> 5.1, "species" -> "IRIS-VIRGINICA"))
+    assert(r("R_speciesIRIS_VIRGINICA ") === 1.0)
+
+    val r2 = model.predict(Map("petal_width" -> 0.2, "petal_length" -> 1.4, "sepal_length" -> 5.1))
+    assert(r2("R_speciesIRIS_VIRGINICA ") === null)
+  }
 
   test("Scoring with explicit confidences") {
     val model = Model.fromFile("src/test/resources/models/tree/dmg_tree_missing_value_strategies.xml")

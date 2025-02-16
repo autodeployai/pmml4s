@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+  <PMML version="3.1"
+   xmlns="https://www.dmg.org/PMML-3_1"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header copyright="Copyright(c) 2002 SAS Institute Inc., Cary, NC, USA. All Rights Reserved.">
+    <Application name="SAS(r)" version="9.2"/>
+    <Timestamp>2009-09-17 14:22:42</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="5">
+      <DataField name="sepal_length" optype="continuous" dataType="double"/>
+      <DataField name="sepal_width" optype="continuous" dataType="double"/>
+      <DataField name="petal_length" optype="continuous" dataType="double"/>
+      <DataField name="petal_width" optype="continuous" dataType="double"/>
+      <DataField name="species" optype="categorical" dataType="string"/>
+    </DataDictionary>
+    <TransformationDictionary/>
+    <TreeModel functionName="classification" splitCharacteristic="multiSplit">
+      <MiningSchema>
+        <MiningField name="species" usageType="predicted" optype="categorical"/>
+        <MiningField name="petal_width" usageType="active" optype="continuous"/>
+        <MiningField name="petal_length" usageType="active" optype="continuous"/>
+        <MiningField name="sepal_length" usageType="active" optype="continuous"/>
+      </MiningSchema>
+      <Output>
+        <OutputField name="P_speciesIRIS_VIRGINICA " displayName="Predicted: species=IRIS-VIRGINICA" optype="continuous" dataType="double" targetField="species" feature="probability" value="IRIS-VIRGINICA"/>
+        <OutputField name="P_speciesIRIS_VERSICOLOR" displayName="Predicted: species=IRIS-VERSICOLOR" optype="continuous" dataType="double" targetField="species" feature="probability" value="IRIS-VERSICOLOR"/>
+        <OutputField name="P_speciesIRIS_SETOSA    " displayName="Predicted: species=IRIS-SETOSA" optype="continuous" dataType="double" targetField="species" feature="probability" value="IRIS-SETOSA"/>
+        <OutputField name="R_speciesIRIS_VIRGINICA " displayName="Residual: species=IRIS-VIRGINICA" optype="continuous" dataType="double" targetField="species" feature="residual" value="IRIS-VIRGINICA"/>
+        <OutputField name="R_speciesIRIS_VERSICOLOR" displayName="Residual: species=IRIS-VERSICOLOR" optype="continuous" dataType="double" targetField="species" feature="residual" value="IRIS-VERSICOLOR"/>
+        <OutputField name="R_speciesIRIS_SETOSA    " displayName="Residual: species=IRIS-SETOSA" optype="continuous" dataType="double" targetField="species" feature="residual" value="IRIS-SETOSA"/>
+        <OutputField name="F_species" displayName="From: species" optype="categorical" dataType="string" targetField="species" feature="predictedValue"/>
+        <OutputField name="I_species" displayName="Into: species" optype="categorical" dataType="string" targetField="species" feature="predictedValue"/>
+        <OutputField name="U_species" displayName="Unnormalized Into: species" optype="categorical" dataType="string" targetField="species" feature="predictedValue"/>
+      </Output>
+      <Targets>
+        <Target field="species" optype="categorical">
+          <TargetValue value="IRIS-VIRGINICA" rawDataValue="Iris-virginica  "/>
+          <TargetValue value="IRIS-VERSICOLOR" rawDataValue="Iris-versicolor "/>
+          <TargetValue value="IRIS-SETOSA" rawDataValue="Iris-setosa     "/>
+        </Target>
+      </Targets>
+      <Node id="1" score="IRIS-VIRGINICA" recordCount="150">
+        <True/>
+        <ScoreDistribution value="IRIS-VIRGINICA" recordCount="50" confidence="0.33333333333333"/>
+        <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="50" confidence="0.33333333333333"/>
+        <ScoreDistribution value="IRIS-SETOSA" recordCount="50" confidence="0.33333333333333"/>
+        <Node id="2" score="IRIS-SETOSA" recordCount="50">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="petal_width" operator="lessThan" value="    0.8"/>
+            <SimplePredicate field="petal_length" operator="lessThan" value="   2.45"/>
+            <SimplePredicate field="sepal_length" operator="lessThan" value="   5.45"/>
+            <False/>
+          </CompoundPredicate>
+          <ScoreDistribution value="IRIS-VIRGINICA" recordCount="0" confidence="0"/>
+          <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="0" confidence="0"/>
+          <ScoreDistribution value="IRIS-SETOSA" recordCount="50" confidence="1"/>
+        </Node>
+        <Node id="4" score="IRIS-VIRGINICA" recordCount="48">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="petal_width" operator="greaterOrEqual" value="   1.65"/>
+            <SimplePredicate field="petal_length" operator="greaterOrEqual" value="   4.75"/>
+            <SimplePredicate field="sepal_length" operator="greaterOrEqual" value="   5.75"/>
+            <False/>
+          </CompoundPredicate>
+          <ScoreDistribution value="IRIS-VIRGINICA" recordCount="46" confidence="0.95833333333333"/>
+          <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="2" confidence="0.04166666666666"/>
+          <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
+        </Node>
+        <Node id="3" score="IRIS-VERSICOLOR" recordCount="52">
+          <CompoundPredicate booleanOperator="surrogate">
+            <CompoundPredicate booleanOperator="and">
+              <SimplePredicate field="petal_width" operator="greaterOrEqual" value="    0.8"/>
+              <SimplePredicate field="petal_width" operator="lessThan" value="   1.65"/>
+            </CompoundPredicate>
+            <CompoundPredicate booleanOperator="and">
+              <SimplePredicate field="petal_length" operator="greaterOrEqual" value="   2.45"/>
+              <SimplePredicate field="petal_length" operator="lessThan" value="   4.75"/>
+            </CompoundPredicate>
+            <CompoundPredicate booleanOperator="and">
+              <SimplePredicate field="sepal_length" operator="greaterOrEqual" value="   5.45"/>
+              <SimplePredicate field="sepal_length" operator="lessThan" value="   5.75"/>
+            </CompoundPredicate>
+            <SimplePredicate field="petal_width" operator="isMissing"/>
+          </CompoundPredicate>
+          <ScoreDistribution value="IRIS-VIRGINICA" recordCount="4" confidence="0.07692307692307"/>
+          <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="48" confidence="0.92307692307692"/>
+          <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
+        </Node>
+      </Node>
+    </TreeModel>
+  </PMML>
