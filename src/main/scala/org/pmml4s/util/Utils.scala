@@ -134,12 +134,12 @@ object Utils {
         case _: NumberFormatException => {
           val d = StringUtils.asDouble(s)
           if (d != d) {
-            DataVal.NULL
+            StringVal(s)
           } else {
             LongVal(d.toLong)
           }
         }
-        case e: Throwable             => DataVal.NULL
+        case e: Throwable             => StringVal(s)
       }
     }
     case _: NumericType => DataVal.from(StringUtils.asDouble(s))
