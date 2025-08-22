@@ -16,6 +16,7 @@
 package org.pmml4s.common
 
 import org.apache.commons.math3.special.Gamma
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.common.ContinuousDistributionType.ContinuousDistributionType
 import org.pmml4s.xml.ElemTags
 
@@ -58,7 +59,7 @@ class GaussianDistribution(val mean: Double, val variance: Double) extends Conti
 
 class PoissonDistribution(val mean: Double) extends ContinuousDistribution {
   override def probability(x: Double): Double = {
-    Math.pow(mean, x) * Math.exp(-mean) / Gamma.digamma(x + 1)
+    FastMath.pow(mean, x) * Math.exp(-mean) / Gamma.digamma(x + 1)
   }
 
   override def distType: ContinuousDistributionType = ContinuousDistributionType.POISSON

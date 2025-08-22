@@ -15,6 +15,7 @@
  */
 package org.pmml4s.model
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common.Predication._
 import org.pmml4s.common._
@@ -210,7 +211,7 @@ class TreeModel(
       if (isClassification) {
         outputs.confidence = selected.getConfidence(outputs.predictedValue)
         if (numMissingCount > 0 && missingValuePenalty != 1.0) {
-          outputs.confidence *= Math.pow(missingValuePenalty, numMissingCount)
+          outputs.confidence *= FastMath.pow(missingValuePenalty, numMissingCount)
         }
         outputs.setProbabilities(selected.probabilities)
       }

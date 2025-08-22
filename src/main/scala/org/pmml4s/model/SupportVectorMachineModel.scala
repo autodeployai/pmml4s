@@ -15,6 +15,7 @@
  */
 package org.pmml4s.model
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
 import org.pmml4s.data.{DataVal, Series}
@@ -156,7 +157,7 @@ class PolynomialKernelType(val gamma: Double = 1.0,
                            val degree: Double = 1.0,
                            val description: Option[String] = None) extends KernelType with PmmlElement {
   override def compute(x: Array[Double], y: Vector[Double]): Double = {
-    Math.pow(gamma * MathUtils.product(x, y) + coef0, degree)
+    FastMath.pow(gamma * MathUtils.product(x, y) + coef0, degree)
   }
 }
 
