@@ -15,6 +15,7 @@
  */
 package org.pmml4s.model
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
 import org.pmml4s.data.{DataVal, Series}
@@ -98,7 +99,7 @@ class AnomalyDetectionModel(
           val n = sampleDataSize.get
           val cn = 2.0 * (Math.log(n - 1.0) + 0.57721566) - (2.0 * (n - 1.0) / n)
           val b = -(Utils.toDouble(predictedValue) / cn)
-          DataVal.from(Math.pow(2.0, b))
+          DataVal.from(FastMath.pow(2.0, b))
         }
         case `ocsvm`           => predictedValue
         case `clusterMeanDist` => {

@@ -16,6 +16,7 @@
 package org.pmml4s.xml
 
 import org.pmml4s.common.{NumericPredictor, PredictorTerm, RegressionPredictor, RegressionTable}
+import org.pmml4s.data.DataVal
 import org.pmml4s.model._
 import org.pmml4s.transformations.FieldRef
 
@@ -44,7 +45,14 @@ class RegressionBuilder extends Builder[RegressionModel] {
   private def makeRegressionTable(reader: XMLEventReader, attrs: XmlAttrs): RegressionTable = makeElem(reader, attrs, new ElemBuilder[RegressionTable] {
     override def build(reader: XMLEventReader, attrs: XmlAttrs): RegressionTable = {
       val intercept = attrs.double(AttrTags.INTERCEPT)
-      val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(x => verifyValue(x, target))
+      val targetCategory = attrs.get(AttrTags.TARGET_CATEGORY).map(x => {
+        val t = rootTarget
+        if (t != null && t.isCategorical) {
+          t.toVal(x)
+        } else {
+          DataVal.from(x)
+        }
+      })
       val predictors = makeElems(reader, ElemTags.REGRESSION_TABLE, RegressionPredictor.values, new GroupElemBuilder[RegressionPredictor] {
         def build(reader: XMLEventReader, event: EvElemStart): RegressionPredictor = makePredictor(reader, event)
       })

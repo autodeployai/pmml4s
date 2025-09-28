@@ -108,6 +108,16 @@ trait Builder[T <: Model] extends TransformationsBuilder {
     if (name != null) field(name) else null
   }
 
+  def rootTarget: Field = {
+    var t = target
+    var p = parent
+    while (t == null && p != null) {
+      t = p.targetField
+      p = p.parent
+    }
+    t
+  }
+
   def getTarget: Option[Field] = {
     val name = targets.map(_.targetName).getOrElse(miningSchema.targetName)
     if (name != null) getField(name) else None
@@ -208,14 +218,15 @@ trait Builder[T <: Model] extends TransformationsBuilder {
       def build(reader: XMLEventReader, attrs: XmlAttrs): OutputField = {
         val name = attrs(AttrTags.NAME)
         val displayName = attrs.get(AttrTags.DISPLAY_NAME)
-        val opType = attrs.get(AttrTags.OPTYPE).map(OpType.withName(_)).getOrElse(OpType.typeless)
-        val feature = attrs.get(AttrTags.FEATURE).map(ResultFeature.withName(_)).getOrElse(ResultFeature.predictedValue)
+        val opType = attrs.get(AttrTags.OPTYPE).map(OpType.withName).getOrElse(OpType.typeless)
+        val feature = attrs.get(AttrTags.FEATURE).map(ResultFeature.withName).getOrElse(ResultFeature.predictedValue)
         val targetField = attrs.get(AttrTags.TARGET_FIELD)
         val isFinalResult = attrs.getBoolean(AttrTags.IS_FINAL_RESULT, true)
         val value = attrs.get(AttrTags.VALUE).map(x => if (feature == ResultFeature.probability) {
           var t = targetField.flatMap(getField).getOrElse(target)
-          if (t == null && parent != null && parent.targetField != null && parent.targetField.isCategorical) {
-            t = parent.targetField
+          if (t == null) {
+            val r = rootTarget
+            t = if (r != null && r.isCategorical) r else null
           }
           if (t != null) t.toVal(x) else DataVal.from(x)
         } else DataVal.from(x))

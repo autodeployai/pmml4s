@@ -46,7 +46,7 @@ object MathUtils {
 
   def median(x: Array[Double]): Double = {
     val sorted = x.sorted
-    val n = sorted.size
+    val n = sorted.length
     if (n % 2 == 0) {
       (sorted(n / 2) + sorted(n / 2 - 1)) / 2.0
     } else {

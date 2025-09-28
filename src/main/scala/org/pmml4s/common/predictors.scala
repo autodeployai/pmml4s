@@ -15,6 +15,7 @@
  */
 package org.pmml4s.common
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.data.{DataVal, Series}
 import org.pmml4s.metadata.Field
 import org.pmml4s.transformations.FieldRef
@@ -41,7 +42,7 @@ object RegressionPredictor {
 class NumericPredictor(val field: Field, val coefficient: Double, val exponent: Int = 1) extends RegressionPredictor {
   override def eval(series: Series): Double = if (field.isMissing(series)) Double.NaN else {
     val value = field.getDouble(series)
-    if (exponent == 1) value * coefficient else Math.pow(value, exponent) * coefficient
+    if (exponent == 1) value * coefficient else FastMath.pow(value, exponent) * coefficient
   }
 }
 
@@ -111,7 +112,7 @@ class ContrastMatrixFactorPredictor(override val field: Field, override val valu
 class CovariatePredictor(val field: Field, val multiplicity: Double) extends RegressionPredictor {
   override def eval(series: Series): Double = if (field.isMissing(series)) Double.NaN else {
     val value = field.getDouble(series)
-    if (multiplicity == 1.0) value else Math.pow(value, multiplicity)
+    if (multiplicity == 1.0) value else FastMath.pow(value, multiplicity)
   }
 }
 

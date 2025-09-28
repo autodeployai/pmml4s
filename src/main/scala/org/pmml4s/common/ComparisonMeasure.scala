@@ -15,6 +15,7 @@
  */
 package org.pmml4s.common
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.common.CompareFunction.CompareFunction
 import org.pmml4s.common.ComparisonMeasureKind.ComparisonMeasureKind
 import org.pmml4s.xml.ElemTags
@@ -133,11 +134,11 @@ class minkowski(val p: Double) extends Distance {
                         weights: Array[Double], adjustM: Double, s: Array[Double]): Double = {
     var sum = 0.0
     for (i <- nonMissing) {
-      val d = Math.pow(compare(fs(i), xs(i), ys(i), s(i)), p)
+      val d = FastMath.pow(compare(fs(i), xs(i), ys(i), s(i)), p)
       sum += (d * weights(i))
     }
 
-    Math.pow(sum * adjustM, 1 / p)
+    FastMath.pow(sum * adjustM, 1 / p)
   }
 }
 

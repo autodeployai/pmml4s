@@ -15,6 +15,7 @@
  */
 package org.pmml4s.model
 
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.PmmlDeprecated
 import org.pmml4s.common.MiningFunction.MiningFunction
 import org.pmml4s.common._
@@ -182,7 +183,7 @@ class GeneralRegressionModel(
           case `oddspower` => {
             val d = linkParameter.get
             if (d != 0) {
-              1 / (1 + Math.pow(1 + d * y, -1 / d))
+              1 / (1 + FastMath.pow(1 + d * y, -1 / d))
             } else {
               1 / (1 + Math.exp(-y))
             }
@@ -190,7 +191,7 @@ class GeneralRegressionModel(
           case `power`     => {
             val d = linkParameter.get
             if (d != 0) {
-              Math.pow(y, 1 / d)
+              FastMath.pow(y, 1 / d)
             } else {
               Math.exp(y)
             }

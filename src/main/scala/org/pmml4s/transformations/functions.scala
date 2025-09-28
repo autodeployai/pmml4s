@@ -18,6 +18,7 @@ package org.pmml4s.transformations
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, GregorianCalendar, TimeZone}
 import org.apache.commons.math3.distribution.NormalDistribution
+import org.apache.commons.math3.util.FastMath
 import org.pmml4s.FunctionNotFoundException
 import org.pmml4s.common.PmmlElement
 import org.pmml4s.data.{DataVal, DateVal, Datetime}
@@ -336,7 +337,7 @@ object Exp extends UnaryArithmetic {
 }
 
 object Pow extends BinaryArithmetic {
-  override def eval(left: Double, right: Double): Double = Math.pow(left, right)
+  override def eval(left: Double, right: Double): Double = FastMath.pow(left, right)
 
   override def symbol: String = "pow"
 }
